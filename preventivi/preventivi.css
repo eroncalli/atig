@@ -1,0 +1,57 @@
+body{
+	background-color: #F7F7F7 !important;
+}
+div {
+	padding: 1px;
+}
+div.red {
+  background-color: rgb(222, 176, 176);
+}
+
+div.blue {
+	background-color: rgb(127, 127, 242);
+}
+
+div.green {
+	background-color: rgb(107, 193, 107);
+}
+
+#table-offerta td,
+#table-articolo td,
+#table-voci td{
+	border: 1px solid black;
+}
+
+label > span,
+thead {
+	font-size: x-small;
+	font-style: normal;
+	font-weight: normal;
+}
+
+select[field="voc-codvoc"] {
+	width:160px;
+}
+
+.form-control {
+	height: 25px;
+}
+.padleft20{
+	padding-left: 20px;
+}
+.btn{
+	min-width: 100px !important;
+	font-weight: bold;
+}
+label>span ,
+th{
+    font-size: 12px !important;
+	font-weight: normal !important;
+}
+input[field='ofv-sconto']{
+	width: 60px;
+}
+.btn-danger{
+	min-width: 30px !important;
+	font-weight: bold;
+}
