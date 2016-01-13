@@ -51,7 +51,7 @@ else if (isset($_GET['update'])) {
 	// UPDATE COMMAND
 	$query = "
 			UPDATE `offerte_dettaglio_articoli`
-			   SET `ofa-lunghezza` = ?, `ofa-larghezza` = ?,
+			   SET `ofa-lunghezza` = ?, `ofa-larghezza` = ?, `ofa-lungsmu` = ?,
              `ofa-quantita` = ?, `ofa-unimis` = ?, 
              `ofa-przacq-net` = ?, `ofa-przacq-lor` = ?
 			 WHERE `ofa-numoff` = ?
@@ -59,9 +59,10 @@ else if (isset($_GET['update'])) {
 	";
 	$result = $mysqli->prepare($query);
 
-	$result->bind_param('ddisddis', 
+	$result->bind_param('dddisddis', 
                       $_GET['ofa_lunghezza'],
                       $_GET['ofa_larghezza'], 
+                      $_GET['ofa_lungsmu'], 
                       $_GET['ofa_quantita'],
                       $_GET['ofa_unimis'],
                       $_GET['ofa_przacq_net'],

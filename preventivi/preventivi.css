@@ -80,3 +80,7 @@ input[field='ofv-valuni-cal']{
 .no-close .ui-dialog-titlebar-close {
   display: none;
 }
+
+.bottom200 {
+  margin-bottom: 200px;
+}

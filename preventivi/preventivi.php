@@ -133,7 +133,7 @@
 					</tr>
 				</tfoot>
 				<tbody>
-					<tr>
+					<!--<tr>
 						<td>xxxxxxxx</td>
 						<td>xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx</td>
 						<td>999.999,99</td>
@@ -142,7 +142,7 @@
 							<button id='btn-articolo-modifica' class="btn btn-success">Modifica</button>
 							<button id='btn-articolo-delete' class="btn btn-danger" >Delete</button>
 						</td>
-					</tr>
+					</tr>-->
 				</tbody>
 			</table>
 		</div>		
@@ -154,7 +154,6 @@
 			<label>
 				<span>Descrizione</span>
 				<input id="ofa-descart" type="text" class="form-control" readonly>
-        <input id="ofa-lungsmu" type="hidden">
 			</label>
 			<label>
 				<span>Famiglia</span>
@@ -196,6 +195,10 @@
 				<input id="ofa-larghezza" type="text" class="form-control">
 			</label>
 			<label>
+				<span>Lunghezza smusso</span>
+				<input id="ofa-lungsmu" type="text" class="form-control">
+			</label>
+      <label>
 				<span>Pezzi</span>
 				<input id="ofa-quantita" type="text" class="form-control">
 			</label>
@@ -211,7 +214,7 @@
 				<button id='btn-voci-ricalcola' class="btn btn-success">Ricalcola</button>
 			</h3>
 		</div>
-		<div id='dettaglio-voci' class="padleft20">
+		<div id='dettaglio-voci' class="padleft20 bottom200">
 			<table id='table-voci' class="table table-bordered">
   			<thead>
 					<tr>

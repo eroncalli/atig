@@ -460,6 +460,7 @@ function showElencoOfferte(start_i, end_i, data) {
           $( "#ofa-przacq-lor" ).autoNumeric('init', getNumericOptions("currency6.5"));
           $( "#ofa-lunghezza" ).autoNumeric('init', getNumericOptions("decimal"));
           $( "#ofa-larghezza" ).autoNumeric('init', getNumericOptions("decimal"));          
+          $( "#ofa-lungsmu" ).autoNumeric('init', getNumericOptions("decimal"));          
           $( "#ofa-quantita" ).autoNumeric('init', getNumericOptions("qta"));
           
           //- Imposta i campi dell'articolo
@@ -467,7 +468,6 @@ function showElencoOfferte(start_i, end_i, data) {
           
           $( "#ofa-codart" ).val(data[0].ofa_codart);
           $( "#ofa-descart" ).val(data[0].ofa_descart);
-          $( "#ofa-lungsmu" ).val(data[0].art_lungsmu);
           $( "#ofa-famiglia" ).val(data[0].fam_descriz);
           $( "#ofa-moltiplicatore" ).val(data[0].ofa_moltipl);
           $( "#ofa-scarto" ).val(data[0].ofa_scarto);
@@ -485,6 +485,7 @@ function showElencoOfferte(start_i, end_i, data) {
           $( "#ofa-przacq-lor" ).autoNumeric('set', data[0].ofa_przacq_lor);
           $( "#ofa-lunghezza" ).autoNumeric('set', data[0].ofa_lunghezza);
           $( "#ofa-larghezza" ).autoNumeric('set', data[0].ofa_larghezza);
+          $( "#ofa-lungsmu" ).autoNumeric('set', data[0].ofa_lungsmu);
           $( "#ofa-quantita" ).autoNumeric('set', data[0].ofa_quantita);
           
           loadDettaglioVoci(item.off_numoff, data[0].ofa_codart)
@@ -748,7 +749,6 @@ function init() {
               if (!ui.item) {
                 $(this).val('');
                 $( "#ofa-descart" ).val('');
-                $( "#ofa-lungsmu" ).val('');
                 $( "#ofa-famiglia" ).val('');
                 $( "#ofa-moltiplicatore" ).val('');
                 $( "#ofa-scarto" ).val('');
@@ -767,7 +767,6 @@ function init() {
 							
 							//- Mostra i dati dell'articolo
 							$( "#ofa-descart" ).val(arr[0].art_descart);
-              $( "#ofa-lungsmu" ).val(arr[0].art_lungsmu);
 							$( "#ofa-famiglia" ).val(arr[0].fam_descriz);
 							$( "#ofa-moltiplicatore" ).val(arr[0].lis_moltipl);
 							$( "#ofa-scarto" ).val(arr[0].lis_scarto);
@@ -800,6 +799,7 @@ function init() {
           $( "#ofa-przacq-lor" ).autoNumeric('init', getNumericOptions("currency6.5"));
           $( "#ofa-lunghezza" ).autoNumeric('init', getNumericOptions("decimal"));
           $( "#ofa-larghezza" ).autoNumeric('init', getNumericOptions("decimal"));          
+          $( "#ofa-lungsmu" ).autoNumeric('init', getNumericOptions("decimal"));          
           $( "#ofa-quantita" ).autoNumeric('init', getNumericOptions("qta"));
           $( "#ofa-quantita" ).autoNumeric('set', 1);
 				}					
@@ -836,7 +836,6 @@ function init() {
     getData.ofa_numoff     = $("#off-numoff").val();
     getData.ofa_codart     = $("#ofa-codart").val();
     getData.ofa_descart    = $("#ofa-descart").val();
-    getData.ofa_lungsmu    = $("#ofa-lungsmu").val();
     getData.ofa_unimis     = $("#ofa-unimis").val();
     getData.ofa_moltipl    = $("#ofa-moltiplicatore").val();
     getData.ofa_scarto     = $("#ofa-scarto").val();
@@ -845,6 +844,7 @@ function init() {
     getData.ofa_przacq_lor = $("#ofa-przacq-lor").autoNumeric('get');
 		getData.ofa_lunghezza  = $("#ofa-lunghezza").autoNumeric('get');
 		getData.ofa_larghezza  = $("#ofa-larghezza").autoNumeric('get');
+    getData.ofa_lungsmu    = $("#ofa-lungsmu").autoNumeric('get');
     getData.ofa_quantita   = $("#ofa-quantita").autoNumeric('get');
 		
     console.log(getData);
@@ -977,6 +977,7 @@ function init() {
     getData.ofa_przacq_lor = $("#ofa-przacq-lor").autoNumeric('get');
 		getData.ofa_lunghezza  = $("#ofa-lunghezza").autoNumeric('get');
 		getData.ofa_larghezza  = $("#ofa-larghezza").autoNumeric('get');
+    getData.ofa_lungsmu    = $("#ofa-lungsmu").autoNumeric('get');
     getData.ofa_quantita   = $("#ofa-quantita").autoNumeric('get');
     
 		$.getJSON("data-offerta-articoli.php", getData)
@@ -1258,11 +1259,11 @@ function init() {
                                   
                                   switch (tiposmu) {
                                     case "1":
-                                      dimSmusso = $( "#ofa-lungsmu" ).val();
+                                      dimSmusso = $( "#ofa-lungsmu" ).autoNumeric('get');
                                       strSmusso = "Smusso diritto (" + dimSmusso + ")";
                                       break;
                                     case "2":
-                                      dimSmusso = (0.6 * $("#ofa-larghezza").autoNumeric('get')) + $( "#ofa-lungsmu" ).val();
+                                      dimSmusso = (0.6 * $("#ofa-larghezza").autoNumeric('get')) + $( "#ofa-lungsmu" ).autoNumeric('get');
                                       strSmusso = "Smusso diagonale (" + dimSmusso + ")";
                                       break;
                                   }
