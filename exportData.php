@@ -53,14 +53,14 @@ if( $conn )
 	sqlsrv_free_stmt( $stmt);
 	//echo $query;
 	$db->query($query);
-	echo "<h2>Importi tutti i Clienti (" . $count . ")</h2>";
+	echo "<h2>Importati tutti i Clienti (" . $count . ")</h2>";
 	
-	$sql = "select ARCODART,ARDESART,ARCODFAM FROM [ATIG_EXPORT].[dbo].[ATIGART_ICOL]";
+	$sql = "select ARCODART,ARDESART,ARCODFAM FROM [ATIG_EXPORT].[dbo].[ATIGART_ICOL] where ARCODFAM is not null";
 	$stmt = sqlsrv_query( $conn, $sql );
 	$query = '';
 	$count = 0;
 	$cc = 0;
-	/*
+	
 	while( $row = sqlsrv_fetch_array( $stmt, SQLSRV_FETCH_ASSOC) ) {
 	
 		$query .= "INSERT IGNORE INTO `atig`.`articoli`
@@ -84,8 +84,8 @@ if( $conn )
 	sqlsrv_free_stmt( $stmt);
 	//echo $query;
 	$db->query($query);
-	echo "<h2>Importi tutti gli articoli (" . $count . ")</h2>";
-	*/
+	echo "<h2>Importati tutti gli articoli (" . $count . ")</h2>";
+	
 	
 	$sql = "select FACODICE,FADESCRI FROM [ATIG_EXPORT].[dbo].[ATIGFAM_ARTI]";
 	$stmt = sqlsrv_query( $conn, $sql );
@@ -111,7 +111,7 @@ if( $conn )
 	sqlsrv_free_stmt( $stmt);
 	//echo $query;
 	$db->query($query);
-	echo "<h2>Importi tutte le famiglie (" . $count . ")</h2>";
+	echo "<h2>Importati tutte le famiglie (" . $count . ")</h2>";
 }
 else
 {
