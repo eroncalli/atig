@@ -1,8 +1,26 @@
 "use strict";
 
+function getRowElencoOfferte() {
+  return ' \
+					<tr numoff="">\
+						<td></td>\
+						<td></td>\
+						<td></td>\
+						<td></td>\
+						<td></td>\
+						<td>\
+              <button field="btn-offerta-modifica" class="btn btn-success"><span class="glyphicon glyphicon-edit"></span></button>\
+						</td>\
+            <td>\
+              <button field="btn-offerta-delete" class="btn btn-danger"><span class="glyphicon glyphicon-remove"></span></button>\
+            </td>\
+					</tr>\
+  ';
+}
+
 function getRowHtml() {
 	return '	\
-					<tr ofv_id = "" brandnew>\
+					<tr ofv_id = "" brandnew  przunit="">\
 						<td>\
 							<select field="voc-codvoc" class="form-control">\
 								<option disabled selected>...</option>\
@@ -12,28 +30,30 @@ function getRowHtml() {
 							<input field="ofv-codart-agg" type="text" class="form-control" przLordo="">\
 							<span field="lvo-tiposmu"></span>\
 						</td>\
-						<td>\
+						<!--<td>\
 							<span field="voc-critcalc"></span>\
 						</td> \
 						<td>\
 							<span field="voc-formula"></span>\
-						</td>\
+						</td>-->\
 						<td>\
-							<input qta field="ofv-quantita" type="text" class="form-control" placeholder="qta">\
-							<input qta field="ofv-durata" type="text" class="form-control" placeholder="min">\
+							<input qta field="ofv-quantita" type="text" class="form-control" placeholder="Qta">\
+							<input qta field="ofv-durata" type="text" class="form-control" placeholder="Minuti">\
 							<input qta field="ofv-lunghezza" type="text" class="form-control" placeholder="Lunghezza">\
 							<input qta field="ofv-larghezza" type="text" class="form-control" placeholder="Larghezza">\
+              <input qta field="ofv-spessore" type="text" class="form-control" placeholder="Spessore">\
+              <span field="costo"></span>\
+            </td>\
+						<td style="width: 160px;">\
+							<input field="ofv-valuni-cal" type="text" class="form-control text-right pull-right">\
 						</td>\
-						<td>\
-							<input field="ofv-valuni-cal" type="text" class="form-control">\
+						<td style="width: 80px;">\
+							<input field="ofv-sconto" type="text" class="form-control col-md-1 text-right pull-right">\
 						</td>\
-						<td style="width: 70px;">\
-							<input field="ofv-sconto" type="text" class="form-control col-md-1">\
-						</td>\
-						<td>\
+						<td class="text-right">\
 							<span field="ofv-valuni-fin"></span>\
 						</td>\
-						<td>\
+						<td class="text-right">\
 							<span field="ofv-valtot-fin"></span>\
 						</td>\
 						<td style="width: 40px;">\
@@ -43,25 +63,504 @@ function getRowHtml() {
 	';
 }
 
+function getNumericOptions(what) {
+  var opt = { aSep: '.', aDec: ',' };
+  
+  switch (what) {
+  case "currency": 
+    opt.vMin = '0.00';
+    opt.vMax = '9999999.99';
+    break;
+  case "currency6.5": 
+    opt.vMin = '0.00000';
+    opt.vMax = '999999.99999';
+    break;      
+  case "decimal": 
+    opt.vMin = '0.0';
+    opt.vMax = '999999.9';
+    break;
+  case "sconto": 
+    opt.vMin = '0.00';
+    opt.vMax = '99.99';
+    opt.wEmpty = 'zero';
+    break;
+  case "qta": 
+    opt.vMin = '1';
+    opt.vMax = '99999';
+    opt.wEmpty = 'zero';
+    break;
+  case "integer12": 
+    opt.vMin = '0';
+    opt.vMax = '999999999999';
+    break;
+  }  
+  
+  return opt;
+}
+
+function getSpessoriPrecedenti(row) {
+  //- Calcola gli spessori precedenti alla 'num_riga_voce'
+  var spessori = 0;
+  var num_riga_voce = row.attr( "num_riga_voce" );
+  
+  var elencoVoci = $("#table-voci-body tr");
+  $.each( elencoVoci, function( i, row ) {
+    var $row = $(row);
+
+    if ($row.attr( "num_riga_voce" ) < num_riga_voce) {
+      spessori += (1 * $row.find('[field="ofv-spessore"]').autoNumeric('get'));
+    }
+  });
+
+  return spessori;
+}
+
+function applyFormula(row) {
+  var formula = row.attr('voc-formula');
+  var valuni = 0;
+  
+  var costo = row.attr("przunit");
+  var przlordo = $( "#ofa-przacq-lor" ).autoNumeric('get');
+  var lun = $( "#ofa-lunghezza" ).autoNumeric('get');
+  var lar = $( "#ofa-larghezza" ).autoNumeric('get');
+  var qta = row.find('[field="ofv-quantita"]').autoNumeric('get');      
+  var dur = row.find('[field="ofv-durata"]').autoNumeric('get');
+
+  var spe = row.find('[field="ofv-spessore"]').autoNumeric('get');
+  var smusso = row.find('[field="ofv-codart-agg"]').attr("smusso");
+  var przRivest = row.find('[field="ofv-codart-agg"]').attr("przLordo");
+
+  switch (formula) {
+  case "1": //-ARTICOLO (non usato)
+    valuni = przlordo;
+    break;
+  case "2": //-ARTICOLO (non usato)
+    valuni = przlordo * (lun/1000) * (lar/1000);
+    break;
+  case "3": //-MANODOPERA
+    valuni = costo * dur;
+    break;
+  case "4": //-RIVESTIMENTO (primo e successivi)
+    var spePrec = getSpessoriPrecedenti(row);
+    valuni = ((lun / 3.14) + (2 * spePrec) + (spe * 3.14) + (1 * smusso)) * przRivest;
+    break;
+  case "5": //-RIVESTIMENTO SUCCESSIVO (non usato)
+    break;
+  case "6": //-GIUNZIONE
+    valuni = costo * lar;
+    break;
+  case "7": //-GUIDA
+    valuni = costo * lun;  
+    break;
+  }
+
+  row.find('[field="ofv-valuni-cal"]').autoNumeric('set', valuni);
+}
+
+function loadElencoOfferte() {
+  //- Carica l'elenco delle offerte
+  $.getJSON("data-offerta.php")
+  .done(function(data) {
+    if (data.error) {
+      alert("error");
+    } else {
+
+      $("#pager-offerta").pagination({
+        items: data.length,
+        itemsOnPage: 10,
+        cssStyle: 'light-theme',
+        prevText: '<',
+        nextText: '>',
+        onPageClick: function(pageNumber,event) {
+          var start_i = 10 * (pageNumber - 1);
+          var end_i = (10 * pageNumber) - 1;
+          showElencoOfferte(start_i, end_i, data);
+        }
+      });
+      
+      $("#pager-offerta").pagination('selectPage', 1);
+    }
+  })
+  .fail(function(data) {
+  });						
+}
+
+function loadDettaglioVoci(numoff, codart) {
+  $("#header-voci").show();
+  $("#dettaglio-voci").show();
+
+  //- Imposta il formato dei totali
+  $("#valuni-cal").autoNumeric('init', getNumericOptions("currency"));
+  $("#valuni-cal").autoNumeric('set', "");
+  $("#valuni-fin").autoNumeric('init', getNumericOptions("currency"));
+  $("#valuni-fin").autoNumeric('set', "");
+  $("#valtot-fin").autoNumeric('init', getNumericOptions("currency"));
+  $("#valtot-fin").autoNumeric('set', "");
+
+  //- Rimuove tutte le righe diversa dalla prima
+  $( "tbody tr[num_riga_voce!='1']" ).remove();
+
+  var getData = {};
+  getData.ofv_numoff = numoff;
+  getData.ofv_codart = codart;
+
+  $.getJSON("data-offerta-costi.php", getData)
+  .done(function(data) {
+      if (data.error) {
+        alert("error");
+      } else {
+
+        $.each( data, function( i, item ) {
+
+          var row;
+
+          if (item.ofv_num_riga_voce == 1) {
+            row = $( "tr[num_riga_voce='1']" );
+          }
+          else {
+            //- Aggiunge una nuova riga nella tabella
+            $("#table-voci-body").append(getRowHtml());
+            $("#table-voci-body").attr( "max_num_riga_voce", item.ofv_num_riga_voce );
+
+            row = $( "tr[brandnew]" );
+
+            row.attr( "num_riga_voce", item.ofv_num_riga_voce );
+            row.removeAttr("brandnew");
+            
+            //- Aggiorna la voce
+            row.find('[field="voc-codvoc"]').selectmenu();
+            var opt = '<option value="'+item.ofv_codvoce+'">'+item.ofv_descriz+'</option>';
+            row.find('[field="voc-codvoc"]').append(opt);
+            row.find('[field="voc-codvoc"]').val(item.ofv_codvoce);
+            row.find('[field="voc-codvoc"]').selectmenu( "refresh" );
+            
+            //- Disabilita la combo
+            row.find('[field="voc-codvoc"]')
+              .selectmenu( "close" )
+              .selectmenu( "disable" );	
+          }
+
+          //- Assegna l'id alla riga
+          var ofv_id = item.id;					
+          row.attr( "ofv_id", ofv_id);
+
+          //- Nasconde i campi
+          row.find('[field="ofv-codart-agg"]').hide();
+          row.find("[qta]").hide();
+
+          //- Mostra i campi
+          row.find('[field="ofv-valuni-cal"]').show();
+          row.find('[field="ofv-sconto"]').show();
+
+          //- Imposta il formato
+          row.find('[field="ofv-quantita"]').autoNumeric('init', getNumericOptions("integer12"));
+          row.find('[field="ofv-durata"]').autoNumeric('init', getNumericOptions("integer12"));
+          row.find('[field="ofv-lunghezza"]').autoNumeric('init', getNumericOptions("decimal"));
+          row.find('[field="ofv-larghezza"]').autoNumeric('init', getNumericOptions("decimal"));
+          row.find('[field="ofv-spessore"]').autoNumeric('init', getNumericOptions("decimal"));
+          row.find('[field="ofv-valuni-cal"]').autoNumeric('init', getNumericOptions("currency"));
+          row.find('[field="ofv-sconto"]').autoNumeric('init', getNumericOptions("sconto"));              
+          row.find('[field="ofv-valuni-fin"]').autoNumeric('init', getNumericOptions("currency"));        
+          row.find('[field="ofv-valtot-fin"]').autoNumeric('init', getNumericOptions("currency"));
+
+          //- Imposta i valori
+          row.find('[field="ofv-quantita"]').autoNumeric('set', item.ofv_quantita);
+          row.find('[field="ofv-durata"]').autoNumeric('set', item.ofv_durata);
+          row.find('[field="ofv-lunghezza"]').autoNumeric('set', item.ofv_lunghezza);
+          row.find('[field="ofv-larghezza"]').autoNumeric('set', item.ofv_larghezza);
+          row.find('[field="ofv-spessore"]').autoNumeric('set', item.ofv_spessore);
+          row.find('[field="ofv-valuni-cal"]').autoNumeric('set', item.ofv_valuni_cal);
+          row.find('[field="ofv-sconto"]').autoNumeric('set', item.ofv_sconto);
+          row.find('[field="ofv-valuni-fin"]').autoNumeric('set', item.ofv_valuni_fin);
+          row.find('[field="ofv-valtot-fin"]').autoNumeric('set', item.ofv_valtot_fin);
+
+          row.attr('descriz', item.ofv_descriz);
+          row.attr('critcalc', item.ofv_critcalc);
+          row.attr('voc-formula', item.ofv_formula);
+          row.find("td").first().tooltip();
+          row.find("td").first().prop('title', item.ofv_desc_formula);
+
+          switch (item.ofv_critcalc) {
+            case "Q": 
+              row.find('[field="ofv-quantita"]').show();
+              break;
+            case "T": 
+              row.find('[field="ofv-durata"]').show();
+              break;
+            case "D": 
+              row.find('[field="ofv-lunghezza"]').show();
+              row.find('[field="ofv-larghezza"]').show();
+              break;
+            case "S": 
+              row.find('[field="ofv-spessore"]').show();
+              break;
+          }
+
+          //- Carica i dati aggiuntivi in base alla formula
+          switch (""+item.ofv_formula) {
+          case "3": //-MANODOPERA
+          case "6": //-GIUNZIONE
+          case "7": //-GUIDA 
+            row.attr('przunit', item.ofv_costo);
+            row.find('[field="costo"]').text("Costo: "+item.ofv_costo);
+            break;
+          case "4": //-RIVESTIMENTO (primo e successivi)
+            row.find('[field="ofv-codart-agg"]').show();
+            row.find('[field="ofv-codart-agg"]').prop("disabled", true);
+            row.find('[field="ofv-codart-agg"]').val(item.ofv_codart_agg);
+            row.find('[field="ofv-codart-agg"]').attr("przLordo", item.ofv_codart_agg_prz_lor);
+            row.find('[field="ofv-codart-agg"]').attr("smusso", item.ofv_dimSmusso);
+
+            row.find('[field="ofv-codart-agg"]').attr("desc1", item.ofv_desc1);
+            row.find('[field="ofv-codart-agg"]').attr("desc2", item.ofv_desc2);
+            row.find('[field="ofv-codart-agg"]').attr("desc3", item.ofv_desc3);
+            row.find('[field="costo"]').html(item.ofv_desc1 + "<br>" + item.ofv_desc2 + "<br>" + item.ofv_desc3);
+            break;
+          }
+
+          //- Gestisce il cambio valore di qta/lun/lar/spe/dur
+          row.find('[field="ofv-quantita"]').keyup(function() {
+            applyFormula(row); 
+          });
+          row.find('[field="ofv-lunghezza"]').keyup(function() {
+            applyFormula(row); 
+          });
+          row.find('[field="ofv-larghezza"]').keyup(function() {
+            applyFormula(row); 
+          });
+          row.find('[field="ofv-spessore"]').keyup(function() {
+            applyFormula(row); 
+          });
+          row.find('[field="ofv-durata"]').keyup(function() {
+            applyFormula(row);
+          });
+
+          //- Cancella una voce
+          row.find('[field="btn-voci-delete"]').click(function() {
+            var getData = {};
+            getData.delete = true;
+            getData.ofv_id = ofv_id;
+
+            $.getJSON("data-offerta-costi.php", getData)
+            .done(function(data) {
+                if (data.error) {
+                  alert("error");
+                } else {
+                  //- Rimuove la riga
+                  row.remove();
+                }
+            })
+            .fail(function(data) {
+            });														
+          });
+        });
+
+        //- Ricalcola
+        $( "#btn-voci-ricalcola" ).trigger( "click" );
+      }     
+  })
+  .fail(function(data) {
+  });  
+}
+
+function showElencoOfferte(start_i, end_i, data) {
+  var row;
+  
+  $("#table-offerta tbody").empty();
+
+  $.each( data, function( i, item ) {
+    if (i < start_i) {
+      return true; //continue
+    }
+    if (i > end_i) {
+      return false; //break
+    }
+
+    $("#table-offerta tbody").append(getRowElencoOfferte());
+
+    row = $( "#table-offerta tbody tr:last-child" );
+    row.attr( "numoff", item.off_numoff );
+
+    var d = new Date(item.off_datains);
+
+    row.find("td:nth-child(1)").text(item.off_numoff);
+    row.find("td:nth-child(2)").text(d.toLocaleDateString());
+    row.find("td:nth-child(3)").text(item.off_codcli);
+    row.find("td:nth-child(4)").text(item.cli_ragsoc);
+    row.find("td:nth-child(5)").autoNumeric('init', getNumericOptions("currency"));
+    row.find("td:nth-child(5)").autoNumeric('set', item.totgen);
+
+    //-
+    //- Gestisce pulsante Modifica
+    //-
+    row.find('[field="btn-offerta-modifica"]').click(function() {
+      
+      //- Carica i dettagli offerta (item.off_numoff)
+      $("#header-offerta").show();
+	    $("#elenco-offerta").hide();
+	    $("#dettaglio-offerta").show();
+      $("#btn-offerta-crea").hide();
+  
+      var getData = {};
+      getData.select_one  = true;
+      getData.off_numoff  = item.off_numoff;
+
+      $.getJSON("data-offerta.php", getData)
+      .done(function(data) {
+        if (data.error) {
+          alert("error");
+        } else {
+          var d = "";
+        
+          //- Imposta i campi dell'offerta
+          $("#off-numoff").val(item.off_numoff);          
+          $("#off-codcli").val(data[0].off_codcli);
+          $("#off-ragsoc").val(data[0].cli_ragsoc);
+          
+          d = "";
+          if (data[0].off_datains != null) {
+            d = new Date(data[0].off_datains);
+          }
+          $( "#off-datains" ).datepicker()
+		      .datepicker( "setDate", d)
+		      .datepicker( "option", "dateFormat", "dd/mm/yy" );
+          
+          d = "";
+          if (data[0].off_dataeva != null) {
+            d = new Date(data[0].off_dataeva);
+          }
+          $( "#off-dataeva" ).datepicker()
+          .datepicker( "setDate", d )
+          .datepicker( "option", "dateFormat", "dd/mm/yy" );
+
+          //- Disabilita i campi dell'offerta
+          $("#dettaglio-offerta :input").prop("disabled", true);
+        }
+      })
+      .fail(function(data) {
+      });						
+
+      //- Carica i dettagli articolo
+	    $("#header-articolo").show();
+	    $("#elenco-articolo").hide();
+	    $("#dettaglio-articolo").show();	
+      $("#btn-articolo-inserisci").hide();		
+		  $("#btn-articolo-aggiorna").show();
+  
+      var getData = {};
+      getData.select_one  = true;
+      getData.ofa_numoff  = item.off_numoff;
+
+      $.getJSON("data-offerta-articoli.php", getData)
+      .done(function(data) {
+        if (data.error) {
+          alert("error");
+        } else {
+          $( "#ofa-przacq-net" ).autoNumeric('init', getNumericOptions("currency6.5"));
+          $( "#ofa-przacq-lor" ).autoNumeric('init', getNumericOptions("currency6.5"));
+          $( "#ofa-lunghezza" ).autoNumeric('init', getNumericOptions("decimal"));
+          $( "#ofa-larghezza" ).autoNumeric('init', getNumericOptions("decimal"));          
+          $( "#ofa-quantita" ).autoNumeric('init', getNumericOptions("qta"));
+          
+          //- Imposta i campi dell'articolo
+          $("#ofa-codart").prop("disabled", true);
+          
+          $( "#ofa-codart" ).val(data[0].ofa_codart);
+          $( "#ofa-descart" ).val(data[0].ofa_descart);
+          $( "#ofa-lungsmu" ).val(data[0].art_lungsmu);
+          $( "#ofa-famiglia" ).val(data[0].fam_descriz);
+          $( "#ofa-moltiplicatore" ).val(data[0].ofa_moltipl);
+          $( "#ofa-scarto" ).val(data[0].ofa_scarto);
+          $( "#ofa-oneri" ).val(data[0].ofa_oneriacc);
+
+          $( "#ofa-unimis option" ).each(function(i, item) {
+            $(this).attr("selected","false");
+
+            if ($(this).val() == data[0].ofa_unimis) {
+              $(this).attr("selected","selected");              
+            }
+          });                        
+
+          $( "#ofa-przacq-net" ).autoNumeric('set', data[0].ofa_przacq_net);
+          $( "#ofa-przacq-lor" ).autoNumeric('set', data[0].ofa_przacq_lor);
+          $( "#ofa-lunghezza" ).autoNumeric('set', data[0].ofa_lunghezza);
+          $( "#ofa-larghezza" ).autoNumeric('set', data[0].ofa_larghezza);
+          $( "#ofa-quantita" ).autoNumeric('set', data[0].ofa_quantita);
+          
+          loadDettaglioVoci(item.off_numoff, data[0].ofa_codart)
+        }
+      })
+      .fail(function(data) {
+      });						
+              
+    });
+    
+    //-
+    //- Gestisce pulsante Cancella
+    //-
+    row.find('[field="btn-offerta-delete"]').click(function() {
+      $( "#dialog-confirm span[msg]" ).text("L'offerta " + item.off_numoff + " verra' cancellata. Confermi ?");
+      
+      $( "#dialog-confirm" ).dialog({
+        resizable: false,
+        height:200,
+        modal: true,
+        title: "Cancellazione",
+        dialogClass: "no-close",
+        buttons: {
+          "Si": function() {
+            $( this ).dialog( "close" );
+            
+            //- Elimina l'offerta
+            var getData = {};
+            getData.delete      = true;
+            getData.off_numoff  = item.off_numoff;
+
+            $.getJSON("data-offerta.php", getData)
+            .done(function(data) {
+              if (data.error) {
+                alert("error");
+              } else {
+                //- Ricarica l'elenco
+                loadElencoOfferte();
+              }
+            })
+            .fail(function(data) {
+            });				
+          },
+          "No": function() {
+            $( this ).dialog( "close" );
+          }
+        }
+      });
+    });
+  });
+}
+
 function init() {
 
 	$("#header-offerta").show();
 	$("#elenco-offerta").hide();
 	$("#dettaglio-offerta").hide();
+  
 	$("#header-articolo").hide();
 	$("#elenco-articolo").hide();
 	$("#dettaglio-articolo").hide();	
+  
 	$("#header-voci").hide();
 	$("#dettaglio-voci").hide();	
 	
+  $("#btn-offerta-elenco").show();	
 	$("#btn-articolo-elenco").hide();	
-	$("#btn-offerta-elenco").hide();	
 	
+  //---------------------------------------
 	//- Offerta
+  //---------------------------------------
 	
 	$( "#btn-offerta-new" ).click(function() {
 		//- Mostra il dettaglio 
 		$("#elenco-offerta").hide();
+    $("#pager-offerta").hide();
 		$("#dettaglio-offerta").show();
 		$("#header-articolo").hide();
 		$("#elenco-articolo").hide();
@@ -100,6 +599,15 @@ function init() {
 					
 					$( "#off-codcli" ).autocomplete({
       			source: list_codcli,
+            
+            //- Permette la scelta solo tra le voci dell'elenco
+            change: function (event, ui) {
+              if (!ui.item) {
+                $(this).val('');
+                $( "#off-ragsoc" ).val('');
+              }
+            },
+            
 						select: function( event, ui ) {
 							var selected_codcli = ui.item.value;
 							
@@ -117,8 +625,28 @@ function init() {
 		
 	});
 	
-	$( "#btn-offerta-elenco" ).click(function() {
-		$("#elenco-offerta").toggle();
+  $( "#btn-offerta-elenco" ).click(function() {
+		if ($("#elenco-offerta").is(":visible")) {
+      $("#elenco-offerta").hide();
+      $("#pager-offerta").hide();  
+    }
+    else {
+      $("#elenco-offerta").show();
+      $("#pager-offerta").show();  
+      
+      $("#dettaglio-offerta").hide();
+
+      $("#header-articolo").hide();
+      $("#elenco-articolo").hide();
+      $("#dettaglio-articolo").hide();	
+
+      $("#header-voci").hide();
+      $("#dettaglio-voci").hide();	
+	
+      $("#btn-articolo-elenco").hide();
+    }
+    
+    loadElencoOfferte();    
 	});
 
 	$( "#btn-offerta-modifica" ).click(function() {
@@ -139,7 +667,12 @@ function init() {
 		e.preventDefault();
 		
 		//- Verifica i dati
-		
+    var codcli = $( "#off-codcli" ).val();
+		if (_.isUndefined(codcli) || (codcli == "")) {
+      alert('Scegli un codice cliente.');
+      return;
+    }
+    
 		//- Crea una nuova offerta
 		var getData = {};
 		getData.insert      = true;
@@ -168,11 +701,14 @@ function init() {
 
 	});
 	
+  //---------------------------------------
 	//- Articolo
+  //---------------------------------------
 	
   $( "#btn-articolo-new" ).click(function() {
 		//- Mostra il dettaglio 
 		$("#elenco-offerta").hide();
+    $("#pager-offerta").hide();
 		$("#elenco-articolo").hide();
 		$("#dettaglio-articolo").show();	
 		$("#header-voci").hide();
@@ -206,6 +742,22 @@ function init() {
 					
 					$( "#ofa-codart" ).autocomplete({
       			source: list_codart,
+            
+            //- Permette la scelta solo tra le voci dell'elenco
+            change: function (event, ui) {
+              if (!ui.item) {
+                $(this).val('');
+                $( "#ofa-descart" ).val('');
+                $( "#ofa-lungsmu" ).val('');
+                $( "#ofa-famiglia" ).val('');
+                $( "#ofa-moltiplicatore" ).val('');
+                $( "#ofa-scarto" ).val('');
+                $( "#ofa-oneri" ).val('');
+                $( "#ofa-przacq-net" ).autoNumeric('set', "");
+                $( "#ofa-przacq-lor" ).autoNumeric('set', "");
+              }
+            },
+
 						select: function( event, ui ) {
 							var selected_codart = ui.item.value;
 							
@@ -215,22 +767,41 @@ function init() {
 							
 							//- Mostra i dati dell'articolo
 							$( "#ofa-descart" ).val(arr[0].art_descart);
+              $( "#ofa-lungsmu" ).val(arr[0].art_lungsmu);
 							$( "#ofa-famiglia" ).val(arr[0].fam_descriz);
-							$( "#ofa-spessore" ).val(arr[0].art_spessore);
 							$( "#ofa-moltiplicatore" ).val(arr[0].lis_moltipl);
 							$( "#ofa-scarto" ).val(arr[0].lis_scarto);
 							$( "#ofa-oneri" ).val(arr[0].lis_oneriacc);
-							$( "#ofa-unimis" ).val(arr[0].lis_unimis);
-							$( "#ofa-przacq-net" ).val(arr[0].lis_przacq);
-							
+
+              $( "#ofa-unimis option" ).each(function(i, item) {
+                $(this).attr("selected","false");
+                
+                if ($(this).val() == arr[0].lis_unimis) {
+                  $(this).attr("selected","selected");              
+                }
+              });                        
+              
+              $( "#ofa-przacq-net" ).autoNumeric('set', arr[0].lis_przacq);
+              
 							//- Calcola il prezzo lordo
+              var przNetto = $( "#ofa-przacq-net" ).autoNumeric('get');
+              
 							var przLordo = 
-									($( "#ofa-przacq-net" ).val() * $( "#ofa-moltiplicatore" ).val())
-								+ ($( "#ofa-przacq-net" ).val() * $( "#ofa-oneri" ).val() / 100)
-								+ ($( "#ofa-przacq-net" ).val() * $( "#ofa-scarto" ).val() / 100);
-							$( "#ofa-przacq-lor" ).val(przLordo);
+									(przNetto * $( "#ofa-moltiplicatore" ).val())
+								+ (przNetto * $( "#ofa-oneri" ).val() / 100)
+								+ (przNetto * $( "#ofa-scarto" ).val() / 100);
+							
+              $( "#ofa-przacq-lor" ).autoNumeric('set', przLordo);
 						}
     			});
+
+          //- Imposta i campi
+          $( "#ofa-przacq-net" ).autoNumeric('init', getNumericOptions("currency6.5"));
+          $( "#ofa-przacq-lor" ).autoNumeric('init', getNumericOptions("currency6.5"));
+          $( "#ofa-lunghezza" ).autoNumeric('init', getNumericOptions("decimal"));
+          $( "#ofa-larghezza" ).autoNumeric('init', getNumericOptions("decimal"));          
+          $( "#ofa-quantita" ).autoNumeric('init', getNumericOptions("qta"));
+          $( "#ofa-quantita" ).autoNumeric('set', 1);
 				}					
 		})
 		.fail(function(data) {
@@ -253,15 +824,31 @@ function init() {
 		e.preventDefault();
 		
 		//- Verifica i dati
+    var codart = $( "#ofa-codart" ).val();
+		if (_.isUndefined(codart) || (codart == "")) {
+      alert('Scegli un codice articolo.');
+      return;
+    }
 		
 		//- Crea una nuova offerta
 		var getData = {};
-		getData.insert        = true;
-    getData.ofa_numoff    = $("#off-numoff").val();
-    getData.ofa_codart    = $("#ofa-codart").val();
-		getData.ofa_lunghezza = $("#ofa-lunghezza").val();
-		getData.ofa_larghezza = $("#ofa-larghezza").val();
+		getData.insert         = true;
+    getData.ofa_numoff     = $("#off-numoff").val();
+    getData.ofa_codart     = $("#ofa-codart").val();
+    getData.ofa_descart    = $("#ofa-descart").val();
+    getData.ofa_lungsmu    = $("#ofa-lungsmu").val();
+    getData.ofa_unimis     = $("#ofa-unimis").val();
+    getData.ofa_moltipl    = $("#ofa-moltiplicatore").val();
+    getData.ofa_scarto     = $("#ofa-scarto").val();
+    getData.ofa_oneriacc   = $("#ofa-oneri").val();
+    getData.ofa_przacq_net = $("#ofa-przacq-net").autoNumeric('get');
+    getData.ofa_przacq_lor = $("#ofa-przacq-lor").autoNumeric('get');
+		getData.ofa_lunghezza  = $("#ofa-lunghezza").autoNumeric('get');
+		getData.ofa_larghezza  = $("#ofa-larghezza").autoNumeric('get');
+    getData.ofa_quantita   = $("#ofa-quantita").autoNumeric('get');
 		
+    console.log(getData);
+    
 		$.getJSON("data-offerta-articoli.php", getData)
 		.done(function(data) {
 			if (data.error) {
@@ -275,10 +862,104 @@ function init() {
 					//- Abilita la possibilità di inserire le voci di costo
 					$("#header-voci").show();
 					$("#dettaglio-voci").show();
+          
+          //- Imposta il formato dei totali
+          $("#valuni-cal").autoNumeric('init', getNumericOptions("currency"));
+          $("#valuni-cal").autoNumeric('set', "");
+          $("#valuni-fin").autoNumeric('init', getNumericOptions("currency"));
+          $("#valuni-fin").autoNumeric('set', "");
+          $("#valtot-fin").autoNumeric('init', getNumericOptions("currency"));
+          $("#valtot-fin").autoNumeric('set', "");
+          
+          //- Rimuove tutte le righe diversa dalla prima
+          $( "tbody tr[num_riga_voce!='1']" ).remove();
+          
+          //- Inserisce la voce associata all' ARTICOLO (num_riga_voce == 1) (cod-voce == 1)
+          var getData = {};
+          getData.insertArticolo = true;
+          getData.ofv_numoff     = $("#off-numoff").val();
+          getData.ofv_codart     = $("#ofa-codart").val();
+
+          $.getJSON("data-offerta-costi.php", getData)
+          .done(function(data) {
+              if (data.error) {
+                alert("error");
+              } else {
+
+                var row = $( "tr[num_riga_voce='1']" );
+
+                //- Assegna l'id alla riga
+                var ofv_id = data.id;					
+                row.attr( "ofv_id", ofv_id);
+
+                //- Nasconde i campi
+                row.find('[field="ofv-codart-agg"]').hide();
+                row.find("[qta]").hide();
+
+                //- Mostra i campi
+                row.find('[field="ofv-valuni-cal"]').show();
+                row.find('[field="ofv-sconto"]').show();
+
+                //- Imposta il formato
+                row.find('[field="ofv-quantita"]').autoNumeric('init', getNumericOptions("integer12"));
+                row.find('[field="ofv-durata"]').autoNumeric('init', getNumericOptions("integer12"));
+                row.find('[field="ofv-lunghezza"]').autoNumeric('init', getNumericOptions("decimal"));
+                row.find('[field="ofv-larghezza"]').autoNumeric('init', getNumericOptions("decimal"));
+                row.find('[field="ofv-spessore"]').autoNumeric('init', getNumericOptions("decimal"));
+                row.find('[field="ofv-valuni-cal"]').autoNumeric('init', getNumericOptions("currency"));
+                row.find('[field="ofv-sconto"]').autoNumeric('init', getNumericOptions("sconto"));
+                row.find('[field="ofv-sconto"]').autoNumeric('set', 0);
+                row.find('[field="ofv-valuni-fin"]').autoNumeric('init', getNumericOptions("currency"));
+                row.find('[field="ofv-valuni-fin"]').autoNumeric('set', "");
+                row.find('[field="ofv-valtot-fin"]').autoNumeric('init', getNumericOptions("currency"));
+                row.find('[field="ofv-valtot-fin"]').autoNumeric('set', "");
+
+                //- Calcola il prezzo
+                var valuni = 0;
+                var tipo = $( "#ofa-unimis" ).val();
+                var przlordo = $( "#ofa-przacq-lor" ).autoNumeric('get');
+                var lun = $( "#ofa-lunghezza" ).autoNumeric('get');
+                var lar = $( "#ofa-larghezza" ).autoNumeric('get');
+
+                switch (tipo) {
+                case "P": 
+                  valuni = przlordo;
+                  break;
+                case "M": 
+                  valuni = przlordo * (lun/1000) * (lar/1000);
+                  break;
+                }
+
+                row.find('[field="ofv-valuni-cal"]').autoNumeric('set', valuni);
+
+                //- Carica lo sconto in base alla voce
+                var getData = {};
+                getData.scontoPerVoce = true;
+                getData.codvoce       = 1;
+                getData.codcli        = $("#off-codcli").val();											
+                getData.codart        = $("#ofa-codart").val();
+
+                $.getJSON("data-viste.php", getData)
+                .done(function(data) {
+                    if (data.error) {
+                      alert("error");
+                    } else {
+                      row.find('[field="ofv-sconto"]').autoNumeric('set', data[0].sconto);
+                    }
+                })
+                .fail(function(data) {
+                });	
+
+                //- Ricalcola
+                $( "#btn-voci-ricalcola" ).trigger( "click" );
+              }     
+          })
+          .fail(function(data) {
+          });          
 				}
 		})
 		.fail(function(data) {
-		});						
+		});		
 	});
 	
 	$( "#btn-articolo-aggiorna" ).click(function(e) {
@@ -291,26 +972,66 @@ function init() {
 		getData.update        = true;
     getData.ofa_numoff    = $("#off-numoff").val();
     getData.ofa_codart    = $("#ofa-codart").val();
-		getData.ofa_lunghezza = $("#ofa-lunghezza").val();
-		getData.ofa_larghezza = $("#ofa-larghezza").val();
-		
+    getData.ofa_unimis     = $("#ofa-unimis").val();
+    getData.ofa_przacq_net = $("#ofa-przacq-net").autoNumeric('get');
+    getData.ofa_przacq_lor = $("#ofa-przacq-lor").autoNumeric('get');
+		getData.ofa_lunghezza  = $("#ofa-lunghezza").autoNumeric('get');
+		getData.ofa_larghezza  = $("#ofa-larghezza").autoNumeric('get');
+    getData.ofa_quantita   = $("#ofa-quantita").autoNumeric('get');
+    
 		$.getJSON("data-offerta-articoli.php", getData)
 		.done(function(data) {
+        //- Ricalcola il prezzo ARTICOLO
+        var valuni = 0;
+        var tipo = $( "#ofa-unimis" ).val();
+        var przlordo = $( "#ofa-przacq-lor" ).autoNumeric('get');
+        var lun = $( "#ofa-lunghezza" ).autoNumeric('get');
+        var lar = $( "#ofa-larghezza" ).autoNumeric('get');
+
+        switch (tipo) {
+        case "P": 
+          valuni = przlordo;
+          break;
+        case "M": 
+          valuni = przlordo * (lun/1000) * (lar/1000);
+          break;
+        }
+
+        $( "tr[num_riga_voce='1']" ).find('[field="ofv-valuni-cal"]').autoNumeric('set', valuni);
+        
+        //- Ricalcola
+        $( "#btn-voci-ricalcola" ).trigger( "click" );
 		})
 		.fail(function(data) {
 		});						
 	});
 	
+  //---------------------------------------
 	//- Voci
-	
-	$( "#btn-voci-new" ).click(function() {
+  //---------------------------------------
+  
+  $( "#btn-voci-new" ).click(function() {
+    
 		//- Aggiunge la nuova voce se l'ultima ha già assegnato un articolo
-		
+		var maxNumRigaVoce = $("#table-voci-body").attr( "max_num_riga_voce" );
+    
+    if (maxNumRigaVoce > 1) {
+      var lastRow  = $( 'tr[num_riga_voce="' + maxNumRigaVoce + '"]');
+      
+      //- Non ha ancora selezionato un articolo
+      if (lastRow.find('[field="voc-codvoc"]').prop('disabled') == false) {
+        return;
+      }     
+    }
+    
+    var newNumRigaVoce = 1 + (1*maxNumRigaVoce);
+  
 		//- Crea una nuova voce
 		var getData = {};
-		getData.insert        = true;
-    getData.ofv_numoff    = $("#off-numoff").val();
-    getData.ofv_codart    = $("#ofa-codart").val();
+		getData.insert            = true;
+    getData.ofv_numoff        = $("#off-numoff").val();
+    getData.ofv_codart        = $("#ofa-codart").val();
+    getData.ofv_num_riga_voce = newNumRigaVoce;
 		
 		$.getJSON("data-offerta-costi.php", getData)
 		.done(function(data) {
@@ -319,12 +1040,14 @@ function init() {
 				} else {
 					//- Aggiunge una nuova riga nella tabella
 					$("#table-voci-body").append(getRowHtml());
-					
+          $("#table-voci-body").attr( "max_num_riga_voce", newNumRigaVoce );
+          
 					//- Assegna l'id alla riga
 					var ofv_id = data.id;
 					
 					$( "tr[brandnew]" )
 					.attr( "ofv_id", ofv_id)
+          .attr( "num_riga_voce", newNumRigaVoce )
 					.removeAttr("brandnew");
 					
 					//- Imposta gli elementi della riga
@@ -351,88 +1074,54 @@ function init() {
 								//- Nasconde i campi
 								row.find('[field="ofv-codart-agg"]').hide();
 								row.find("[qta]").hide();
+                row.find('[field="ofv-valuni-cal"]').hide();
+                row.find('[field="ofv-sconto"]').hide();
 								
+                //- Imposta il formato
+                row.find('[field="ofv-quantita"]').autoNumeric('init', getNumericOptions("integer12"));
+                row.find('[field="ofv-durata"]').autoNumeric('init', getNumericOptions("integer12"));
+								row.find('[field="ofv-lunghezza"]').autoNumeric('init', getNumericOptions("decimal"));
+								row.find('[field="ofv-larghezza"]').autoNumeric('init', getNumericOptions("decimal"));
+                row.find('[field="ofv-spessore"]').autoNumeric('init', getNumericOptions("decimal"));
+                row.find('[field="ofv-valuni-cal"]').autoNumeric('init', getNumericOptions("currency"));
+                row.find('[field="ofv-sconto"]').autoNumeric('init', getNumericOptions("sconto"));
+                row.find('[field="ofv-sconto"]').autoNumeric('set', 0);
+                row.find('[field="ofv-valuni-fin"]').autoNumeric('init', getNumericOptions("currency"));
+                row.find('[field="ofv-valtot-fin"]').autoNumeric('init', getNumericOptions("currency"));
+                
 								//- Gestisce la selezione di una voce
 								row.find('[field="voc-codvoc"]').selectmenu({
   								change: function( event, ui ) {
+                    
+                    //- Disabilita la combo
+                    row.find('[field="voc-codvoc"]')
+											.selectmenu( "close" )
+											.selectmenu( "disable" );	
+                    
 										var selected_codvoce = ui.item.value;
 										
 										var arr = $.grep(arrVoci, function( item ) {
 											return item.voc_codvoce == selected_codvoce;
 										});
+                    
+                    var descriz     = arr[0].voc_descriz;
+                    var formula     = arr[0].codice;
+                    var descFormula = arr[0].formula;
+                    var critcalc    = arr[0].critcalc;
 
-										row.find('[field="voc-codvoc"]')
-											.selectmenu( "close" )
-											.selectmenu( "disable" );
-										
-										//- Carica gli articoli aggiuntivi in base alla voce
-										var getData = {};
-										getData.articoliPerVoce = true;
-										getData.codvoce         = selected_codvoce;
-//											getData.codcli          = $("#off-codcli").val();											
-//											getData.ofv_codart      = $("#ofa-codart").val();
-
-										$.getJSON("data-viste.php", getData)
-										.done(function(data) {
-												if (data.error) {
-													alert("error");
-												} else {
-
-													var list_codart = [];
-
-													$.each( data, function( i, item ) {
-														list_codart.push({
-															label: item.art_codart+" - "+item.art_descart,
-															value: item.art_codart
-														});
-													});
-													
-													//- Se ci sono articoli aggiuntivi, abilita la scelta
-													row.find('[field="ofv-codart-agg"]').hide();
-													if (list_codart.length > 0) {
-														row.find('[field="ofv-codart-agg"]').show();
-														row.find('[field="ofv-codart-agg"]').autocomplete({
-															source: list_codart,
-															select: function( event, ui ) {
-																var selected_codart = ui.item.value;
-
-																var arr = $.grep(data, function( item ) {
-																	return item.art_codart == selected_codart;
-																});
-																
-																//- Inserisce lo smusso
-																if (arr[0].ivo_flagsmu == 's') {
-																	row.find('[field="ivo_tiposmu"]').show();
-																	row.find('[field="ivo_tiposmu"]').val(arr[0].ivo_flagsmu);
-																}
-
-																//- Calcola il prezzo lordo
-																var przLordo = 
-																		(arr[0].lis_przacq * arr[0].lis_moltipl)
-																	+ (arr[0].lis_przacq * arr[0].lis_oneriacc / 100)
-																	+ (arr[0].lis_przacq * arr[0].lis_scarto / 100);
-
-																row.find('[field="ofv-codart-agg"]').attr("przLordo", przLordo);
-															}
-														});
-													}													
-												}
-										})
-										.fail(function(data) {
-										});			
-										
-										var fieldFormula = row.find('[field="voc-formula"]');
-										fieldFormula.text(arr[0].codice);
-										fieldFormula.parent().prop('title', arr[0].formula);
-
-										var critcalc = arr[0].voc_critcalc;
-										row.find('[field="voc-critcalc"]').text(critcalc);
-
-										//-...disabled=true
-										row.find('[field="ofv-valuni-cal"]').prop("disabled", false);
+                    //- Imposta i valori
+                    row.attr('descriz', descriz);
+                    row.attr('critcalc', critcalc);
+                    row.attr('voc-formula', formula);
+                    row.find("td").first().tooltip();
+                    row.find("td").first().prop('title', descFormula);
+                    
+                    //- Mostra i campi
+                    row.find('[field="ofv-valuni-cal"]').show();
+                    row.find('[field="ofv-sconto"]').show();
 										
 										row.find("[qta]").hide();
-										switch (critcalc){
+										switch (critcalc) {
 											case "Q": 
 												row.find('[field="ofv-quantita"]').show();
 												break;
@@ -443,18 +1132,182 @@ function init() {
 												row.find('[field="ofv-lunghezza"]').show();
 												row.find('[field="ofv-larghezza"]').show();
 												break;
-											defaut:
-												//- Inserimento manuale del prezzo
-												row.find('[field="ofv-valuni-cal"]').prop("disabled", false);
+											case "S": 
+												row.find('[field="ofv-spessore"]').show();
+												break;
 										}
-										
-										row.find('[field="ofv-valuni-cal"]').val(10);
-										row.find('[field="ofv-sconto"]').val(5);
+                    
+                    //- Carica lo sconto in base alla voce
+										var getData = {};
+										getData.scontoPerVoce = true;
+										getData.codvoce       = selected_codvoce;
+                    getData.codcli        = $("#off-codcli").val();											
+                    getData.codart        = $("#ofa-codart").val();
 
-										//-TODO: Carica lo sconto in base a codcli,codart,codvoc
+										$.getJSON("data-viste.php", getData)
+										.done(function(data) {
+												if (data.error) {
+													alert("error");
+												} else {
+                          if (data.length > 0) {
+                            row.find('[field="ofv-sconto"]').autoNumeric('set', data[0].sconto);
+                          }
+												}
+										})
+										.fail(function(data) {
+										});	
+                    
+                    //- Carica i dati aggiuntivi in base alla formula
+                    switch (""+formula) {
+                    case "3": //-MANODOPERA
+                    case "6": //-GIUNZIONE
+                    case "7": //-GUIDA            
+
+                      //- Carica il costo
+                      var getData = {};
+                      getData.costoPerVoce = true;
+                      getData.codvoce      = selected_codvoce;
+
+                      $.getJSON("data-viste.php", getData)
+                      .done(function(data) {
+                          if (data.error) {
+                            alert("error");
+                          } else {
+
+                            if (data.length > 0) {
+                              var costo = data[0].ivo_przunit;
+                              
+                              row.attr('przunit', costo);
+                              row.find('[field="costo"]').text("Costo: "+costo);
+                            }			
+
+                            applyFormula(row);
+                          }
+                      })
+                      .fail(function(data) {
+                      });
+                        
+                      break;
+                    case "4": //-RIVESTIMENTO (primo e successivi)
+                      
+                      //- Carica gli articoli aggiuntivi per il rivestimento
+                      var getData = {};
+                      getData.articoliPerVoce = true;
+                      getData.codvoce         = selected_codvoce;
+
+                      $.getJSON("data-viste.php", getData)
+                      .done(function(data) {
+                          if (data.error) {
+                            alert("error");
+                          } else {
+
+                            var list_codart = [];
+
+                            $.each( data, function( i, item ) {
+                              list_codart.push({
+                                label: item.art_codart+" - "+item.art_descart,
+                                value: item.art_codart
+                              });
+                            });
+
+                            //- Se ci sono articoli aggiuntivi, abilita la scelta
+                            row.find('[field="ofv-codart-agg"]').hide();
+
+                            if (list_codart.length > 0) {
+                              
+                              row.find('[field="ofv-codart-agg"]').show();
+                              
+                              row.find('[field="ofv-codart-agg"]').autocomplete({
+                                source: list_codart,
+
+                                //- Permette la scelta solo tra le voci dell'elenco
+                                change: function (event, ui) {
+                                  if (!ui.item) {
+                                    $(this).val('');
+                                    $(this).attr("przLordo", 0);
+                                    
+                                    row.find('[field="costo"]').html("");
+                                  }
+                                },
+                                
+                                select: function( event, ui ) {
+                                  var selected_codart = ui.item.value;
+
+                                  var arr = $.grep(data, function( item ) {
+                                    return item.art_codart == selected_codart;
+                                  });
+
+                                  //- Calcola il prezzo lordo
+                                  var przNetto = arr[0].lis_przacq;
+                                  
+                                  var przLordo = 
+                                      (przNetto * arr[0].lis_moltipl)
+                                    + (przNetto * arr[0].lis_oneriacc / 100)
+                                    + (przNetto * arr[0].lis_scarto / 100);
+
+                                  row.find('[field="ofv-codart-agg"]').attr("przLordo", przLordo);
+                                  
+                                  //- Inserisce lo smusso
+                                  var tiposmu = 0;
+                                  var strSmusso = "No smusso";
+                                  var dimSmusso = 0;
+                                  
+                                  if (arr[0].ivo_flagsmu == 's') {
+                                    tiposmu = arr[0].ivo_tiposmu;
+                                  }
+                                  
+                                  switch (tiposmu) {
+                                    case "1":
+                                      dimSmusso = $( "#ofa-lungsmu" ).val();
+                                      strSmusso = "Smusso diritto (" + dimSmusso + ")";
+                                      break;
+                                    case "2":
+                                      dimSmusso = (0.6 * $("#ofa-larghezza").autoNumeric('get')) + $( "#ofa-lungsmu" ).val();
+                                      strSmusso = "Smusso diagonale (" + dimSmusso + ")";
+                                      break;
+                                  }
+                                  
+                                  row.find('[field="ofv-codart-agg"]').attr("smusso", dimSmusso);
+                                  
+                                  //- Mostra il messaggio
+                                  var strPrz = "Prezzo: " + Number(przLordo).toFixed(5);
+                                  var strSpessori = "Spessori prec.: " + getSpessoriPrecedenti(row);
+
+                                  row.find('[field="ofv-codart-agg"]').attr("desc1", strPrz);
+                                  row.find('[field="ofv-codart-agg"]').attr("desc2", strSmusso);
+                                  row.find('[field="ofv-codart-agg"]').attr("desc3", strSpessori);
+                                  
+                                  row.find('[field="costo"]').html(strPrz + "<br>" + strSmusso + "<br>" + strSpessori);
+                                }
+                              });
+                            }			
+                          }
+                      })
+                      .fail(function(data) {
+                      });
+                        
+                      break;
+                    }	
 									}
 								});
 								
+                //- Gestisce il cambio valore di qta/lun/lar/spe/dur
+                row.find('[field="ofv-quantita"]').keyup(function() {
+                  applyFormula(row); 
+                });
+                row.find('[field="ofv-lunghezza"]').keyup(function() {
+                  applyFormula(row); 
+                });
+                row.find('[field="ofv-larghezza"]').keyup(function() {
+                  applyFormula(row); 
+                });
+                row.find('[field="ofv-spessore"]').keyup(function() {
+                  applyFormula(row); 
+                });
+                row.find('[field="ofv-durata"]').keyup(function() {
+                  applyFormula(row);
+                });
+
 								//- Cancella una voce
 								row.find('[field="btn-voci-delete"]').click(function() {
 									var getData = {};
@@ -481,7 +1334,7 @@ function init() {
 		})
 		.fail(function(data) {
 		});						
-	});
+	});	
 	
 	$( "#btn-voci-ricalcola" ).click(function() {
 		//- Scorre le voci
@@ -491,69 +1344,77 @@ function init() {
 		var tot_prz_uni_fin = 0;
 		var tot_prz_uni_tot = 0;
 		
-		//- Esegue i calcoli
+		//- Esegue i calcoli dei totali
 		$.each( elencoVoci, function( i, row ) {
 			var $row = $(row);
 			
-			var qta = 1*$row.find('[field="ofv-quantita"]').val();
-			var prz = 1*$row.find('[field="ofv-valuni-cal"]').val();
-			var sco = 1*$row.find('[field="ofv-sconto"]').val();
+      var qta = $("#ofa-quantita").autoNumeric('get');
+			var prz = $row.find('[field="ofv-valuni-cal"]').autoNumeric('get');
+			var sco = $row.find('[field="ofv-sconto"]').autoNumeric('get');
 
 			var prz_uni_fin = prz*(1-(sco/100));
 			var prz_tot_fin = prz_uni_fin * qta;
 			
-			$row.find('[field="ofv-valuni-fin"]').text(prz_uni_fin);
-			$row.find('[field="ofv-valtot-fin"]').text(prz_tot_fin);
+			$row.find('[field="ofv-valuni-fin"]').autoNumeric('set', prz_uni_fin);
+			$row.find('[field="ofv-valtot-fin"]').autoNumeric('set', prz_tot_fin);
 			
-			tot_prz = tot_prz + prz;
+			tot_prz = tot_prz + 1*prz;
 			tot_prz_uni_fin = tot_prz_uni_fin + prz_uni_fin;
 			tot_prz_uni_tot = tot_prz_uni_tot + prz_tot_fin;
 		});
 		
 		//- Aggiorna i totali
-		$("#valuni-cal").text(tot_prz);
-		$("#valuni-fin").text(tot_prz_uni_fin);
-		$("#valtot-fin").text(tot_prz_uni_tot);
+    $("#valuni-cal").autoNumeric('set', tot_prz);
+    $("#valuni-fin").autoNumeric('set', tot_prz_uni_fin);
+    $("#valtot-fin").autoNumeric('set', tot_prz_uni_tot);
 
 		//- Update sul server
 		var getData = {};
 		getData.update          = true;
     getData.ofv_numoff      = $("#off-numoff").val();
+    
 		//- Dati dell'articolo
     getData.ofv_codart      = $("#ofa-codart").val();
-		getData.ofa_totuni      = $("#valuni-cal").text();
-		getData.ofa_totunit_fin = $("#valuni-fin").text();
-		getData.ofa_totgen      = $("#valtot-fin").text();
-		//- Dati delle voci
+		getData.ofa_totuni      = $("#valuni-cal").autoNumeric('get');
+		getData.ofa_totunit_fin = $("#valuni-fin").autoNumeric('get');
+		getData.ofa_totgen      = $("#valtot-fin").autoNumeric('get');
+		
+    //- Dati delle voci
 		getData.voci            = [];
 		$.each( elencoVoci, function( i, row ) {
 			var $row = $(row);
-
+      
 			var objVoce = {};
 			objVoce.ofv_id         = $row.attr("ofv_id");
 			objVoce.ofv_codvoce    = $row.find('[field="voc-codvoc"]').val();
-			objVoce.ofv_quantita   = $row.find('[field="ofv-quantita"]').val();
-			objVoce.ofv_lunghezza  = $row.find('[field="ofv-lunghezza"]').val();
-			objVoce.ofv_larghezza  = $row.find('[field="ofv-larghezza"]').val();
-			objVoce.ofv_durata     = $row.find('[field="ofv-durata"]').val();
-			objVoce.ofv_przacq     = ""; //??serve
-			objVoce.ofv_sconto     = $row.find('[field="ofv-sconto"]').val();
-			objVoce.ofv_valuni_cal = $row.find('[field="ofv-valuni-cal"]').val();
-			objVoce.ofv_valuni_fin = $row.find('[field="ofv-valuni-fin"]').text();
-			objVoce.ofv_valtot_fin = $row.find('[field="ofv-valtot-fin"]').text();
+			objVoce.ofv_quantita   = $row.find('[field="ofv-quantita"]').autoNumeric('get');
+			objVoce.ofv_lunghezza  = $row.find('[field="ofv-lunghezza"]').autoNumeric('get');
+			objVoce.ofv_larghezza  = $row.find('[field="ofv-larghezza"]').autoNumeric('get');
+      objVoce.ofv_spessore   = $row.find('[field="ofv-spessore"]').autoNumeric('get');
+			objVoce.ofv_durata     = $row.find('[field="ofv-durata"]').autoNumeric('get');
+			objVoce.ofv_sconto     = $row.find('[field="ofv-sconto"]').autoNumeric('get');
+			objVoce.ofv_valuni_cal = $row.find('[field="ofv-valuni-cal"]').autoNumeric('get');
+			objVoce.ofv_valuni_fin = $row.find('[field="ofv-valuni-fin"]').autoNumeric('get');
+			objVoce.ofv_valtot_fin = $row.find('[field="ofv-valtot-fin"]').autoNumeric('get');
 			objVoce.ofv_codart_agg = $row.find('[field="ofv-codart-agg"]').val();
 			objVoce.ofv_codart_agg_prz_lor = $row.find('[field="ofv-codart-agg"]').attr("przLordo");
 			
+      objVoce.ofv_descriz    = $row.attr('descriz');
+			objVoce.ofv_formula    = $row.attr('voc-formula');
+			objVoce.ofv_desc_formula = "";
+			objVoce.ofv_critcalc   = $row.attr('critcalc');
+			objVoce.ofv_costo      = $row.attr('przunit');
+			objVoce.ofv_dimsmusso  = $row.find('[field="ofv-codart-agg"]').attr("smusso");
+			objVoce.ofv_desc1      = $row.find('[field="ofv-codart-agg"]').attr("desc1");
+			objVoce.ofv_desc2      = $row.find('[field="ofv-codart-agg"]').attr("desc2");
+			objVoce.ofv_desc3      = $row.find('[field="ofv-codart-agg"]').attr("desc3");
+      
 			getData.voci.push(objVoce);
 		});
 		
-		console.log(getData);
-		
 		$.post("data-offerta-costi.php", getData)
 		.done(function(data) {
-			//- TODO
-			console.log("done");
-			console.log(data);
+			//- TODO ... messaggio preventivo salvato
 		})
 		.fail(function(data) {
 			console.log("fail");

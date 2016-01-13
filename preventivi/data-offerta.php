@@ -31,7 +31,7 @@ if (isset($_GET['insert'])) {
 		$valoriDateEva = explode("/", $_GET['off_dataeva']);
 		$dataeva = $valoriDateEva[2]. "-" . $valoriDateEva[1]. "-" . $valoriDateEva[0];
 	}
-	echo $dataeva;
+	
 	// INSERT COMMAND
 	$query = "
 			INSERT INTO offerte (`off-numoff`, `off-codcli`, `off-datains`, `off-dataeva`, `datains`) 
@@ -39,7 +39,7 @@ if (isset($_GET['insert'])) {
 			FROM offerte
 	";
 	$result = $mysqli->prepare($query);
-		
+
 	$result->bind_param('sss', $_GET['off_codcli'], $datains, $dataeva);
 	$res = $result->execute() or trigger_error($result->error, E_USER_ERROR);
 	// printf ("New Record has id %d.\n", $mysqli->insert_id);
@@ -71,34 +71,64 @@ else if (isset($_GET['update'])) {  //...TODO
 	// printf ("Updated Record has id %d.\n", $_GET['EmployeeID']);
 	echo $res;
 } 
-else if (isset($_GET['delete'])) {   //...TODO
-	// DELETE COMMAND
-	$query = "DELETE FROM employees WHERE EmployeeID=?";
+else if (isset($_GET['delete'])) {
+	// LOGIC DELETE COMMAND
+	$query = "UPDATE `offerte` SET `off-stato` = 2 WHERE `off-numoff` = ?";
 	$result = $mysqli->prepare($query);
-	$result->bind_param('i', $_GET['EmployeeID']);
+	$result->bind_param('i', $_GET['off_numoff']);
 	$res = $result->execute() or trigger_error($result->error, E_USER_ERROR);
 	// printf ("Deleted Record has id %d.\n", $_GET['EmployeeID']);
 	echo $res;
 }
-else {
+else if (isset($_GET['select_one'])) {
 	// SELECT COMMAND
 	$query = "
-			SELECT `off-numoff`, `off-codcli`, `off-datains`, `off-dataeva` 
-			FROM offerte
+      SELECT t1.`off-numoff`, t1.`off-datains`, t1.`off-dataeva`, t1.`off-codcli`, t2.`cli-ragsoc`
+        FROM (offerte t1 INNER JOIN clienti t2 ON t1.`off-codcli` = t2.`cli-codcli`)
+       WHERE t1.`off-numoff` = ?
 	";
 	$result = $mysqli->prepare($query);
+  $result->bind_param('i', $_GET['off_numoff']);
 	$result->execute();
 	
 	/* bind result variables */
-	$result->bind_result($off_numoff, $off_codcli, $off_datains, $off_dataeva);
+	$result->bind_result($off_numoff, $off_datains, $off_dataeva, $off_codcli,  $cli_ragsoc);
 	
 	/* fetch values */
 	while ($result->fetch()) {
 		$elements[] = array(
 			'off_numoff'  => $off_numoff,
+      'off_datains' => $off_datains,
+      'off_dataeva' => $off_dataeva,
 			'off_codcli'  => $off_codcli,
-			'off_datains' => $off_datains,
-			'off_dataeva' => $off_dataeva
+      'cli_ragsoc'  => $cli_ragsoc
+		);
+	}
+	echo json_encode($elements);
+}
+else {
+	// SELECT COMMAND
+	$query = "
+      SELECT t1.`off-numoff`,  t1.`off-datains`, t1.`off-codcli`, t2.`cli-ragsoc`, sum(t3.`ofa-totgen`) totgen
+        FROM (offerte t1 INNER JOIN clienti t2 ON t1.`off-codcli` = t2.`cli-codcli`) INNER JOIN offerte_dettaglio_articoli t3 ON t1.`off-numoff` = t3.`ofa-numoff`
+       WHERE t1.`off-stato` <> 2
+    GROUP BY t1.`off-numoff`,  t1.`off-datains`, t1.`off-codcli`, t2.`cli-ragsoc`
+    ORDER BY t1.`off-numoff` DESC
+	";
+	$result = $mysqli->prepare($query);
+	$result->execute();
+	
+	/* bind result variables */
+	$result->bind_result($off_numoff, $off_datains, $off_codcli,  $cli_ragsoc, $totgen);
+	
+	/* fetch values */
+	while ($result->fetch()) {
+		$elements[] = array(
+			'off_numoff'  => $off_numoff,
+      'off_datains' => $off_datains,
+			'off_codcli'  => $off_codcli,
+      'cli_ragsoc'  => $cli_ragsoc,
+      'totgen'      => $totgen
 		);
 	}
 	echo json_encode($elements);

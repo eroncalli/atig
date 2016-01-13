@@ -16,9 +16,7 @@ div.green {
 	background-color: rgb(107, 193, 107);
 }
 
-#table-offerta td,
-#table-articolo td,
-#table-voci td{
+#table-articolo td{
 	border: 1px solid black;
 }
 
@@ -29,6 +27,10 @@ thead {
 	font-weight: normal;
 }
 
+tfoot {
+  font-weight: bolder;
+}
+
 select[field="voc-codvoc"] {
 	width:160px;
 }
@@ -36,22 +38,45 @@ select[field="voc-codvoc"] {
 .form-control {
 	height: 25px;
 }
+
 .padleft20{
 	padding-left: 20px;
 }
+
 .btn{
 	min-width: 100px !important;
 	font-weight: bold;
 }
+
 label>span ,
 th{
     font-size: 12px !important;
 	font-weight: normal !important;
 }
+
 input[field='ofv-sconto']{
-	width: 60px;
+	width: 70px;
 }
+
+input[field='ofv-quantita'],
+input[field='ofv-durata'],
+input[field='ofv-lunghezza'],
+input[field='ofv-larghezza'],
+input[field='ofv-spessore'],
+input[field='ofv-valuni-cal']{
+	width: 150px;
+}
+
 .btn-danger{
 	min-width: 30px !important;
 	font-weight: bold;
+}
+
+#ofa-unimis {
+  padding-bottom: 0px;
+  padding-top: 0px;
+}
+
+.no-close .ui-dialog-titlebar-close {
+  display: none;
 }

@@ -1,13 +1,20 @@
 <!DOCTYPE html>
 <html lang="it">
 <head>
+  <meta charset="UTF-8">
+  
 	<link rel="stylesheet" href="scripts/jquery-ui.min.css" />
 	<link rel="stylesheet" href="scripts/bootstrap.min.css" >
+  <link rel="stylesheet" href="scripts/bootstrap-theme.min.css" >
+  <link rel="stylesheet" href="scripts/simplePagination.css" >
 	<link rel="stylesheet" href="preventivi.css" />
 	
 	<script type="text/javascript" src="scripts/jquery-1.11.3.min.js"></script>
 	<script type="text/javascript" src="scripts/jquery-ui.min.js"></script>
 	<script type="text/javascript" src="scripts/bootstrap.min.js"></script>
+  <script type="text/javascript" src="scripts/underscore.min.js"></script>
+  <script type="text/javascript" src="scripts/autoNumeric-min.js"></script>
+  <script type="text/javascript" src="scripts/jquery.simplePagination.js"></script>
 	
 	<script type="text/javascript" src="preventivi.js"></script>
 	
@@ -18,6 +25,18 @@
   </script>
 </head>
 <body>
+  <div id="dialog-message" title="Messaggio" style="display:none">
+    <p>
+      <span class="ui-icon ui-icon-circle-check" style="float:left; margin:0 7px 50px 0;"></span>
+      <span msg></span>
+    </p>
+  </div>
+  <div id="dialog-confirm" title="Cancellazione" style="display:none">
+    <p>
+      <span class="ui-icon ui-icon-alert" style="float:left; margin:0 7px 20px 0;"></span>
+      <span msg></span>
+    </p>
+  </div>
   <div id='page-preventivi'>
   	<div id='header-offerta' class="padleft20">
 			<h1>
@@ -25,11 +44,11 @@
 				<button id='btn-offerta-new' class="btn btn-default" >
 					<span class="glyphicon glyphicon-plus" aria-hidden="true"></span>
 				</button>
-				<button id='btn-offerta-elenco' class="btn btn-primary" >elenco</button>
+				<button id='btn-offerta-elenco' class="btn btn-primary" >Elenco</button>
 			</h1>
 		</div>
 		<div id='elenco-offerta' class="padleft20">
-			<table id='table-offerta'>
+			<table id='table-offerta' class="table table-striped table-condensed">
   			<thead>
 					<tr>
 						<th>N. offerta</th>
@@ -38,6 +57,7 @@
 						<th>Ragione sociale</th>
 						<th>Importo</th>
 						<th></th>
+            <th></th>
 					</tr>
 				</thead>
 				<tbody>
@@ -48,12 +68,16 @@
 						<td>xxxxxxxxxxxxxxxxxxxxxxxxxx</td>
 						<td>9.999.999.999,99</td>
 						<td>
-							<button id='btn-offerta-modifica' class="btn btn-default" >modifica</button>
+              <button field="btn-offerta-modifica" class="btn btn-success"><span class="glyphicon glyphicon-edit"></span></button>
 						</td>
+            <td>
+              <button field="btn-offerta-delete" class="btn btn-danger"><span class="glyphicon glyphicon-remove"></span></button>
+            </td>
 					</tr>
 				</tbody>
 			</table>			
-		</div>
+      <div id='pager-offerta'></div>        
+    </div>
 		<div id='dettaglio-offerta' class="padleft20">
 			<label>
 				<span>Codice Cliente</span>
@@ -85,7 +109,7 @@
     		<button id='btn-articolo-new' class="btn btn-default" >
 					<span class="glyphicon glyphicon-plus" aria-hidden="true"></span>
 				</button>
-				<button id='btn-articolo-elenco' class="btn btn-primary" >elenco</button>
+				<button id='btn-articolo-elenco' class="btn btn-primary" >Elenco</button>
 			</h3>
 		</div>
 		<div id='elenco-articolo' class="padleft20">
@@ -130,14 +154,11 @@
 			<label>
 				<span>Descrizione</span>
 				<input id="ofa-descart" type="text" class="form-control" readonly>
+        <input id="ofa-lungsmu" type="hidden">
 			</label>
 			<label>
 				<span>Famiglia</span>
 				<input id="ofa-famiglia" type="text" class="form-control" readonly>
-			</label>
-			<label>
-				<span>Spessore</span>
-				<input id="ofa-spessore" type="text" class="form-control" readonly>
 			</label>
 			<label>
 				<span>Moltiplicatore</span>
@@ -152,16 +173,19 @@
 				<input id="ofa-oneri" type="text" class="form-control" readonly>
 			</label>				
 			<label>
-				<span>Tipo appl. prezzo</span>
-				<input id="ofa-unimis" type="text" class="form-control" readonly>
+				<span>Tipo prezzo</span>
+        <select class="form-control" id="ofa-unimis">
+          <option value='M'>Metro</option>
+          <option value='P'>Pezzo</option>
+        </select>
 			</label>	
 			<label>
 				<span>Prz acq. Netto</span>
-				<input id="ofa-przacq-net" type="text" class="form-control" readonly>
+				<input id="ofa-przacq-net" type="text" class="form-control">
 			</label>		
 			<label>
 				<span>Prz acq. Lordo</span>
-				<input id="ofa-przacq-lor" type="text" class="form-control" readonly>
+				<input id="ofa-przacq-lor" type="text" class="form-control">
 			</label>	
 			<label>
 				<span>Lunghezza (base)</span>
@@ -171,7 +195,11 @@
 				<span>Larghezza (altezza)</span>
 				<input id="ofa-larghezza" type="text" class="form-control">
 			</label>
-			<button id='btn-articolo-inserisci' class="btn btn-success" >Inserisci</button>
+			<label>
+				<span>Pezzi</span>
+				<input id="ofa-quantita" type="text" class="form-control">
+			</label>
+      <button id='btn-articolo-inserisci' class="btn btn-success" >Inserisci</button>
 			<button id='btn-articolo-aggiorna' class="btn btn-success" >Aggiorna</button>
 		</div>
 		<div id='header-voci' class="padleft20">
@@ -184,35 +212,61 @@
 			</h3>
 		</div>
 		<div id='dettaglio-voci' class="padleft20">
-			<table id='table-voci' class="table table-condensed">
+			<table id='table-voci' class="table table-bordered">
   			<thead>
 					<tr>
-						<th>Voci di costo</th>
-						<th>Articolo aggiuntivo</th>
-						<th>Crit. calcolo</th>
-						<th>Formula</th>
-						<th>Qta</th>
-						<th>Valore unit.</th>
-						<th>% sconto</th>
-						<th>Valore unit. finale</th>
-						<th>Totale di vendita</th>
-						<th></th>
+						<th style="min-width: 200px;">Voce di costo</th>
+						<th style="min-width: 200px;">Articolo aggiuntivo</th>
+						<!--<th>Crit. calcolo</th>
+						<th>Formula</th>-->
+						<th style="min-width: 200px;">Parametri</th>
+						<th class="text-right" style="min-width: 160px;">Valore unitario</th>
+						<th class="text-right" style="min-width: 80px;">% sconto</th>
+						<th class="text-right" style="min-width: 160px;">Valore unitario finale</th>
+						<th class="text-right" style="min-width: 160px;">Totale di vendita</th>
+						<th style="min-width: 50px;"></th>
 					</tr>
 				</thead>
 				<tfoot>
 					<tr>
 						<td>Totale</td>
 						<td></td>
+						<!--<td></td>
+						<td></td>-->
 						<td></td>
+						<td class="text-right"><span id="valuni-cal"></span></td>
 						<td></td>
-						<td></td>
-						<td><span id="valuni-cal"></span></td>
-						<td></td>
-						<td><span id="valuni-fin"></span></td>
-						<td><span id="valtot-fin"></span></td>
-						<td></tr>
+						<td class="text-right"><span id="valuni-fin"></span></td>
+						<td class="text-right"><span id="valtot-fin"></span></td>
+						<td class="text-right"></tr>
 				</tfoot>
-				<tbody id='table-voci-body'>
+				<tbody id='table-voci-body' max_num_riga_voce='1'>
+          <tr num_riga_voce='1' class="info" przunit='0'>
+						<td>Articolo<input type=hidden value=1 field="voc-codvoc"></td>
+						<td></td>
+						<!--<td></td>
+						<td></td>-->
+						<td>
+              <input qta field="ofv-quantita" type="text" class="form-control" placeholder="Qta">
+							<input qta field="ofv-durata" type="text" class="form-control" placeholder="Minuti">
+							<input qta field="ofv-lunghezza" type="text" class="form-control" placeholder="Lunghezza">
+							<input qta field="ofv-larghezza" type="text" class="form-control" placeholder="Larghezza">
+              <input qta field="ofv-spessore" type="text" class="form-control" placeholder="Spessore">
+            </td>
+						<td>
+							<input field="ofv-valuni-cal" type="text" class="form-control text-right pull-right">
+						</td>
+						<td>
+              <input field="ofv-sconto" type="text" class="form-control col-md-1 text-right pull-right">
+						</td>
+						<td class="text-right">
+							<span field="ofv-valuni-fin"></span>
+						</td>
+						<td class="text-right">
+							<span field="ofv-valtot-fin"></span>
+						</td>
+						<td></td>
+					</tr>
 					<!--
 					<tr ofv_id = "" brandnew>
 						<td>

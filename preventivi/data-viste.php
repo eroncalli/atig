@@ -22,8 +22,8 @@ $vistaClienti = "
 $vistaArticoliDelCliente = "
 		SELECT a.`art-codart`, 
 					 a.`art-descart`, 
+           a.`art-lungsmu`, 
 					 f.`fam-descriz`, 
-					 a.`art-spessore`, 
 					 l.`lis-moltipl`, 
 					 l.`lis-scarto`, 
 					 l.`lis-oneriacc`, 
@@ -41,12 +41,22 @@ $vistaVoci = "
 		SELECT v.`voc-codvoce`,
            v.`voc-descriz`,
            v.`voc-semanual`,
-           v.`voc-critcalc`,
            f.`codice`,
-           f.`formula`
+           f.`formula`,
+           f.`critcalc`
       FROM voci_costo v, formule_calcolo f
      WHERE v.`voc-formula` = f.`codice`
+       AND v.`voc-codvoce` <> 1
+  ORDER BY v.`voc-descriz`
 ";	
+
+$vistaScontoPerVoce = "
+    SELECT `sco-sconto`
+      FROM `scontistica_clienti`
+     WHERE `sco-codcli` = ?
+       AND `sco-codart` = ?
+       AND `sco-codvoc` = ?
+";
 
 $vistaArticoliPerVoce = "
 		SELECT lv.`ivo-przunit`,
@@ -56,7 +66,6 @@ $vistaArticoliPerVoce = "
 					 a.`art-codart`, 
 					 a.`art-descart`, 
 					 f.`fam-descriz`, 
-					 a.`art-spessore`, 
 					 l.`lis-moltipl`, 
 					 l.`lis-scarto`, 
 					 l.`lis-oneriacc`, 
@@ -70,6 +79,13 @@ $vistaArticoliPerVoce = "
        AND now() BETWEEN lv.`ivo-dataini` AND lv.`ivo-datafin`
 ";
 
+$vistaCostoPerVoce = "
+    SELECT `ivo-przunit` 
+      FROM listino_voci 
+     WHERE `ivo-codvoc` = ? 
+       AND now() BETWEEN `ivo-dataini` AND `ivo-datafin`
+";
+
 if (isset($_GET['clienti'])) {
 	$result = $mysqli->prepare($vistaClienti);
 	$result->execute();
@@ -80,6 +96,8 @@ if (isset($_GET['clienti'])) {
 			$cli_ragsoc
 	);
 	
+  $elements = array();
+  
 	/* fetch values */
 	while ($result->fetch()) {
 		$elements[] = array(
@@ -100,22 +118,24 @@ else if (isset($_GET['articoliDelCliente'])) {
 	$result->bind_result(
 			$art_codart, 
 			$art_descart, 
+      $art_lungsmu,
 			$fam_descriz,
-			$art_spessore, 
 			$lis_moltipl, 
 			$lis_scarto, 
 			$lis_oneriacc, 
 			$lis_unimis, 
 			$lis_przacq
 	);
-				
+
+  $elements = array();
+  
 	/* fetch values */
 	while ($result->fetch()) {
 		$elements[] = array(
 			'art_codart'    => $art_codart, 
 			'art_descart'   => $art_descart, 
+      'art_lungsmu'   => $art_lungsmu, 
 			'fam_descriz'   => $fam_descriz,
-			'art_spessore'  => $art_spessore, 
 			'lis_moltipl'   => $lis_moltipl, 
 			'lis_scarto'    => $lis_scarto, 
 			'lis_oneriacc'  => $lis_oneriacc, 
@@ -135,25 +155,51 @@ else if (isset($_GET['voci'])) {
 		  $voc_codvoce,
       $voc_descriz,
       $voc_semanual,
-      $voc_critcalc,
       $codice,
-      $formula
+      $formula,
+      $critcalc
 	);		
+  
+  $elements = array();
+  
 	/* fetch values */
 	while ($result->fetch()) {
 		$elements[] = array(
-			'voc_codvoce'    => $voc_codvoce,
-      'voc_descriz'    => $voc_descriz,
-      'voc_semanual'    => $voc_semanual,
-      'voc_critcalc'    => $voc_critcalc,
-      'codice'    => $codice,
-      'formula'    => $formula
+			'voc_codvoce'  => $voc_codvoce,
+      'voc_descriz'  => $voc_descriz,
+      'voc_semanual' => $voc_semanual,
+      'codice'       => $codice,
+      'formula'      => $formula,
+      'critcalc'     => $critcalc
 		);
 	}
 
 	echo json_encode($elements);
 	
 	$result->close();
+}
+else if (isset($_GET['scontoPerVoce'])) {
+	$result = $mysqli->prepare($vistaScontoPerVoce);
+	$result->bind_param('ssi', 
+                      $_GET['codcli'],
+                      $_GET['codart'],
+                      $_GET['codvoce']);
+	$result->execute();
+
+	/* bind result variables */
+	$result->bind_result($sconto);
+  
+  $elements = array();
+  
+	/* fetch first value */
+	while ($result->fetch()) {
+		$elements[] = array(
+			'sconto'  => $sconto
+		);
+	}
+	echo json_encode($elements);
+  
+  $result->close();
 }
 else if (isset($_GET['articoliPerVoce'])) {
 	$result = $mysqli->prepare($vistaArticoliPerVoce);
@@ -169,14 +215,15 @@ else if (isset($_GET['articoliPerVoce'])) {
 			$art_codart, 
 			$art_descart, 
 			$fam_descriz, 
-			$art_spessore, 
 			$lis_moltipl, 
 			$lis_scarto, 
 			$lis_oneriacc, 
 			$lis_unimis, 
 			$lis_przacq
 	);
-				
+
+  $elements = array();
+  
 	/* fetch values */
 	while ($result->fetch()) {
 		$elements[] = array(
@@ -187,7 +234,6 @@ else if (isset($_GET['articoliPerVoce'])) {
       'art_codart'    => $art_codart, 
       'art_descart'   => $art_descart, 
       'fam_descriz'   => $fam_descriz, 
-      'art_spessore'  => $art_spessore, 
       'lis_moltipl'   => $lis_moltipl, 
       'lis_scarto'    => $lis_scarto, 
       'lis_oneriacc'  => $lis_oneriacc, 
@@ -195,6 +241,28 @@ else if (isset($_GET['articoliPerVoce'])) {
       'lis_przacq'    => $lis_przacq
 		);
 	}
+  
+	echo json_encode($elements);
+	
+	$result->close();
+}
+else if (isset($_GET['costoPerVoce'])) {
+	$result = $mysqli->prepare($vistaCostoPerVoce);
+	$result->bind_param('i', $_GET['codvoce']);
+	$result->execute();
+	
+	/* bind result variables */
+	$result->bind_result($ivo_przunit);
+
+  $elements = array();
+  
+	/* fetch values */
+	while ($result->fetch()) {
+		$elements[] = array(
+      'ivo_przunit'   => $ivo_przunit
+		);
+	}
+  
 	echo json_encode($elements);
 	
 	$result->close();
