@@ -1,7 +1,7 @@
 <?php
 # FileName="connect.php"
 $hostname = "localhost";
-$database = "";
-$username = "";
+$database = "atig";
+$username = "root";
 $password = "";
 ?>
