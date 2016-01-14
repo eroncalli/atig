@@ -62,22 +62,31 @@ if (isset($_GET['insert'])) {
 	}
 	echo json_encode($elements);
 } 
-else if (isset($_GET['update'])) {  //...TODO
+else if (isset($_GET['update_stato'])) {
 	// UPDATE COMMAND
-	$query = "UPDATE `employees` SET `FirstName`=?, `LastName`=?, `Title`=?, `Address`=?, `City`=?, `Country`=?, `Notes`=? WHERE `EmployeeID`=?";
+	$query = "UPDATE `offerte` SET `off-stato` = 1 WHERE `off-numoff` = ?";
 	$result = $mysqli->prepare($query);
-	$result->bind_param('sssssssi', $_GET['FirstName'], $_GET['LastName'], $_GET['Title'], $_GET['Address'], $_GET['City'], $_GET['Country'], $_GET['Notes'], $_GET['EmployeeID']);
+	$result->bind_param('i', $_GET['off_numoff']);
 	$res = $result->execute() or trigger_error($result->error, E_USER_ERROR);
-	// printf ("Updated Record has id %d.\n", $_GET['EmployeeID']);
+
 	echo $res;
 } 
-else if (isset($_GET['delete'])) {
+else if (isset($_GET['delete_logic'])) {
 	// LOGIC DELETE COMMAND
 	$query = "UPDATE `offerte` SET `off-stato` = 2 WHERE `off-numoff` = ?";
 	$result = $mysqli->prepare($query);
 	$result->bind_param('i', $_GET['off_numoff']);
 	$res = $result->execute() or trigger_error($result->error, E_USER_ERROR);
-	// printf ("Deleted Record has id %d.\n", $_GET['EmployeeID']);
+
+	echo $res;
+}
+else if (isset($_GET['delete_hard'])) {
+	// HARD DELETE COMMAND
+	$query = "DELETE FROM `offerte` WHERE `off-numoff` = ?";
+	$result = $mysqli->prepare($query);
+	$result->bind_param('i', $_GET['off_numoff']);
+	$res = $result->execute() or trigger_error($result->error, E_USER_ERROR);
+
 	echo $res;
 }
 else if (isset($_GET['select_one'])) {
@@ -111,11 +120,12 @@ else {
 	$query = "
       SELECT t1.`off-numoff`,  t1.`off-datains`, t1.`off-codcli`, t2.`cli-ragsoc`, sum(t3.`ofa-totgen`) totgen
         FROM (offerte t1 INNER JOIN clienti t2 ON t1.`off-codcli` = t2.`cli-codcli`) INNER JOIN offerte_dettaglio_articoli t3 ON t1.`off-numoff` = t3.`ofa-numoff`
-       WHERE t1.`off-stato` <> 2
+       WHERE t1.`off-stato` = ?
     GROUP BY t1.`off-numoff`,  t1.`off-datains`, t1.`off-codcli`, t2.`cli-ragsoc`
     ORDER BY t1.`off-numoff` DESC
 	";
 	$result = $mysqli->prepare($query);
+  $result->bind_param('i', $_GET['off_stato']);
 	$result->execute();
 	
 	/* bind result variables */

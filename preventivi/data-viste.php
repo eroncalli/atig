@@ -22,6 +22,7 @@ $vistaClienti = "
 $vistaArticoliDelCliente = "
 		SELECT a.`art-codart`, 
 					 a.`art-descart`, 
+           a.`art-lungsmu`, 
 					 f.`fam-descriz`, 
 					 l.`lis-moltipl`, 
 					 l.`lis-scarto`, 

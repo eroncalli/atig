@@ -44,7 +44,8 @@
 				<button id='btn-offerta-new' class="btn btn-default" >
 					<span class="glyphicon glyphicon-plus" aria-hidden="true"></span>
 				</button>
-				<button id='btn-offerta-elenco' class="btn btn-primary" >Elenco</button>
+				<button id='btn-offerta-elenco' class="btn btn-primary" >In lavorazione</button>
+        <button id='btn-offerta-completate' class="btn btn-primary" >Completate</button>
 			</h1>
 		</div>
 		<div id='elenco-offerta' class="padleft20">
@@ -214,7 +215,7 @@
 				<button id='btn-voci-ricalcola' class="btn btn-success">Ricalcola</button>
 			</h3>
 		</div>
-		<div id='dettaglio-voci' class="padleft20 bottom200">
+		<div id='dettaglio-voci' class="padleft20">
 			<table id='table-voci' class="table table-bordered">
   			<thead>
 					<tr>
@@ -312,6 +313,11 @@
 					-->
 				</tbody>
 			</table>
+		</div>
+		<div id='footer-voci' class="padleft20 bottom200">
+			<h3>
+				<button id='btn-voci-concludi' class="btn btn-success right">Concludi</button>
+			</h3>
 		</div>
   </div>
 </body>
