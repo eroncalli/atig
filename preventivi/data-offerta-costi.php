@@ -102,7 +102,8 @@ else if (isset($_POST['update'])) {
           `ofv-dimsmusso` = ?,
           `ofv-desc1` = ?,
           `ofv-desc2` = ?,
-          `ofv-desc3` = ?
+          `ofv-desc3` = ?,
+          `datamod` = CURRENT_TIMESTAMP
       WHERE `id` = ?
 	";
 	$result = $mysqli->prepare($query);

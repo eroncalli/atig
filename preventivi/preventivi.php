@@ -102,6 +102,7 @@
 			</label>
 			<label>
 				<button id='btn-offerta-crea' class="btn btn-success">Crea</button>
+        <button id='btn-offerta-aggiorna' class="btn btn-success" >Aggiorna</button>
 			</label>
 		</div>
 		<div id='header-articolo' class="padleft20">

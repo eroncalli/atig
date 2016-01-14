@@ -244,9 +244,6 @@ function loadDettaglioOfferta(numoff) {
       $( "#off-dataeva" ).datepicker()
       .datepicker( "setDate", d )
       .datepicker( "option", "dateFormat", "dd/mm/yy" );
-
-      //- Disabilita i campi dell'offerta
-      $("#dettaglio-offerta :input").prop("disabled", true);
     }
     
     loadDettaglioArticolo(numoff);
@@ -518,23 +515,48 @@ function showElencoOfferte(start_i, end_i, data, stato) {
     //- Gestisce pulsante Modifica
     //-
     row.find('[field="btn-offerta-modifica"]').click(function() {
-      loadDettaglioOfferta(item.off_numoff, false);
+      loadDettaglioOfferta(item.off_numoff);
       setFullOffertaInReadonly(false);
+      $( "#btn-offerta-aggiorna" ).hide();
     });
 
     //-
     //- Gestisce pulsante Visualizza
     //-
     row.find('[field="btn-offerta-visualizza"]').click(function() {
-      loadDettaglioOfferta(item.off_numoff, true);
+      loadDettaglioOfferta(item.off_numoff);
       setFullOffertaInReadonly(true);
+      $( "#btn-offerta-aggiorna" ).hide();
     });
 
     //-
     //- Gestisce pulsante Duplica
     //-
     row.find('[field="btn-offerta-duplica"]').click(function() {
-
+      //- Crea una nuova offerta
+      var getData = {};
+      getData.clone       = true;
+      getData.off_numoff  = item.off_numoff;
+		
+      $.getJSON("data-offerta.php", getData)
+      .done(function(data) {
+        if (data.error) {
+          alert("error");
+        } else {
+          //- Mostra i dettagli
+          loadDettaglioOfferta(data[0].off_numoff);
+          setFullOffertaInReadonly(false);
+          $( "#btn-offerta-aggiorna" ).show();
+          
+          //- Abilita l'header offerta per l'eventuale cambio di cliente
+          $("#dettaglio-offerta :input").prop("disabled", false);
+          
+          loadCodiciClientiPerOfferta();
+        }
+      })
+      .fail(function(data) {
+      });						
+      
     });
     
     //-
@@ -584,6 +606,7 @@ function setFullOffertaInReadonly(readonly) {
     //- Disabilita i campi dell'offerta
     $("#dettaglio-offerta :input").prop("disabled", true);
     $( "#btn-offerta-crea" ).hide();
+    $( "#btn-offerta-aggiorna" ).hide();
 
     //- Disabilita i campi dell'articolo
     $("#dettaglio-articolo .form-control").prop("disabled", true);
@@ -600,11 +623,12 @@ function setFullOffertaInReadonly(readonly) {
     $("#btn-voci-concludi").hide();  
   }
   else {
-    //- Disabilita i campi dell'offerta
-    $("#dettaglio-offerta :input").prop("disabled", true);
+    //- Abilita alcuni campi dell'offerta
+    $("#dettaglio-offerta :input").prop("disabled", false);
+    $("#off-numoff").prop("disabled", true);
     $( "#btn-offerta-crea" ).hide();
 
-    //- Disabilita i campi dell'articolo
+    //- Abilita alcuni campi dell'articolo
     $("#dettaglio-articolo .form-control").prop("disabled", false);
     $("#ofa-codart").prop("disabled", true);
     $("#btn-articolo-new").hide();
@@ -612,13 +636,57 @@ function setFullOffertaInReadonly(readonly) {
     $("#btn-articolo-inserisci").hide();
     $("#btn-articolo-aggiorna").show();
 
-    //- Disabilita i campi delle voci
+    //- Abilita i campi delle voci
     $("#dettaglio-voci .form-control").prop("disabled", false);
     $('#dettaglio-voci [field="btn-voci-delete"]').show();
     $("#btn-voci-new").show();
     $("#btn-voci-ricalcola").show();
     $("#btn-voci-concludi").show();  
   }
+}
+
+function loadCodiciClientiPerOfferta() {
+  //- Carica i codici clienti
+  $.getJSON("data-viste.php?clienti")
+  .done(function(data) {
+      if (data.error) {
+        alert("error");
+      } else {
+
+        var list_codcli = [];
+
+        $.each( data, function( i, item ) {
+          list_codcli.push({
+            label: item.cli_codcli+" - "+item.cli_ragsoc,
+            value: item.cli_codcli
+          });
+        });
+
+        $( "#off-codcli" ).autocomplete({
+          source: list_codcli,
+
+          //- Permette la scelta solo tra le voci dell'elenco
+          change: function (event, ui) {
+            if (!ui.item) {
+              $(this).val('');
+              $( "#off-ragsoc" ).val('');
+            }
+          },
+
+          select: function( event, ui ) {
+            var selected_codcli = ui.item.value;
+
+            var arr = $.grep(data, function( item ) {
+              return item.cli_codcli == selected_codcli;
+            });
+
+            $( "#off-ragsoc" ).val(arr[0].cli_ragsoc);
+          }
+        });
+      }					
+  })
+  .fail(function(data) {
+  });	  
 }
 
 function init() {
@@ -661,6 +729,7 @@ function init() {
 		$("#dettaglio-offerta :input").prop("disabled", false);
 		$("#dettaglio-offerta :input").val("");
 		$("#btn-offerta-crea").show();
+    $("#btn-offerta-aggiorna").hide();
 		
 		//- Imposta la maschera di inserimento dati
 		$( "#off-datains" ).datepicker()
@@ -670,48 +739,7 @@ function init() {
 		$( "#off-dataeva" ).datepicker()
 		.datepicker( "option", "dateFormat", "dd/mm/yy" );
 
-		//- Carica i codici clienti
-  	$.getJSON("data-viste.php?clienti")
-		.done(function(data) {
-				if (data.error) {
-					alert("error");
-				} else {
-					
-					var list_codcli = [];
-					
-					$.each( data, function( i, item ) {
-						list_codcli.push({
-							label: item.cli_codcli+" - "+item.cli_ragsoc,
-							value: item.cli_codcli
-						});
-					});
-					
-					$( "#off-codcli" ).autocomplete({
-      			source: list_codcli,
-            
-            //- Permette la scelta solo tra le voci dell'elenco
-            change: function (event, ui) {
-              if (!ui.item) {
-                $(this).val('');
-                $( "#off-ragsoc" ).val('');
-              }
-            },
-            
-						select: function( event, ui ) {
-							var selected_codcli = ui.item.value;
-							
-							var arr = $.grep(data, function( item ) {
-  							return item.cli_codcli == selected_codcli;
-							});
-							
-							$( "#off-ragsoc" ).val(arr[0].cli_ragsoc);
-						}
-    			});
-				}					
-		})
-		.fail(function(data) {
-		});	
-		
+    loadCodiciClientiPerOfferta();		
 	});
 	
   $( "#btn-offerta-elenco" ).click(function() {
@@ -820,6 +848,39 @@ function init() {
 
 	});
 	
+  $( "#btn-offerta-aggiorna" ).click(function(e) {
+		e.preventDefault();
+		
+		//- Verifica i dati
+    var codcli = $( "#off-codcli" ).val();
+		if (_.isUndefined(codcli) || (codcli == "")) {
+      alert('Scegli un codice cliente.');
+      return;
+    }
+    
+		//- Aggiorna l'offerta
+		var getData = {};
+		getData.update      = true;
+    getData.off_numoff  = $("#off-numoff").val();
+    getData.off_codcli  = $("#off-codcli").val();
+    getData.off_datains = $("#off-datains").val();
+		getData.off_dataeva = $("#off-dataeva").val();
+		
+		$.getJSON("data-offerta.php", getData)
+		.done(function(data) {
+			if (data.error) {
+				alert("error");
+			} else {
+				//- Disabilita i campi dell'offerta
+				//$("#dettaglio-offerta :input").prop("disabled", true);
+				//$( "#btn-offerta-crea" ).hide();
+			}
+		})
+		.fail(function(data) {
+		});						
+
+	});
+  
   //---------------------------------------
 	//- Articolo
   //---------------------------------------

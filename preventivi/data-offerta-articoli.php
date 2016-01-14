@@ -53,7 +53,8 @@ else if (isset($_GET['update'])) {
 			UPDATE `offerte_dettaglio_articoli`
 			   SET `ofa-lunghezza` = ?, `ofa-larghezza` = ?, `ofa-lungsmu` = ?,
              `ofa-quantita` = ?, `ofa-unimis` = ?, 
-             `ofa-przacq-net` = ?, `ofa-przacq-lor` = ?
+             `ofa-przacq-net` = ?, `ofa-przacq-lor` = ?,
+             `datamod` = CURRENT_TIMESTAMP
 			 WHERE `ofa-numoff` = ?
 		     AND `ofa-codart` = ?
 	";
