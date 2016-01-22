@@ -502,7 +502,8 @@ function showElencoOfferte(start_i, end_i, data, stato) {
     row = $( "#table-offerta tbody tr:last-child" );
     row.attr( "numoff", item.off_numoff );
 
-    var d = new Date(item.off_datains);
+    var d = new Date(item.off_datains.substring(0,10));
+    //var d = new Date(item.off_datains);
 
     row.find("td:nth-child(1)").text(item.off_numoff);
     row.find("td:nth-child(2)").text(d.toLocaleDateString());
