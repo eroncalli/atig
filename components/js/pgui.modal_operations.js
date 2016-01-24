@@ -5,9 +5,12 @@ define(function(require, exports, module)
         _           = require('underscore');
 
     function destroyDialog(formContainer) {
+        formContainer.modal('hide');
+    }
+
+    function destroyEditors(formContainer) {
         require(['pgui.controls'], function (ctrls) {
             ctrls.destroyEditors(formContainer, function () {
-                formContainer.modal('hide');
                 formContainer.remove();
             });
         });
@@ -55,7 +58,7 @@ define(function(require, exports, module)
 
             $formContainer.find('.cancel-button').click(function(e) {
                 e.preventDefault();
-                destroyDialog($formContainer)
+                destroyDialog($formContainer);
             });
         },
 
@@ -71,7 +74,7 @@ define(function(require, exports, module)
                 var formContainer = $('#modalFormContainer');
                 if(formContainer.length === 0){
                     formContainer = $('<div/>', {
-                        class: 'modal hide wide-modal',
+                        class: 'modal wide-modal',
                         style: 'overflow: visible',
                         id: 'modalFormContainer'
                     })
@@ -82,23 +85,29 @@ define(function(require, exports, module)
                 self._applyUnobtrusive(formContainer);
 
                 var errorContainer = self._createErrorContainer(formContainer);
-                formContainer.find('.modal-body').css('overflow', 'visible');
-                formContainer.find('.modal-body').css('max-height', 'inherit');
 
                 self._applyFormValidator(formContainer, errorContainer);
 
-                if (formContainer.height() > $(window).height() - 300)
+                if (formContainer.height() > $(window).height() - 300) {
                     formContainer.addClass('modal-big-length');
+                    formContainer.find(".modal-body").css('max-height', $(window).height() - 150);
+                } else {
+                    formContainer.find('.modal-body').css('max-height', 'inherit');
+                    formContainer.find('.modal-body').css('overflow', 'visible');
+                }
 
                 formContainer.find('.title').html(self.container.attr('dialog-title'));
                 formContainer.modal({
-                    modal: true,
                     show: false,
-                    backdrop: 'static'
+                    backdrop: true
                 });
+
                 ctrls.initEditors(formContainer, function() {
                     self._bindButtonEvents(formContainer, errorContainer);
                     formContainer.modal('show');
+                    formContainer.on('hidden', function () {
+                        destroyEditors(formContainer);
+                    });
                 });
             });
 
@@ -156,14 +165,30 @@ define(function(require, exports, module)
             $form.pgui_validate_form({ });
         },
 
+        _toggleLoading: function (formContainer, isLoading) {
+            var $toolbar = formContainer.find('.btn-toolbar');
+            var $submitButtons = $toolbar.find("button[type=submit],submit");
+            
+            $toolbar.find("button").prop('disabled', isLoading);
+
+            if (isLoading) {
+                $submitButtons.addClass('btn-loading');
+            } else {
+                $submitButtons.removeClass('btn-loading');
+            }
+        },
+
         _beforeFormSubmit: function(formContainer, errorContainer)
         {
             var form = formContainer.find("form");
+            this._toggleLoading(formContainer, true);
+            var result = form.valid() && pv.ValidateSimpleForm(form, errorContainer, false);
 
-            if (!form.valid()) {
-                return false;
+            if (!result) {
+                this._toggleLoading(formContainer, false);
             }
-            return pv.ValidateSimpleForm(form, errorContainer, false);
+
+            return result;
         },
 
         _showError: function(formContainer, message)
@@ -183,6 +208,7 @@ define(function(require, exports, module)
 
         _processCommit: function(formContainer, errorContainer, success)
         {
+            var self = this;
             var dialog = formContainer;
             var form = formContainer.find("form");
 
@@ -192,27 +218,33 @@ define(function(require, exports, module)
                 {
                     dataType: 'xml',
 
-                    beforeSubmit : _.bind(function()
-                    {
-                        if (!this._beforeFormSubmit(formContainer, errorContainer))
+                    beforeSubmit: function () {
+                        if (!self._beforeFormSubmit(formContainer, errorContainer)) {
                             return false;
-                        $("body").css("cursor", "wait");
-                    }, this),
+                        }
 
-                    success:_.bind(function(response)
-                    {
+                        $("body").css("cursor", "wait");
+                    },
+
+                    success: function (response) {
                         if ($(response).find('type').text() == 'error')
                         {
-                            this._showError(formContainer, $(response).find('error_message').text())
+                            self._showError(formContainer, $(response).find('error_message').text())
                         }
                         else
                         {
-                            this._doUpdateGridAfterCommit(response, success);
+                            self._doUpdateGridAfterCommit(response, success);
                             destroyDialog(formContainer);
                         }
 
                         $("body").css("cursor", "auto");
-                    }, this)
+
+                        self._toggleLoading(formContainer, false);
+                    },
+
+                    error: function () {
+                        self._toggleLoading(formContainer, false);
+                    }
 
                 });
             }, this));

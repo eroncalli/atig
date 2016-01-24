@@ -45,37 +45,29 @@ define(function (require, exports) {
             return this.readonly();
         },
 
+        getVisible: function() {
+            return this.rootElement.closest('.control-group').is(':visible');
+        },
+
+        setVisible: function(value) {
+            this.rootElement.closest('.control-group').toggle(value);
+        },
+
         visible: function(value) {
-            var controlContainer = this.rootElement.closest('.control-group');
-            if (controlContainer.length === 0) {
-                return;
-            }
             if (_.isUndefined(value)) {
-                return controlContainer.is(':visible');
+                return this.getVisible();
             }
-            else {
-                if (this.visible() != value) {
-                    if (value) {
-                        controlContainer.show();
-                    }
-                    else {
-                        controlContainer.hide();
-                    }
-                }
-            }
+
+            this.setVisible(value);
         },
 
         enabled: function(value) {
-            if (_.isUndefined(value))
-            {
+            if (_.isUndefined(value)) {
                 return this.getEnabled();
             }
-            else
-            {
-                if (this.getEnabled() != value)
-                {
-                    this.setEnabled(value);
-                }
+
+            if (this.getEnabled() != value) {
+                this.setEnabled(value);
             }
         },
 

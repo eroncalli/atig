@@ -60,7 +60,13 @@
     
         protected function CreatePageNavigator()
         {
-            return null;
+            $result = new CompositePageNavigator($this);
+            
+            $partitionNavigator = new PageNavigator('pnav', $this, $this->dataset);
+            $partitionNavigator->SetRowsPerPage(25);
+            $result->AddPageNavigator($partitionNavigator);
+            
+            return $result;
         }
     
         public function GetPageList()
@@ -152,8 +158,8 @@
                 $grid->AddViewColumn($column, $actionsBandName);
                 $column->SetImagePath('images/delete_action.png');
                 $column->OnShow->AddListener('ShowDeleteButtonHandler', $this);
-            $column->SetAdditionalAttribute("data-modal-delete", "true");
-            $column->SetAdditionalAttribute("data-delete-handler-name", $this->GetModalGridDeleteHandler());
+                $column->SetAdditionalAttribute('data-modal-delete', 'true');
+                $column->SetAdditionalAttribute('data-delete-handler-name', $this->GetModalGridDeleteHandler());
             }
         }
     
@@ -418,8 +424,8 @@
             $this->SetAdvancedSearchAvailable(false);
             $this->SetFilterRowAvailable(false);
             $this->SetVisualEffectsEnabled(true);
-            $this->SetShowTopPageNavigator(false);
-            $this->SetShowBottomPageNavigator(false);
+            $this->SetShowTopPageNavigator(true);
+            $this->SetShowBottomPageNavigator(true);
     
             //
             // Http Handlers

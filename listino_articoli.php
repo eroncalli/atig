@@ -46,8 +46,6 @@
             $field = new IntegerField('id', null, null, true);
             $field->SetIsNotNull(true);
             $this->dataset->AddField($field, true);
-            $field = new StringField('lis-codart');
-            $this->dataset->AddField($field, false);
             $field = new StringField('lis-codlis');
             $this->dataset->AddField($field, false);
             $field = new StringField('lisdesc');
@@ -70,6 +68,9 @@
             $this->dataset->AddField($field, false);
             $field = new DateTimeField('datamod');
             $this->dataset->AddField($field, false);
+            $field = new StringField('lis-codart');
+            $field->SetIsNotNull(true);
+            $this->dataset->AddField($field, false);
             $this->dataset->AddLookupField('lis-codart', 'articoli', new StringField('art-codart'), new StringField('art-codart', 'lis-codart_art-codart', 'lis-codart_art-codart_articoli'), 'lis-codart_art-codart_articoli');
             $this->dataset->AddLookupField('lis-codlis', 'listini', new StringField('codice'), new StringField('descrizione', 'lis-codlis_descrizione', 'lis-codlis_descrizione_listini'), 'lis-codlis_descrizione_listini');
         }
@@ -80,7 +81,13 @@
     
         protected function CreatePageNavigator()
         {
-            return null;
+            $result = new CompositePageNavigator($this);
+            
+            $partitionNavigator = new PageNavigator('pnav', $this, $this->dataset);
+            $partitionNavigator->SetRowsPerPage(25);
+            $result->AddPageNavigator($partitionNavigator);
+            
+            return $result;
         }
     
         public function GetPageList()
@@ -123,8 +130,8 @@
         {
             $grid->UseFilter = true;
             $grid->SearchControl = new SimpleSearch('listino_articolissearch', $this->dataset,
-                array('id', 'lis-codart_art-codart', 'lis-codlis_descrizione', 'lisdesc', 'lis-unimis', 'lis-przacq', 'lis-moltipl', 'lis-oneriacc', 'lis-scarto', 'lis-dataini', 'lis-datafin'),
-                array($this->RenderText('Id'), $this->RenderText('Codice Articolo'), $this->RenderText('Codice listino'), $this->RenderText('Descrizione'), $this->RenderText('Unità misura'), $this->RenderText('Prezzo acquisto'), $this->RenderText('Moltiplicatore'), $this->RenderText('Oneri e accessori'), $this->RenderText('Scarto'), $this->RenderText('Data inizio'), $this->RenderText('Data fine')),
+                array('lis-codart_art-codart', 'lis-codlis_descrizione', 'lisdesc', 'lis-unimis', 'lis-przacq', 'lis-moltipl', 'lis-oneriacc', 'lis-scarto', 'lis-dataini', 'lis-datafin'),
+                array($this->RenderText('Codice Articolo'), $this->RenderText('Codice listino'), $this->RenderText('Descrizione'), $this->RenderText('Unità misura'), $this->RenderText('Prezzo acquisto'), $this->RenderText('Moltiplicatore'), $this->RenderText('Oneri e accessori'), $this->RenderText('Scarto'), $this->RenderText('Data inizio'), $this->RenderText('Data fine')),
                 array(
                     '=' => $this->GetLocalizerCaptions()->GetMessageString('equals'),
                     '<>' => $this->GetLocalizerCaptions()->GetMessageString('doesNotEquals'),
@@ -144,8 +151,6 @@
         {
             $this->AdvancedSearchControl = new AdvancedSearchControl('listino_articoliasearch', $this->dataset, $this->GetLocalizerCaptions(), $this->GetColumnVariableContainer(), $this->CreateLinkBuilder());
             $this->AdvancedSearchControl->setTimerInterval(1000);
-            $this->AdvancedSearchControl->AddSearchColumn($this->AdvancedSearchControl->CreateStringSearchInput('id', $this->RenderText('Id')));
-            
             $lookupDataset = new TableDataset(
                 new MyPDOConnectionFactory(),
                 GetConnectionOptions(),
@@ -159,11 +164,13 @@
             $lookupDataset->AddField($field, false);
             $field = new StringField('art-codfam');
             $lookupDataset->AddField($field, false);
+            $field = new IntegerField('art-lungsmu');
+            $lookupDataset->AddField($field, false);
             $field = new DateTimeField('datains');
             $lookupDataset->AddField($field, false);
             $field = new DateTimeField('datamod');
             $lookupDataset->AddField($field, false);
-            $lookupDataset->SetOrderBy('art-codart', GetOrderTypeAsSQL(otAscending));
+            $lookupDataset->setOrderByField('art-codart', GetOrderTypeAsSQL(otAscending));
             $this->AdvancedSearchControl->AddSearchColumn($this->AdvancedSearchControl->CreateLookupSearchInput('lis-codart', $this->RenderText('Codice Articolo'), $lookupDataset, 'art-codart', 'art-codart', false, 8));
             
             $lookupDataset = new TableDataset(
@@ -177,7 +184,7 @@
             $lookupDataset->AddField($field, false);
             $field = new StringField('descrizione');
             $lookupDataset->AddField($field, false);
-            $lookupDataset->SetOrderBy('descrizione', GetOrderTypeAsSQL(otAscending));
+            $lookupDataset->setOrderByField('descrizione', GetOrderTypeAsSQL(otAscending));
             $this->AdvancedSearchControl->AddSearchColumn($this->AdvancedSearchControl->CreateLookupSearchInput('lis-codlis', $this->RenderText('Codice listino'), $lookupDataset, 'codice', 'descrizione', false, 8));
             $this->AdvancedSearchControl->AddSearchColumn($this->AdvancedSearchControl->CreateStringSearchInput('lisdesc', $this->RenderText('Descrizione')));
             $this->AdvancedSearchControl->AddSearchColumn($this->AdvancedSearchControl->CreateStringSearchInput('lis-unimis', $this->RenderText('Unità misura')));
@@ -212,8 +219,8 @@
                 $grid->AddViewColumn($column, $actionsBandName);
                 $column->SetImagePath('images/delete_action.png');
                 $column->OnShow->AddListener('ShowDeleteButtonHandler', $this);
-            $column->SetAdditionalAttribute("data-modal-delete", "true");
-            $column->SetAdditionalAttribute("data-delete-handler-name", $this->GetModalGridDeleteHandler());
+                $column->SetAdditionalAttribute('data-modal-delete', 'true');
+                $column->SetAdditionalAttribute('data-delete-handler-name', $this->GetModalGridDeleteHandler());
             }
         }
     
@@ -251,13 +258,6 @@
     
         protected function AddSingleRecordViewColumns(Grid $grid)
         {
-            //
-            // View column for id field
-            //
-            $column = new TextViewColumn('id', 'Id', $this->dataset);
-            $column->SetOrderable(true);
-            $grid->AddSingleRecordViewColumn($column);
-            
             //
             // View column for art-codart field
             //
@@ -355,11 +355,13 @@
             $lookupDataset->AddField($field, false);
             $field = new StringField('art-codfam');
             $lookupDataset->AddField($field, false);
+            $field = new IntegerField('art-lungsmu');
+            $lookupDataset->AddField($field, false);
             $field = new DateTimeField('datains');
             $lookupDataset->AddField($field, false);
             $field = new DateTimeField('datamod');
             $lookupDataset->AddField($field, false);
-            $lookupDataset->SetOrderBy('art-codart', GetOrderTypeAsSQL(otAscending));
+            $lookupDataset->setOrderByField('art-codart', GetOrderTypeAsSQL(otAscending));
             $editColumn = new LookUpEditColumn(
                 'Codice Articolo', 
                 'lis-codart', 
@@ -384,7 +386,7 @@
             $lookupDataset->AddField($field, false);
             $field = new StringField('descrizione');
             $lookupDataset->AddField($field, false);
-            $lookupDataset->SetOrderBy('descrizione', GetOrderTypeAsSQL(otAscending));
+            $lookupDataset->setOrderByField('descrizione', GetOrderTypeAsSQL(otAscending));
             $editColumn = new LookUpEditColumn(
                 'Codice listino', 
                 'lis-codlis', 
@@ -490,11 +492,13 @@
             $lookupDataset->AddField($field, false);
             $field = new StringField('art-codfam');
             $lookupDataset->AddField($field, false);
+            $field = new IntegerField('art-lungsmu');
+            $lookupDataset->AddField($field, false);
             $field = new DateTimeField('datains');
             $lookupDataset->AddField($field, false);
             $field = new DateTimeField('datamod');
             $lookupDataset->AddField($field, false);
-            $lookupDataset->SetOrderBy('art-codart', GetOrderTypeAsSQL(otAscending));
+            $lookupDataset->setOrderByField('art-codart', GetOrderTypeAsSQL(otAscending));
             $editColumn = new LookUpEditColumn(
                 'Codice Articolo', 
                 'lis-codart', 
@@ -519,7 +523,7 @@
             $lookupDataset->AddField($field, false);
             $field = new StringField('descrizione');
             $lookupDataset->AddField($field, false);
-            $lookupDataset->SetOrderBy('descrizione', GetOrderTypeAsSQL(otAscending));
+            $lookupDataset->setOrderByField('descrizione', GetOrderTypeAsSQL(otAscending));
             $editColumn = new LookUpEditColumn(
                 'Codice listino', 
                 'lis-codlis', 
@@ -619,13 +623,6 @@
         protected function AddPrintColumns(Grid $grid)
         {
             //
-            // View column for id field
-            //
-            $column = new TextViewColumn('id', 'Id', $this->dataset);
-            $column->SetOrderable(true);
-            $grid->AddPrintColumn($column);
-            
-            //
             // View column for art-codart field
             //
             $column = new TextViewColumn('lis-codart_art-codart', 'Codice Articolo', $this->dataset);
@@ -703,13 +700,6 @@
     
         protected function AddExportColumns(Grid $grid)
         {
-            //
-            // View column for id field
-            //
-            $column = new TextViewColumn('id', 'Id', $this->dataset);
-            $column->SetOrderable(true);
-            $grid->AddExportColumn($column);
-            
             //
             // View column for art-codart field
             //
@@ -874,8 +864,8 @@
             $this->SetAdvancedSearchAvailable(false);
             $this->SetFilterRowAvailable(false);
             $this->SetVisualEffectsEnabled(true);
-            $this->SetShowTopPageNavigator(false);
-            $this->SetShowBottomPageNavigator(false);
+            $this->SetShowTopPageNavigator(true);
+            $this->SetShowBottomPageNavigator(true);
     
             //
             // Http Handlers

@@ -17,13 +17,20 @@ define(function(require, exports, module) {
                 show: false
             });
 
-            this.$changeRowPerPageDialog.find('.save-changes-button').click(function (e) {
-                e.preventDefault();
-                self._applyRowPerPageValue(self.getRowPerPageValue());
-            });
+            var $customPageSizeInput = this.container.find('.js-pgui-custom-page-size')
 
-            this.container.find('.pgui-custom-page-size').keyup(function() {
-                self.container.find('.custom_page_size_page_count').html(
+            var applyCallback = function (e) {
+                e.preventDefault();
+                var value = $customPageSizeInput.val();
+                $customPageSizeInput.val(Math.abs(parseInt(value)) || 10);
+                self._applyRowPerPageValue(self.getRowPerPageValue());
+            };
+
+            this.$changeRowPerPageDialog.find('.save-changes-button').click(applyCallback);
+            this.$changeRowPerPageDialog.find('form').submit(applyCallback);
+
+            $customPageSizeInput.keyup(function() {
+                self.container.find('.js-custom_page_size_page_count').html(
                     self._getPageCountForPageSize($(this).val(), self.totalRecordCount)
                 );
             });
@@ -37,7 +44,7 @@ define(function(require, exports, module) {
                 return 1;
         },
 
-    _applyRowPerPageValue: function(value) {
+        _applyRowPerPageValue: function(value) {
             require(['jquery/jquery.query'], function()
             {
                 window.location = jQuery.query.set('recperpage', value);
@@ -47,7 +54,7 @@ define(function(require, exports, module) {
         getRowPerPageValue: function() {
             var value = this.container.find('input:checked').val();
             if (value == 'custom')
-                value = this.container.find('.pgui-custom-page-size').val();
+                value = this.container.find('.js-pgui-custom-page-size').val();
             return value;
         },
 

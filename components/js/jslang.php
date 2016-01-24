@@ -88,7 +88,19 @@ BuildLocalizationString($captions, 'Select2Searching');
 BuildLocalizationString($captions, 'SaveAndInsert');
 BuildLocalizationString($captions, 'SaveAndBackToList');
 BuildLocalizationString($captions, 'SaveAndEdit');
-BuildLocalizationString($captions, 'Save', true);
+BuildLocalizationString($captions, 'Save');
+
+
+BuildLocalizationString($captions, 'MultipleColumnSorting');
+BuildLocalizationString($captions, 'Column');
+BuildLocalizationString($captions, 'Order');
+BuildLocalizationString($captions, 'Sort');
+BuildLocalizationString($captions, 'AddLevel');
+BuildLocalizationString($captions, 'DeleteLevel');
+BuildLocalizationString($captions, 'Ascending');
+BuildLocalizationString($captions, 'SortBy');
+BuildLocalizationString($captions, 'ThenBy');
+BuildLocalizationString($captions, 'Descending', true);
 
 
 ?>};

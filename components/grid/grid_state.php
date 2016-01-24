@@ -139,10 +139,8 @@ class ViewAllGridState extends GridState {
         if (count($primaryKeyValues) > 0)
             $this->grid->GetDataset()->SetSingleRecordState($primaryKeyValues);
         */
-        $orderColumn = $this->grid->GetOrderColumnFieldName();
-        $orderType = $this->grid->GetOrderType();
-        if (isset($orderType) && isset($orderColumn))
-            $this->grid->GetDataset()->SetOrderBy($orderColumn, GetOrderTypeAsSQL($orderType));
+
+        $this->grid->GetDataset()->setOrderByFields($this->grid->getSortedColumns());
 
         foreach ($this->grid->GetViewColumns() as $column)
             $column->ProcessMessages();

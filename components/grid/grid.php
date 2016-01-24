@@ -35,6 +35,34 @@ $orderTypeCaptions = array(
     otAscending => 'a',
     otDescending => 'd');
 
+class SortColumn {
+
+    private $fieldName;
+
+    private $orderType;
+
+    function __construct($fieldName, $orderType) {
+        $this->fieldName = $fieldName;
+        $this->orderType = $orderType;
+    }
+
+    public function getFieldName() {
+        return $this->fieldName;
+    }
+
+    public function getSQLOrderType() {
+        return $this->orderType;
+    }
+
+    public function getShortOrderType() {
+        return $this->orderType == 'ASC' ? 'a' : 'd';
+    }
+
+    public function getFullOrderType() {
+        return $this->orderType == 'ASC' ? 'ascending' : 'descending';
+    }
+}
+
 class Grid {
     /** @var string */
     private $name;
@@ -87,6 +115,13 @@ class Grid {
     //
     private $orderColumnFieldName;
     private $orderType;
+
+    /** @var SortColumn[] */
+    private $sortedColumns;
+
+    /** @var SortColumn[] */
+    private $defaultSortedColumns;
+
     private $highlightRowAtHover;
     private $errorMessage;
     //
@@ -232,6 +267,8 @@ class Grid {
 
         $this->defaultOrderColumnFieldName = null;
         $this->defaultOrderType = null;
+        $this->sortedColumns = array();
+        $this->defaultSortedColumns = array();
 
         $this->bands = array();
         $this->defaultBand = new GridBand('defaultBand', 'defaultBand');
@@ -725,18 +762,56 @@ class Grid {
         $this->orderType = $value;
     }
 
-    public function SetDefaultOrdering($fieldName, $orderType) {
-        $this->defaultOrderColumnFieldName = $fieldName;
-        $this->defaultOrderType = $orderType;
+    public function setOrderBy($sortedColumns) {
+        $this->sortedColumns = $sortedColumns;
+    }
+
+    public function setOrderByParameter($sortedColumns) {
+        $newSortedColumns = array();
+        foreach ($sortedColumns as $value) {
+            $this->sortedColumns = array();
+            $fieldName = substr($value, 1, strlen($value) - 1);
+            $orderType = $value[0] == 'a' ? 'ASC' : 'DESC';
+            $newSortedColumns[] = new SortColumn($fieldName, $orderType);
+        }
+        $this->setOrderBy($newSortedColumns);
+    }
+
+    public function setDefaultOrdering($sortedColumns) {
+        $this->defaultSortedColumns = $sortedColumns;
+    }
+
+    public function getSortedColumns() {
+        return $this->sortedColumns;
     }
 
     private function ApplyDefaultOrder() {
-        $this->orderColumnFieldName = $this->defaultOrderColumnFieldName;
-        $this->orderType = $this->defaultOrderType;
+        $this->setOrderBy($this->defaultSortedColumns);
     }
 
-    public function GetOrderColumnFieldName() {
-        return $this->orderColumnFieldName;
+    /*
+     * @param string $fieldName
+     * return null|string
+     */
+    public function GetOrderTypeByFieldName($fieldName) {
+        foreach ($this->sortedColumns as $value) {
+            if ($value->getFieldName() == $fieldName) {
+                return $value->getFullOrderType();
+            }
+        }
+
+        return null;
+    }
+
+    public function getSortIndexByFieldName($fieldName)
+    {
+        foreach ($this->sortedColumns as $key => $value) {
+            if ($value->getFieldName() == $fieldName) {
+                return $key;
+            }
+        }
+
+        return null;
     }
 
     public function SetOrderColumnFieldName($value) {
@@ -746,17 +821,31 @@ class Grid {
     private function ExtractOrderValues() {
         if (GetApplication()->IsGETValueSet('order')) {
             $orderValue = GetApplication()->GetGETValue('order');
-            $this->orderColumnFieldName = substr($orderValue, 1, strlen($orderValue) - 1);
-            $this->orderType = $orderValue[0] == 'a' ? otAscending : otDescending;
-            $this->SetSessionVariable($this->internalName . '_' . 'orderColumnFieldName', $this->orderColumnFieldName);
-            $this->SetSessionVariable($this->internalName . '_' . 'orderType', $this->orderType);
+            if (!is_array($orderValue)) {
+                $orderValue = array($orderValue);
+            }
+
+            $this->setOrderByParameter($orderValue);
+            $this->SetSessionVariable($this->internalName . '_sorting', $orderValue);
         } elseif (GetOperation() == 'resetorder') {
-            $this->UnSetSessionVariable($this->internalName . '_' . 'orderColumnFieldName');
-            $this->UnSetSessionVariable($this->internalName . '_' . 'orderType');
+            $this->UnSetSessionVariable($this->internalName . '_sorting');
             $this->ApplyDefaultOrder();
-        } elseif ($this->IsSessionVariableSet($this->internalName . '_' . 'orderColumnFieldName')) {
-            $this->orderColumnFieldName = $this->GetSessionVariable($this->internalName . '_' . 'orderColumnFieldName');
-            $this->orderType = $this->GetSessionVariable($this->internalName . '_' . 'orderType');
+        } elseif ($this->IsSessionVariableSet($this->internalName . '_orderColumnFieldName')) {
+            // TODO: this condition was added to support version 14.10.0.7 where sorting was realized by one column only.
+            // In that version field name and order type of sorted column saved to session in parameters .._orderColumnFieldName and.. _orderType respectively
+            // if these parameters were set we use it for sorting one time, deleted it from session and saved sorted columns by a new way.
+            $orderColumnFieldName = $this->GetSessionVariable($this->internalName . '_orderColumnFieldName');
+            $orderType = $this->GetSessionVariable($this->internalName . '_orderType');
+
+            $this->UnSetSessionVariable($this->internalName . '_orderColumnFieldName');
+            $this->UnSetSessionVariable($this->internalName . '_orderType');
+
+            $orderValue = array(substr($orderType, 0, 1) . $orderColumnFieldName);
+            $this->setOrderByParameter($orderValue);
+            $this->SetSessionVariable($this->internalName . '_sorting', $orderValue);
+        } elseif ($this->IsSessionVariableSet($this->internalName . '_sorting')) {
+            $sessionValue = $this->GetSessionVariable($this->internalName . '_sorting');
+            $this->setOrderByParameter($sessionValue);
         } else {
             $this->ApplyDefaultOrder();
         }
@@ -1362,7 +1451,18 @@ class Grid {
             $rows = $this->GetRowsViewData($renderer);
         }
 
+        $sortableColumns = array();
+        foreach($bandsViewData as $band) {
+            foreach($band['Columns'] as $column) {
+                if ($column['Sortable']) {
+                    $sortableColumns[$column['Name']] = $column['Caption'];
+                }
+            }
+        }
+
         return array(
+            'SortableColumns' => $sortableColumns,
+
             'Id' => $this->GetId(),
             'Styles' => $this->GetGridStyles(),
             'Classes' => $this->GetGridClasses(),
@@ -1427,7 +1527,9 @@ class Grid {
             'Totals' => $this->GetTotalsViewData(),
 
             'GridMessage' => $this->GetGridMessage() == '' ? null : $this->GetGridMessage(),
-            'ErrorMessage' => $this->GetErrorMessage() == '' ? null : $this->GetErrorMessage()
+            'ErrorMessage' => $this->GetErrorMessage() == '' ? null : $this->GetErrorMessage(),
+
+            'DataSortPriority' => $this->getSortedColumns()
         );
     }
 
@@ -1618,6 +1720,16 @@ class Grid {
                 'Name' => $detail->GetSeparatePageHandlerName(),
             );
         }
+        return $result;
+    }
+
+    public function GetDetailsViewData()
+    {
+        $result = array();
+        foreach ($this->details as $detail) {
+            $result[] = $detail->GetViewData();
+        }
+
         return $result;
     }
 

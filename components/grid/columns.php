@@ -270,12 +270,17 @@ abstract class CustomViewColumn
         return false;
     }
 
+    public  function ShowOrderingControl() {
+        return false;
+    }
+
     public function GetViewData() {
         return array(
             'Attributes' => $this->UseFixedWidth() ? ('width="' . $this->GetFixedWidth() . '"') : '',
             'Name' => $this->GetName(),
             'Caption' => $this->GetCaption(),
             'Classes' => $this->GetGridColumnClass(),
+            'Sortable' => $this->ShowOrderingControl(),
             'Comment' => $this->GetDescription(),
             'Styles' => $this->UseFixedWidth() ? ($this->GetFixedWidth() . ';') : ''
         );
@@ -419,96 +424,25 @@ abstract class CustomDatasetFieldViewColumn extends CustomViewColumn
             return parent::CreateHeaderControl();
     }
 
-    private function GetOrderByLink($currentOrderType = null)
-    {
-        $linkBuilder = $this->GetGrid()->CreateLinkBuilder();
-
-        switch($currentOrderType)
-        {
-            case otAscending:
-                $linkBuilder->AddParameter('order', GetOrderTypeCaption(otDescending) . $this->fieldName);
-                break;
-            case otDescending:
-                $linkBuilder->AddParameter(OPERATION_PARAMNAME, 'resetorder');
-                break;
-            case null:
-                $linkBuilder->AddParameter('order', GetOrderTypeCaption(otAscending) . $this->fieldName);
-                break;
-        }
-
-        return $linkBuilder->GetLink();
-    }
-
-    private function GetSortCaption($currentOrderType = null)
-    {
-        switch($currentOrderType)
-        {
-            case otAscending:
-                return ' <img src="images/sort_up.gif" style="border: 0;">';
-                break;
-            case otDescending:
-                return ' <img src="images/sort_down.gif" style="border: 0;">';
-                break;
-            default:
-                return ' <img src="images/sort_none.gif" style="border: 0;">';
-                break;
-        }
-    }
-
     private function GetSortOrderColumnClass() {
-        $orderColumn = $this->GetGrid()->GetOrderColumnFieldName();
-        if ($orderColumn == $this->fieldName)
-        {
-            switch($this->GetGrid()->GetOrderType())
-            {
-                case otAscending:
-                    return 'ascending';
-                    break;
-                case otDescending:
-                    return 'descending';
-                    break;
-                default:
-                    return '';
-                    break;
-            }
-        }
+        $orderType = $this->GetGrid()->GetOrderTypeByFieldName($this->fieldName);
+        if ($orderType !== null)
+            return $orderType;
         else
-        {
             return '';
-        }
     }
 
-    public function GetViewData() {
-        $result = parent::GetViewData();
-        if ($this->ShowOrderingControl()) {
-            if (isset($this->sortUrl))
-                $result['SortUrl'] = $this->sortUrl;
-        }
-        return $result;
-    }
-
-    public function ProcessMessages()
+    private function getSortIndex()
     {
-        parent::ProcessMessages();
-        if ($this->ShowOrderingControl())
-        {
-            $orderColumn = $this->GetGrid()->GetOrderColumnFieldName();
-            if ($orderColumn == $this->fieldName)
-            {
-                $this->sortUrl = $this->GetOrderByLink($this->GetGrid()->GetOrderType());
-                $this->GetHeaderControl()->SetAfterLinkText(
-                    ' <a href="'.$this->GetOrderByLink($this->GetGrid()->GetOrderType()).'">'.
-                    $this->GetSortCaption($this->GetGrid()->GetOrderType()).
-                    '</a>'
-                );
-            }
-            else
-            {
-                $this->sortUrl = $this->GetOrderByLink();
-                $this->GetHeaderControl()->SetAfterLinkText(
-                    ' <a href="' . $this->GetOrderByLink()  .'">'.$this->GetSortCaption(null).'</a>');
-            }
-        }
+        return $this->GetGrid()->getSortIndexByFieldName($this->fieldName);
+    }
+
+    public function GetViewData()
+    {
+        $viewData = parent::GetViewData();
+        $viewData['SortIndex'] = $this->getSortIndex();
+
+        return $viewData;
     }
 
     public function IsDataColumn()

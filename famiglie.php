@@ -50,6 +50,8 @@
             $this->dataset->AddField($field, false);
             $field = new StringField('art-codfam');
             $this->dataset->AddField($field, false);
+            $field = new IntegerField('art-lungsmu');
+            $this->dataset->AddField($field, false);
             $field = new DateTimeField('datains');
             $this->dataset->AddField($field, false);
             $field = new DateTimeField('datamod');
@@ -182,6 +184,8 @@
             $this->dataset->AddField($field, false);
             $field = new StringField('art-codfam');
             $this->dataset->AddField($field, false);
+            $field = new IntegerField('art-lungsmu');
+            $this->dataset->AddField($field, false);
             $field = new DateTimeField('datains');
             $this->dataset->AddField($field, false);
             $field = new DateTimeField('datamod');
@@ -195,7 +199,13 @@
     
         protected function CreatePageNavigator()
         {
-            return null;
+            $result = new CompositePageNavigator($this);
+            
+            $partitionNavigator = new PageNavigator('pnav', $this, $this->dataset);
+            $partitionNavigator->SetRowsPerPage(25);
+            $result->AddPageNavigator($partitionNavigator);
+            
+            return $result;
         }
     
         public function GetPageList()
@@ -250,7 +260,7 @@
             $lookupDataset->AddField($field, false);
             $field = new DateTimeField('datamod');
             $lookupDataset->AddField($field, false);
-            $lookupDataset->SetOrderBy('fam-descriz', GetOrderTypeAsSQL(otAscending));
+            $lookupDataset->setOrderByField('fam-descriz', GetOrderTypeAsSQL(otAscending));
             $this->AdvancedSearchControl->AddSearchColumn($this->AdvancedSearchControl->CreateLookupSearchInput('art-codfam', $this->RenderText('Codice famiglia'), $lookupDataset, 'fam-codfam', 'fam-descriz', false, 8));
             $this->AdvancedSearchControl->AddSearchColumn($this->AdvancedSearchControl->CreateStringSearchInput('art-codart', $this->RenderText('Codice Articolo')));
             $this->AdvancedSearchControl->AddSearchColumn($this->AdvancedSearchControl->CreateStringSearchInput('art-descart', $this->RenderText('Descrizione')));
@@ -284,8 +294,8 @@
                 $grid->AddViewColumn($column, $actionsBandName);
                 $column->SetImagePath('images/delete_action.png');
                 $column->OnShow->AddListener('ShowDeleteButtonHandler', $this);
-            $column->SetAdditionalAttribute("data-modal-delete", "true");
-            $column->SetAdditionalAttribute("data-delete-handler-name", $this->GetModalGridDeleteHandler());
+                $column->SetAdditionalAttribute('data-modal-delete', 'true');
+                $column->SetAdditionalAttribute('data-delete-handler-name', $this->GetModalGridDeleteHandler());
             }
         }
     
@@ -400,7 +410,7 @@
             $lookupDataset->AddField($field, false);
             $field = new DateTimeField('datamod');
             $lookupDataset->AddField($field, false);
-            $lookupDataset->SetOrderBy('fam-descriz', GetOrderTypeAsSQL(otAscending));
+            $lookupDataset->setOrderByField('fam-descriz', GetOrderTypeAsSQL(otAscending));
             $editColumn = new LookUpEditColumn(
                 'Codice famiglia', 
                 'art-codfam', 
@@ -455,7 +465,7 @@
             $lookupDataset->AddField($field, false);
             $field = new DateTimeField('datamod');
             $lookupDataset->AddField($field, false);
-            $lookupDataset->SetOrderBy('fam-descriz', GetOrderTypeAsSQL(otAscending));
+            $lookupDataset->setOrderByField('fam-descriz', GetOrderTypeAsSQL(otAscending));
             $editColumn = new LookUpEditColumn(
                 'Codice famiglia', 
                 'art-codfam', 
@@ -642,8 +652,8 @@
             $this->SetAdvancedSearchAvailable(false);
             $this->SetFilterRowAvailable(false);
             $this->SetVisualEffectsEnabled(true);
-            $this->SetShowTopPageNavigator(false);
-            $this->SetShowBottomPageNavigator(false);
+            $this->SetShowTopPageNavigator(true);
+            $this->SetShowBottomPageNavigator(true);
     
             //
             // Http Handlers
@@ -708,7 +718,13 @@
     
         protected function CreatePageNavigator()
         {
-            return null;
+            $result = new CompositePageNavigator($this);
+            
+            $partitionNavigator = new PageNavigator('pnav', $this, $this->dataset);
+            $partitionNavigator->SetRowsPerPage(25);
+            $result->AddPageNavigator($partitionNavigator);
+            
+            return $result;
         }
     
         public function GetPageList()
@@ -800,8 +816,8 @@
                 $grid->AddViewColumn($column, $actionsBandName);
                 $column->SetImagePath('images/delete_action.png');
                 $column->OnShow->AddListener('ShowDeleteButtonHandler', $this);
-            $column->SetAdditionalAttribute("data-modal-delete", "true");
-            $column->SetAdditionalAttribute("data-delete-handler-name", $this->GetModalGridDeleteHandler());
+                $column->SetAdditionalAttribute('data-modal-delete', 'true');
+                $column->SetAdditionalAttribute('data-delete-handler-name', $this->GetModalGridDeleteHandler());
             }
         }
     
@@ -837,13 +853,6 @@
     
         protected function AddSingleRecordViewColumns(Grid $grid)
         {
-            //
-            // View column for id field
-            //
-            $column = new TextViewColumn('id', 'Id', $this->dataset);
-            $column->SetOrderable(true);
-            $grid->AddSingleRecordViewColumn($column);
-            
             //
             // View column for fam-codfam field
             //
@@ -1128,8 +1137,8 @@
             $this->SetAdvancedSearchAvailable(false);
             $this->SetFilterRowAvailable(false);
             $this->SetVisualEffectsEnabled(true);
-            $this->SetShowTopPageNavigator(false);
-            $this->SetShowBottomPageNavigator(false);
+            $this->SetShowTopPageNavigator(true);
+            $this->SetShowBottomPageNavigator(true);
     
             //
             // Http Handlers

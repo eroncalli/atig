@@ -152,6 +152,7 @@ class ViewAllRenderer extends Renderer
             ),
             array_merge($customParams,
                 array(
+                    'isMasterGrid' => $Grid->GetName() == 'master_grid',
                     'SingleRowTemplate' => $page->GetCustomTemplate(PagePart::GridRow, PageMode::ViewAll, 'list/single_row.tpl'),
                     'AdvancedSearchControl' => $page->AdvancedSearchControl,
 

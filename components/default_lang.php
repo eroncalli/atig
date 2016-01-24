@@ -211,7 +211,7 @@ $cFilterOperatorIsNotLike                = 'Is not like';
 $cNullAsString = 'NULL';
 $cManageDetail = 'Manage "%s" details';
 
-$cAdministrationPanel = 'Administration panel';
+$cAdministrationPanel = 'Admin area';
 $cCreateUser = 'Create user';
 $cName = 'Name';
 $cAllFormFieldsAreRequired = 'All form fields are required.';
@@ -246,3 +246,14 @@ $cSelect2InputTooLong='Please delete %d characters';
 $cSelect2SelectionTooBig='You can only select %d items';
 $cSelect2LoadMore='Loading more results...';
 $cSelect2Searching='Searching...';
+
+$cMultipleColumnSorting='Sort';
+$cColumn='Column';
+$cOrder='Order';
+$cSort='Sort';
+$cAddLevel='Add level';
+$cDeleteLevel='Delete level';
+$cAscending='Ascending';
+$cDescending='Descending';
+$cSortBy='Sort by';
+$cThenBy='Then by';
