@@ -88,3 +88,28 @@ input[field='ofv-valuni-cal']{
 .right {
   float: right;
 }
+.t-right{
+text-align:right;
+}
+#dettaglio-offerta label {
+	margin-left:20px;
+}
+#off-codcli{
+	width:100px;
+}
+#off-ragsoc{
+	width:350px;
+}
+#off-datains{
+	width:120px;
+}
+#off-dataeva{
+	width:120px;
+}
+#off-numoff{
+	width:100px;
+}
+#btn-articolo-inserisci{
+	margin-top: 40px;
+	margin-left: 30px;
+}

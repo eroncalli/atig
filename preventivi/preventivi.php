@@ -167,11 +167,11 @@
 			</label>			
 			<label>
 				<span>Scarto (%)</span>
-				<input id="ofa-scarto" type="text" class="form-control" readonly>
+				<input id="ofa-scarto" type="text" class="form-control t-right" readonly>
 			</label>			
 			<label>
 				<span>Oneri accessori (%)</span>
-				<input id="ofa-oneri" type="text" class="form-control" readonly>
+				<input id="ofa-oneri" type="text" class="form-control t-right" readonly>
 			</label>				
 			<label>
 				<span>Tipo prezzo</span>
@@ -182,27 +182,27 @@
 			</label>	
 			<label>
 				<span>Prz acq. Netto</span>
-				<input id="ofa-przacq-net" type="text" class="form-control">
+				<input id="ofa-przacq-net" type="text" class="form-control t-right">
 			</label>		
 			<label>
 				<span>Prz acq. Lordo</span>
-				<input id="ofa-przacq-lor" type="text" class="form-control">
+				<input id="ofa-przacq-lor" type="text" class="form-control t-right">
 			</label>	
 			<label>
 				<span>Lunghezza (base)</span>
-				<input id="ofa-lunghezza" type="text" class="form-control">
+				<input id="ofa-lunghezza" type="text" class="form-control t-right">
 			</label>				
 			<label>
 				<span>Larghezza (altezza)</span>
-				<input id="ofa-larghezza" type="text" class="form-control">
+				<input id="ofa-larghezza" type="text" class="form-control t-right">
 			</label>
 			<label>
 				<span>Lunghezza smusso</span>
-				<input id="ofa-lungsmu" type="text" class="form-control">
+				<input id="ofa-lungsmu" type="text" class="form-control t-right">
 			</label>
-      <label>
+			<label>
 				<span>Pezzi</span>
-				<input id="ofa-quantita" type="text" class="form-control">
+				<input id="ofa-quantita" type="text" class="form-control t-right">
 			</label>
       <button id='btn-articolo-inserisci' class="btn btn-success" >Inserisci</button>
 			<button id='btn-articolo-aggiorna' class="btn btn-success" >Aggiorna</button>
