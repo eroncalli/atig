@@ -8,8 +8,9 @@ define(function(require, exports, module) {
         async               = require('async'),
         _                   = require('underscore'),
         InputEvents         = require('pgui.events').InputEvents,
-        setupInputEvents    = require('pgui.events').setupInputEvents;
-
+        setupInputEvents    = require('pgui.events').setupInputEvents,
+        MultipleSorting     = require('multiple_sorting').MultipleSorting;
+        Sorter              = require('sorter').Sorter;
 
     var FilterRow = Class.extend({
         /**
@@ -362,6 +363,7 @@ define(function(require, exports, module) {
             this.hiddenValues = {};
             this._processHiddenValues();
 
+            this._initContainer()
             this.integrateRows(this.container.find('.pg-row'));
             this._processInlineInsert();
             this._recalculateRowNumbers();
@@ -374,6 +376,14 @@ define(function(require, exports, module) {
             this._fixColumnWidths();
             this.filterRow = new FilterRow(this.container.find('.search-line'));
             this._highLightQuickFilterValue();
+
+            if (!this.container.data('is-master')) {
+                var sorter = new Sorter(this.container.find('th.sortable'));
+
+                var $sortButton = $('#multi-sort-' + this.container.attr('id'));
+                var $sortDialog = $('#multiple-sorting-' + this.container.attr('id'));
+                new MultipleSorting(sorter, $sortButton, $sortDialog);
+            };
         },
 
         _highLightQuickFilterValue: function() {
@@ -491,11 +501,10 @@ define(function(require, exports, module) {
          */
         integrateRows: function($rows) {
             var self = this;
-            var modalEditLinks = $rows.find('a[modal-edit=true]');
 
             // See Renderer::RenderImageViewColumn
             require(['jquery/jquery.magnific-popup'], function() {
-                self.container.find('a.gallery-item').magnificPopup({
+                $rows.find('a.gallery-item').magnificPopup({
                     type: 'image',
                     gallery:{
                         enabled: true,
@@ -509,69 +518,53 @@ define(function(require, exports, module) {
                 });
             });
 
-            async.forEach(modalEditLinks.get(), function(item, callback) {
-                async.waterfall([
-                    function(callback) {
-                        require(['pgui.modal_edit'], function(modalEdit) { callback(null, modalEdit); });
-                    },
-                    function(modalEdit, callback) {
-                        var modalEditLink = new modalEdit.ModalEditLink($(item), self);
-                        $(item).data('modal-edit', modalEditLink);
-                        callback();
-                    }
-                ], callback);
+            $rows.find('a[modal-edit=true]').each(function (index, item) {
+                var $item = $(item);
+                if (!$item.data('modal-edit')) {
+                    require(['pgui.modal_edit'], function (modalEdit) {
+                        var modalEditLink = new modalEdit.ModalEditLink($item, self);
+                        $item.data('modal-edit', modalEditLink);
+                    });
+                };
             });
 
             var modalDeleteLinks = $rows.find('a[data-modal-delete=true]');
-            if (modalDeleteLinks.length > 0)
+            if (modalDeleteLinks.length > 0) {
                 require(['pgui.modal_editing'], function(m) {
                     m.setupModalEditors($rows, self);
                 });
+            }
 
-
-            var modalCopyLinks = $rows.find('a[modal-copy=true]');
-            async.forEach(modalCopyLinks.get(), function(item, callback) {
-                async.waterfall([
-                    function(callback) {
-                        require(['pgui.modal_copy'], function(m) { callback(null, m); });
-                    },
-                    function(modalCopy, callback) {
-                        var modalCopyLink = new modalCopy.ModalCopyLink($(item), self);
-                        $(item).data('modal-copy', modalCopyLink);
-                        callback();
-                    }
-                ], callback);
+            $rows.find('a[modal-copy=true]').each(function (index, item) {
+                var $item = $(item);
+                if (!$item.data('modal-copy')) {
+                    require(['pgui.modal_copy'], function (modalCopy) {
+                        var modalCopyLink = new modalCopy.ModalCopyLink($item, self);
+                        $item.data('modal-copy', modalCopyLink);
+                    });
+                };
             });
 
-            var modalViewLinks = $rows.find('a[modal-view=true]');
-            async.forEach(modalViewLinks.get(), function(item, callback) {
-                async.waterfall([
-                    function(callback) {
-                        require(['pgui.modal_view'], function(m) { callback(null, m); });
-                    },
-                    function(modalView, callback) {
-                        var modalViewLink = new modalView.ModalViewLink($(item));
-                        $(item).data('modal-view', modalViewLink);
-                        callback();
-                    }
-                ], callback);
+            $rows.find('a[modal-view=true]').each(function (index, item) {
+                var $item = $(item);
+                if (!$item.data('modal-view')) {
+                    require(['pgui.modal_view'], function (modalView) {
+                        var modalViewLink = new modalView.ModalViewLink($item, self);
+                        $item.data('modal-view', modalViewLink);
+                    });
+                };
             });
 
-            $rows.find('td.details > div > a.expand-details').click(function(e) {
+            $rows.find("a.expand-details").off('click').click(function (e) {
                 e.preventDefault();
                 self._toggleDetailClickHandler($(this));
             });
+        },
 
-            $rows.find('td.details').click(function(e) {
-                var detailCell = $(this);
-                //require([], function() {
-                    var dropdown = detailCell.find('.dropdown-menu');
-                    var link = detailCell.find('.details-quick-access');
-                    link.dropdown();
-                //});
-            });
+        _initContainer: function() {
+            var self = this;
 
-            this.container.find('a.expand-all-details').click(function(e) {
+            this.container.find('a.expand-all-details').off('click').click(function(e) {
                 e.preventDefault();
                 self._toggleAllDetails($(this));
             });
@@ -584,7 +577,8 @@ define(function(require, exports, module) {
                         requestAddress: self.options.inlineEditRequestsAddress,
                         useBlockGUI: true,
                         useImagesForActions: true,
-                        editingErrorMessageHeader: localizer.getString('ErrorsDuringUpdateProcess')
+                        editingErrorMessageHeader: localizer.getString('ErrorsDuringUpdateProcess'),
+                        grid: self
                     });
                 });
             }
@@ -667,9 +661,7 @@ define(function(require, exports, module) {
                 }
             });
 
-
             this.$deleteSelectedButton.click(function() {
-
                 require(['bootbox.min'], function() {
 
                     bootbox.animate(false);
@@ -687,10 +679,6 @@ define(function(require, exports, module) {
                 self.container.find('.pg-row td.row-selection input[type=checkbox]').prop('checked', checked);
             });
 
-            this.$headerRow.find('>th.sortable').click(function(e) {
-                e.preventDefault();
-                window.location.href = $(this).attr('data-sort-url');
-            });
             this.$quickFilterResetButton.click(function(e) {
                 e.preventDefault();
                 self.$quickFilterInput.val('');
@@ -734,7 +722,6 @@ define(function(require, exports, module) {
             if (!button.hasClass('collapsed')) {
                 return;
             }
-
             button.removeClass('collapsed');
             button.addClass('expanded');
             this._updateToggleAllDetailsButton();
@@ -957,5 +944,4 @@ define(function(require, exports, module) {
         }
 
     });
-
 });

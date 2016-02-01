@@ -46,7 +46,7 @@
             $field = new IntegerField('id', null, null, true);
             $field->SetIsNotNull(true);
             $this->dataset->AddField($field, true);
-            $field = new StringField('voc-codvoce');
+            $field = new IntegerField('voc-codvoce');
             $this->dataset->AddField($field, false);
             $field = new StringField('voc-descriz');
             $this->dataset->AddField($field, false);
@@ -67,7 +67,13 @@
     
         protected function CreatePageNavigator()
         {
-            return null;
+            $result = new CompositePageNavigator($this);
+            
+            $partitionNavigator = new PageNavigator('pnav', $this, $this->dataset);
+            $partitionNavigator->SetRowsPerPage(25);
+            $result->AddPageNavigator($partitionNavigator);
+            
+            return $result;
         }
     
         public function GetPageList()
@@ -110,8 +116,8 @@
         {
             $grid->UseFilter = true;
             $grid->SearchControl = new SimpleSearch('voci_costossearch', $this->dataset,
-                array('id', 'voc-codvoce', 'voc-descriz', 'voc-semanual', 'voc-formula_formula'),
-                array($this->RenderText('Id'), $this->RenderText('Codice voce di costo'), $this->RenderText('Descrizione'), $this->RenderText('Manuale'), $this->RenderText('Formula di calcolo')),
+                array('voc-codvoce', 'voc-descriz', 'voc-semanual', 'voc-formula_formula'),
+                array($this->RenderText('Codice voce di costo'), $this->RenderText('Descrizione'), $this->RenderText('Manuale'), $this->RenderText('Formula di calcolo')),
                 array(
                     '=' => $this->GetLocalizerCaptions()->GetMessageString('equals'),
                     '<>' => $this->GetLocalizerCaptions()->GetMessageString('doesNotEquals'),
@@ -131,7 +137,6 @@
         {
             $this->AdvancedSearchControl = new AdvancedSearchControl('voci_costoasearch', $this->dataset, $this->GetLocalizerCaptions(), $this->GetColumnVariableContainer(), $this->CreateLinkBuilder());
             $this->AdvancedSearchControl->setTimerInterval(1000);
-            $this->AdvancedSearchControl->AddSearchColumn($this->AdvancedSearchControl->CreateStringSearchInput('id', $this->RenderText('Id')));
             $this->AdvancedSearchControl->AddSearchColumn($this->AdvancedSearchControl->CreateStringSearchInput('voc-codvoce', $this->RenderText('Codice voce di costo')));
             $this->AdvancedSearchControl->AddSearchColumn($this->AdvancedSearchControl->CreateStringSearchInput('voc-descriz', $this->RenderText('Descrizione')));
             $this->AdvancedSearchControl->AddSearchColumn($this->AdvancedSearchControl->CreateStringSearchInput('voc-semanual', $this->RenderText('Manuale')));
@@ -153,7 +158,7 @@
             $lookupDataset->AddField($field, false);
             $field = new DateTimeField('datamod');
             $lookupDataset->AddField($field, false);
-            $lookupDataset->SetOrderBy('formula', GetOrderTypeAsSQL(otAscending));
+            $lookupDataset->setOrderByField('formula', GetOrderTypeAsSQL(otAscending));
             $this->AdvancedSearchControl->AddSearchColumn($this->AdvancedSearchControl->CreateLookupSearchInput('voc-formula', $this->RenderText('Formula di calcolo'), $lookupDataset, 'codice', 'formula', false, 8));
         }
     
@@ -180,8 +185,8 @@
                 $grid->AddViewColumn($column, $actionsBandName);
                 $column->SetImagePath('images/delete_action.png');
                 $column->OnShow->AddListener('ShowDeleteButtonHandler', $this);
-            $column->SetAdditionalAttribute("data-modal-delete", "true");
-            $column->SetAdditionalAttribute("data-delete-handler-name", $this->GetModalGridDeleteHandler());
+                $column->SetAdditionalAttribute('data-modal-delete', 'true');
+                $column->SetAdditionalAttribute('data-delete-handler-name', $this->GetModalGridDeleteHandler());
             }
         }
     
@@ -219,13 +224,6 @@
     
         protected function AddSingleRecordViewColumns(Grid $grid)
         {
-            //
-            // View column for id field
-            //
-            $column = new TextViewColumn('id', 'Id', $this->dataset);
-            $column->SetOrderable(true);
-            $grid->AddSingleRecordViewColumn($column);
-            
             //
             // View column for voc-codvoce field
             //
@@ -276,6 +274,17 @@
         protected function AddEditColumns(Grid $grid)
         {
             //
+            // Edit column for voc-codvoce field
+            //
+            $editor = new TextEdit('voc-codvoce_edit');
+            $editor->SetSize(5);
+            $editor->SetMaxLength(5);
+            $editColumn = new CustomEditColumn('Codice voce di costo', 'voc-codvoce', $editor, $this->dataset);
+            $editColumn->SetAllowSetToNull(true);
+            $this->ApplyCommonColumnEditProperties($editColumn);
+            $grid->AddEditColumn($editColumn);
+            
+            //
             // Edit column for voc-descriz field
             //
             $editor = new TextEdit('voc-descriz_edit');
@@ -316,7 +325,7 @@
             $lookupDataset->AddField($field, false);
             $field = new DateTimeField('datamod');
             $lookupDataset->AddField($field, false);
-            $lookupDataset->SetOrderBy('formula', GetOrderTypeAsSQL(otAscending));
+            $lookupDataset->setOrderByField('formula', GetOrderTypeAsSQL(otAscending));
             $editColumn = new LookUpEditColumn(
                 'Formula di calcolo', 
                 'voc-formula', 
@@ -337,10 +346,6 @@
             $editor->SetMaxLength(5);
             $editColumn = new CustomEditColumn('Codice voce di costo', 'voc-codvoce', $editor, $this->dataset);
             $editColumn->SetAllowSetToNull(true);
-            $validator = new MaxLengthValidator(5, StringUtils::Format($this->GetLocalizerCaptions()->GetMessageString('MaxlengthValidationMessage'), $this->RenderText($editColumn->GetCaption())));
-            $editor->GetValidatorCollection()->AddValidator($validator);
-            $validator = new MinLengthValidator(0, StringUtils::Format($this->GetLocalizerCaptions()->GetMessageString('MinlengthValidationMessage'), $this->RenderText($editColumn->GetCaption())));
-            $editor->GetValidatorCollection()->AddValidator($validator);
             $this->ApplyCommonColumnEditProperties($editColumn);
             $grid->AddInsertColumn($editColumn);
             
@@ -386,7 +391,7 @@
             $lookupDataset->AddField($field, false);
             $field = new DateTimeField('datamod');
             $lookupDataset->AddField($field, false);
-            $lookupDataset->SetOrderBy('formula', GetOrderTypeAsSQL(otAscending));
+            $lookupDataset->setOrderByField('formula', GetOrderTypeAsSQL(otAscending));
             $editColumn = new LookUpEditColumn(
                 'Formula di calcolo', 
                 'voc-formula', 
@@ -409,13 +414,6 @@
     
         protected function AddPrintColumns(Grid $grid)
         {
-            //
-            // View column for id field
-            //
-            $column = new TextViewColumn('id', 'Id', $this->dataset);
-            $column->SetOrderable(true);
-            $grid->AddPrintColumn($column);
-            
             //
             // View column for voc-codvoce field
             //
@@ -449,13 +447,6 @@
     
         protected function AddExportColumns(Grid $grid)
         {
-            //
-            // View column for id field
-            //
-            $column = new TextViewColumn('id', 'Id', $this->dataset);
-            $column->SetOrderable(true);
-            $grid->AddExportColumn($column);
-            
             //
             // View column for voc-codvoce field
             //
@@ -575,8 +566,8 @@
             $this->SetAdvancedSearchAvailable(false);
             $this->SetFilterRowAvailable(false);
             $this->SetVisualEffectsEnabled(true);
-            $this->SetShowTopPageNavigator(false);
-            $this->SetShowBottomPageNavigator(false);
+            $this->SetShowTopPageNavigator(true);
+            $this->SetShowBottomPageNavigator(true);
     
             //
             // Http Handlers

@@ -52,6 +52,14 @@
             $this->dataset->AddField($field, false);
             $field = new StringField('ofa-descart');
             $this->dataset->AddField($field, false);
+            $field = new IntegerField('ofa-lungsmu');
+            $this->dataset->AddField($field, false);
+            $field = new IntegerField('ofa-moltipl');
+            $this->dataset->AddField($field, false);
+            $field = new IntegerField('ofa-oneriacc');
+            $this->dataset->AddField($field, false);
+            $field = new IntegerField('ofa-scarto');
+            $this->dataset->AddField($field, false);
             $field = new IntegerField('ofa-lunghezza');
             $this->dataset->AddField($field, false);
             $field = new IntegerField('ofa-larghezza');
@@ -59,6 +67,8 @@
             $field = new IntegerField('ofa-spessore');
             $this->dataset->AddField($field, false);
             $field = new IntegerField('ofa-quantita');
+            $this->dataset->AddField($field, false);
+            $field = new StringField('ofa-unimis');
             $this->dataset->AddField($field, false);
             $field = new IntegerField('ofa-przacq-net');
             $this->dataset->AddField($field, false);
@@ -85,7 +95,13 @@
     
         protected function CreatePageNavigator()
         {
-            return null;
+            $result = new CompositePageNavigator($this);
+            
+            $partitionNavigator = new PageNavigator('pnav', $this, $this->dataset);
+            $partitionNavigator->SetRowsPerPage(25);
+            $result->AddPageNavigator($partitionNavigator);
+            
+            return $result;
         }
     
         public function GetPageList()
@@ -165,11 +181,13 @@
             $lookupDataset->AddField($field, false);
             $field = new StringField('art-codfam');
             $lookupDataset->AddField($field, false);
+            $field = new IntegerField('art-lungsmu');
+            $lookupDataset->AddField($field, false);
             $field = new DateTimeField('datains');
             $lookupDataset->AddField($field, false);
             $field = new DateTimeField('datamod');
             $lookupDataset->AddField($field, false);
-            $lookupDataset->SetOrderBy('art-descart', GetOrderTypeAsSQL(otAscending));
+            $lookupDataset->setOrderByField('art-descart', GetOrderTypeAsSQL(otAscending));
             $this->AdvancedSearchControl->AddSearchColumn($this->AdvancedSearchControl->CreateLookupSearchInput('ofa-codart', $this->RenderText('Codice articolo'), $lookupDataset, 'art-codart', 'art-descart', false, 8));
             $this->AdvancedSearchControl->AddSearchColumn($this->AdvancedSearchControl->CreateStringSearchInput('ofa-descart', $this->RenderText('Ofa-descart')));
             $this->AdvancedSearchControl->AddSearchColumn($this->AdvancedSearchControl->CreateStringSearchInput('ofa-lunghezza', $this->RenderText('Lunghezza')));
@@ -209,13 +227,22 @@
                 $grid->AddViewColumn($column, $actionsBandName);
                 $column->SetImagePath('images/delete_action.png');
                 $column->OnShow->AddListener('ShowDeleteButtonHandler', $this);
-            $column->SetAdditionalAttribute("data-modal-delete", "true");
-            $column->SetAdditionalAttribute("data-delete-handler-name", $this->GetModalGridDeleteHandler());
+                $column->SetAdditionalAttribute('data-modal-delete', 'true');
+                $column->SetAdditionalAttribute('data-delete-handler-name', $this->GetModalGridDeleteHandler());
             }
         }
     
         protected function AddFieldColumns(Grid $grid)
         {
+            //
+            // View column for id field
+            //
+            $column = new TextViewColumn('id', 'Id', $this->dataset);
+            $column->SetOrderable(true);
+            $column->SetDescription($this->RenderText(''));
+            $column->SetFixedWidth(null);
+            $grid->AddViewColumn($column);
+            
             //
             // View column for ofa-numoff field
             //
@@ -517,11 +544,13 @@
             $lookupDataset->AddField($field, false);
             $field = new StringField('art-codfam');
             $lookupDataset->AddField($field, false);
+            $field = new IntegerField('art-lungsmu');
+            $lookupDataset->AddField($field, false);
             $field = new DateTimeField('datains');
             $lookupDataset->AddField($field, false);
             $field = new DateTimeField('datamod');
             $lookupDataset->AddField($field, false);
-            $lookupDataset->SetOrderBy('art-descart', GetOrderTypeAsSQL(otAscending));
+            $lookupDataset->setOrderByField('art-descart', GetOrderTypeAsSQL(otAscending));
             $editColumn = new LookUpEditColumn(
                 'Codice articolo', 
                 'ofa-codart', 
@@ -679,11 +708,13 @@
             $lookupDataset->AddField($field, false);
             $field = new StringField('art-codfam');
             $lookupDataset->AddField($field, false);
+            $field = new IntegerField('art-lungsmu');
+            $lookupDataset->AddField($field, false);
             $field = new DateTimeField('datains');
             $lookupDataset->AddField($field, false);
             $field = new DateTimeField('datamod');
             $lookupDataset->AddField($field, false);
-            $lookupDataset->SetOrderBy('art-descart', GetOrderTypeAsSQL(otAscending));
+            $lookupDataset->setOrderByField('art-descart', GetOrderTypeAsSQL(otAscending));
             $editColumn = new LookUpEditColumn(
                 'Codice articolo', 
                 'ofa-codart', 
@@ -1151,8 +1182,8 @@
             $this->SetAdvancedSearchAvailable(false);
             $this->SetFilterRowAvailable(false);
             $this->SetVisualEffectsEnabled(true);
-            $this->SetShowTopPageNavigator(false);
-            $this->SetShowBottomPageNavigator(false);
+            $this->SetShowTopPageNavigator(true);
+            $this->SetShowBottomPageNavigator(true);
     
             //
             // Http Handlers

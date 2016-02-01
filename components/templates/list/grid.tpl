@@ -1,6 +1,7 @@
 <table
     id="{$DataGrid.Id}"
     class="pgui-grid grid legacy {$DataGrid.Classes}"
+    data-is-master="{$isMasterGrid}"
     data-grid-hidden-values="{$DataGrid.HiddenValuesJson|escape:'html'}"
     data-inline-edit="{ldelim} &quot;enabled&quot;:&quot;{jsbool value=$DataGrid.UseInlineEdit}&quot;, &quot;request&quot;:&quot;{$DataGrid.Links.InlineEditRequest|escapeurl}&quot;{rdelim}"
     {style_block}
@@ -53,15 +54,23 @@
                 </div>
             </div>
 
-            {if $DataGrid.AllowQuickFilter}
-            <div id="quick-filter-toolbar" class="btn-toolbar pull-right">
-                <div class="btn-group">
-                    <div class="input-append" style="float: left; margin-bottom: 0;">
-                        <input placeholder="{$Captions->GetMessageString('QuickSearch')}" type="text" size="16" class="quick-filter-text" value="{$DataGrid.QuickFilter.Value|escape:html}"><button type="button" id="quick-filter-go" class="btn quick-filter-go"><i class="pg-icon-quick-find"></i></button><button type="button" class="btn quick-filter-reset"><i class="pg-icon-filter-reset"></i></button>
+            <div class="btn-toolbar pull-right">
+                {if $DataGrid.AllowQuickFilter}
+                    <div id="quick-filter-toolbar" class="btn-group">
+                        <div class="input-append" style="float: left; margin-bottom: 0;">
+                            <input placeholder="{$Captions->GetMessageString('QuickSearch')}" type="text" size="16" class="quick-filter-text" value="{$DataGrid.QuickFilter.Value|escape:html}"><button type="button" id="quick-filter-go" class="btn quick-filter-go"><i class="pg-icon-quick-find"></i></button><button type="button" class="btn quick-filter-reset"><i class="pg-icon-filter-reset"></i></button>
+                        </div>
                     </div>
-                </div>
+                {/if}
+                
+                {if not $isMasterGrid}
+                    <div class="btn-group">
+                        <button id="multi-sort-{$DataGrid.Id}" class="btn" title="{$Captions->GetMessageString('Sort')}">
+                            <i class="pg-icon-sort"></i>
+                        </button>
+                    </div>
+                {/if}
             </div>
-            {/if}
         </td>
     </tr>
     {/if}
@@ -100,7 +109,7 @@
     {if $DataGrid.ShowLineNumbers}
         <th>#</th>
     {/if}
-        
+
     <!-- <Grid Head Columns> -->
     {foreach item=Band from=$DataGrid.Bands}
         {if $Band.ConsolidateHeader and $Band.ColumnCount > 0}
@@ -112,8 +121,9 @@
                 <th class="{$Column.Classes}"
                     {$Column.Attributes}
                     {style_block}{$Column.Styles}{/style_block}
-                    data-sort-url="{$Column.SortUrl|escapeurl}"
                     data-field-caption="{$Column.Caption}"
+                    data-field-name="{$Column.Name}"
+                    data-sort-index="{$Column.SortIndex}"
                     data-comment="{$Column.Comment}">
                     <i class="additional-info-icon"></i>
                     <span {if $Column.Comment}class="commented"{/if}>{$Column.Caption}</span>
@@ -191,8 +201,7 @@
         {/if}
 
         {if $DataGrid.HasDetails}
-            <td class="details">
-                <a class="expand-details collapsed" href="#"><i class="toggle-detail-icon"></i></a>
+            <td dir="ltr" data-column-name="details" class="details" style="width: 40px;">
             </td>
         {/if}
 
@@ -264,6 +273,10 @@
 </tfoot>
 
 </table>
+
+{if not $isMasterGrid}
+    {include file="list/multiple_sorting.tpl" GridId=$DataGrid.Id Levels=$DataGrid.DataSortPriority SortableHeaders=$DataGrid.SortableColumns}
+{/if}
 
 <script type="text/javascript">
 

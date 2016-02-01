@@ -300,7 +300,9 @@ interface IDataset {
 
     function GetCurrentFieldValues();
 
-    function SetOrderBy($fieldName, $orderType);
+    function setOrderByField($fieldName, $orderType);
+
+    function setOrderByFields($sortedColumns);
 
     function GetName();
 
@@ -958,8 +960,20 @@ abstract class Dataset implements IFilterable, IDataset {
 
     #endregion
 
-    public function SetOrderBy($fieldName, $orderType) {
-        $this->GetSelectCommand()->SetOrderBy($fieldName, $orderType);
+    /**
+     * @param string $fieldName
+     * @param string $orderType
+     */
+    function setOrderByField($fieldName, $orderType) {
+        $sortedColumns = array(new SortColumn($fieldName, $orderType));
+        $this->GetSelectCommand()->SetOrderBy($sortedColumns);
+    }
+
+    /**
+     * @param SortColumn[] $sortedColumns
+     */
+    function setOrderByFields($sortedColumns) {
+        $this->GetSelectCommand()->SetOrderBy($sortedColumns);
     }
 
     #endregion

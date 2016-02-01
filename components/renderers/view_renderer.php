@@ -51,68 +51,6 @@ class ViewRenderer extends Renderer
     }
 }
 
-class PrintOneRecordRenderer extends ViewRenderer
-{
-    function RenderDetailPageEdit($page)
-    {
-        $this->RenderPage($page);
-    }
-
-    function RenderPage(Page $Page)
-    {
-        $this->SetHTTPContentTypeByPage($Page);
-        $Page->BeforePageRender->Fire(array(&$Page));
-
-        $customParams = array();
-        $template = $Page->GetCustomTemplate(PagePart::Layout, PageMode::PrintOneRecord, 'view/print_page.tpl', $customParams);
-
-        $this->DisplayTemplate($template,
-            array('Page' => $Page),
-            array_merge($customParams,
-                array(
-                    'Grid' => $this->Render($Page->GetGrid())
-                )
-            )
-        );
-    }
-
-    function RenderGrid(Grid $Grid)
-    {
-        $primaryKeyMap = array();
-        $Grid->GetDataset()->Open();
-
-        $Row = array();
-        if($Grid->GetDataset()->Next())
-        {
-            $primaryKeyMap = $Grid->GetDataset()->GetPrimaryKeyValuesMap();
-            foreach($Grid->GetSingleRecordViewColumns() as $Column)
-                $Row[] = $this->Render($Column);
-        }
-
-        $customParams = array();
-        $template = $Grid->GetPage()->GetCustomTemplate(PagePart::Grid, PageMode::PrintOneRecord, 'view/print_grid.tpl', $customParams);
-
-        $this->DisplayTemplate($template,
-            array(
-            'Grid' => $Grid,
-            'Columns' => $Grid->GetSingleRecordViewColumns()),
-            array_merge($customParams,
-                array(
-                'Title' => $Grid->GetPage()->GetShortCaption(),
-                'PrimaryKeyMap' => $primaryKeyMap,
-                'ColumnCount' => count($Grid->GetSingleRecordViewColumns()),
-                'Row' => $Row
-                )
-            )
-        );
-    }
-
-    protected function ChildPagesAvailable() 
-    { 
-        return false; 
-    }
-}
-
 class DeleteRenderer extends Renderer
 {
     function RenderDetailPageEdit($page)

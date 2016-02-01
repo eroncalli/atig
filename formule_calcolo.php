@@ -64,7 +64,13 @@
     
         protected function CreatePageNavigator()
         {
-            return null;
+            $result = new CompositePageNavigator($this);
+            
+            $partitionNavigator = new PageNavigator('pnav', $this, $this->dataset);
+            $partitionNavigator->SetRowsPerPage(25);
+            $result->AddPageNavigator($partitionNavigator);
+            
+            return $result;
         }
     
         public function GetPageList()
@@ -107,8 +113,8 @@
         {
             $grid->UseFilter = true;
             $grid->SearchControl = new SimpleSearch('formule_calcolossearch', $this->dataset,
-                array('id', 'codice', 'formula', 'critcalc'),
-                array($this->RenderText('Id'), $this->RenderText('Codice'), $this->RenderText('Formula'), $this->RenderText('Criterio calcolo')),
+                array('codice', 'formula'),
+                array($this->RenderText('Codice'), $this->RenderText('Formula')),
                 array(
                     '=' => $this->GetLocalizerCaptions()->GetMessageString('equals'),
                     '<>' => $this->GetLocalizerCaptions()->GetMessageString('doesNotEquals'),
@@ -128,10 +134,8 @@
         {
             $this->AdvancedSearchControl = new AdvancedSearchControl('formule_calcoloasearch', $this->dataset, $this->GetLocalizerCaptions(), $this->GetColumnVariableContainer(), $this->CreateLinkBuilder());
             $this->AdvancedSearchControl->setTimerInterval(1000);
-            $this->AdvancedSearchControl->AddSearchColumn($this->AdvancedSearchControl->CreateStringSearchInput('id', $this->RenderText('Id')));
             $this->AdvancedSearchControl->AddSearchColumn($this->AdvancedSearchControl->CreateStringSearchInput('codice', $this->RenderText('Codice')));
             $this->AdvancedSearchControl->AddSearchColumn($this->AdvancedSearchControl->CreateStringSearchInput('formula', $this->RenderText('Formula')));
-            $this->AdvancedSearchControl->AddSearchColumn($this->AdvancedSearchControl->CreateStringSearchInput('critcalc', $this->RenderText('Criterio calcolo')));
         }
     
         protected function AddOperationsColumns(Grid $grid)
@@ -157,8 +161,8 @@
                 $grid->AddViewColumn($column, $actionsBandName);
                 $column->SetImagePath('images/delete_action.png');
                 $column->OnShow->AddListener('ShowDeleteButtonHandler', $this);
-            $column->SetAdditionalAttribute("data-modal-delete", "true");
-            $column->SetAdditionalAttribute("data-delete-handler-name", $this->GetModalGridDeleteHandler());
+                $column->SetAdditionalAttribute('data-modal-delete', 'true');
+                $column->SetAdditionalAttribute('data-delete-handler-name', $this->GetModalGridDeleteHandler());
             }
         }
     
@@ -183,26 +187,10 @@
             $column->SetDescription($this->RenderText(''));
             $column->SetFixedWidth(null);
             $grid->AddViewColumn($column);
-            
-            //
-            // View column for critcalc field
-            //
-            $column = new TextViewColumn('critcalc', 'Criterio calcolo', $this->dataset);
-            $column->SetOrderable(true);
-            $column->SetDescription($this->RenderText(''));
-            $column->SetFixedWidth(null);
-            $grid->AddViewColumn($column);
         }
     
         protected function AddSingleRecordViewColumns(Grid $grid)
         {
-            //
-            // View column for id field
-            //
-            $column = new TextViewColumn('id', 'Id', $this->dataset);
-            $column->SetOrderable(true);
-            $grid->AddSingleRecordViewColumn($column);
-            
             //
             // View column for codice field
             //
@@ -234,13 +222,6 @@
             $column->SetDateTimeFormat('d-m-Y H:i:s');
             $column->SetOrderable(true);
             $grid->AddSingleRecordViewColumn($column);
-            
-            //
-            // View column for critcalc field
-            //
-            $column = new TextViewColumn('critcalc', 'Criterio calcolo', $this->dataset);
-            $column->SetOrderable(true);
-            $grid->AddSingleRecordViewColumn($column);
         }
     
         protected function AddEditColumns(Grid $grid)
@@ -249,16 +230,8 @@
             // Edit column for codice field
             //
             $editor = new TextEdit('codice_edit');
-            $editor->SetSize(10);
-            $editor->SetMaxLength(2);
             $editColumn = new CustomEditColumn('Codice', 'codice', $editor, $this->dataset);
             $editColumn->SetAllowSetToNull(true);
-            $validator = new MaxLengthValidator(2, StringUtils::Format($this->GetLocalizerCaptions()->GetMessageString('MaxlengthValidationMessage'), $this->RenderText($editColumn->GetCaption())));
-            $editor->GetValidatorCollection()->AddValidator($validator);
-            $validator = new MinLengthValidator(0, StringUtils::Format($this->GetLocalizerCaptions()->GetMessageString('MinlengthValidationMessage'), $this->RenderText($editColumn->GetCaption())));
-            $editor->GetValidatorCollection()->AddValidator($validator);
-            $validator = new NumberValidator(StringUtils::Format($this->GetLocalizerCaptions()->GetMessageString('NumberValidationMessage'), $this->RenderText($editColumn->GetCaption())));
-            $editor->GetValidatorCollection()->AddValidator($validator);
             $this->ApplyCommonColumnEditProperties($editColumn);
             $grid->AddEditColumn($editColumn);
             
@@ -269,18 +242,6 @@
             $editor->SetSize(100);
             $editor->SetMaxLength(100);
             $editColumn = new CustomEditColumn('Formula', 'formula', $editor, $this->dataset);
-            $editColumn->SetAllowSetToNull(true);
-            $this->ApplyCommonColumnEditProperties($editColumn);
-            $grid->AddEditColumn($editColumn);
-            
-            //
-            // Edit column for critcalc field
-            //
-            $editor = new ComboBox('critcalc_edit', $this->GetLocalizerCaptions()->GetMessageString('PleaseSelect'));
-            $editor->AddValue('T', $this->RenderText('Tempo (minuti)'));
-            $editor->AddValue('D', $this->RenderText('dimensione (algoritmi di calcolo)'));
-            $editor->AddValue('Q', $this->RenderText('Quantità'));
-            $editColumn = new CustomEditColumn('Criterio calcolo', 'critcalc', $editor, $this->dataset);
             $editColumn->SetAllowSetToNull(true);
             $this->ApplyCommonColumnEditProperties($editColumn);
             $grid->AddEditColumn($editColumn);
@@ -292,16 +253,8 @@
             // Edit column for codice field
             //
             $editor = new TextEdit('codice_edit');
-            $editor->SetSize(10);
-            $editor->SetMaxLength(2);
             $editColumn = new CustomEditColumn('Codice', 'codice', $editor, $this->dataset);
             $editColumn->SetAllowSetToNull(true);
-            $validator = new MaxLengthValidator(2, StringUtils::Format($this->GetLocalizerCaptions()->GetMessageString('MaxlengthValidationMessage'), $this->RenderText($editColumn->GetCaption())));
-            $editor->GetValidatorCollection()->AddValidator($validator);
-            $validator = new MinLengthValidator(0, StringUtils::Format($this->GetLocalizerCaptions()->GetMessageString('MinlengthValidationMessage'), $this->RenderText($editColumn->GetCaption())));
-            $editor->GetValidatorCollection()->AddValidator($validator);
-            $validator = new NumberValidator(StringUtils::Format($this->GetLocalizerCaptions()->GetMessageString('NumberValidationMessage'), $this->RenderText($editColumn->GetCaption())));
-            $editor->GetValidatorCollection()->AddValidator($validator);
             $this->ApplyCommonColumnEditProperties($editColumn);
             $grid->AddInsertColumn($editColumn);
             
@@ -312,18 +265,6 @@
             $editor->SetSize(100);
             $editor->SetMaxLength(100);
             $editColumn = new CustomEditColumn('Formula', 'formula', $editor, $this->dataset);
-            $editColumn->SetAllowSetToNull(true);
-            $this->ApplyCommonColumnEditProperties($editColumn);
-            $grid->AddInsertColumn($editColumn);
-            
-            //
-            // Edit column for critcalc field
-            //
-            $editor = new ComboBox('critcalc_edit', $this->GetLocalizerCaptions()->GetMessageString('PleaseSelect'));
-            $editor->AddValue('T', $this->RenderText('Tempo (minuti)'));
-            $editor->AddValue('D', $this->RenderText('dimensione (algoritmi di calcolo)'));
-            $editor->AddValue('Q', $this->RenderText('Quantità'));
-            $editColumn = new CustomEditColumn('Criterio calcolo', 'critcalc', $editor, $this->dataset);
             $editColumn->SetAllowSetToNull(true);
             $this->ApplyCommonColumnEditProperties($editColumn);
             $grid->AddInsertColumn($editColumn);
@@ -342,13 +283,6 @@
         protected function AddPrintColumns(Grid $grid)
         {
             //
-            // View column for id field
-            //
-            $column = new TextViewColumn('id', 'Id', $this->dataset);
-            $column->SetOrderable(true);
-            $grid->AddPrintColumn($column);
-            
-            //
             // View column for codice field
             //
             $column = new TextViewColumn('codice', 'Codice', $this->dataset);
@@ -359,13 +293,6 @@
             // View column for formula field
             //
             $column = new TextViewColumn('formula', 'Formula', $this->dataset);
-            $column->SetOrderable(true);
-            $grid->AddPrintColumn($column);
-            
-            //
-            // View column for critcalc field
-            //
-            $column = new TextViewColumn('critcalc', 'Criterio calcolo', $this->dataset);
             $column->SetOrderable(true);
             $grid->AddPrintColumn($column);
         }
@@ -373,13 +300,6 @@
         protected function AddExportColumns(Grid $grid)
         {
             //
-            // View column for id field
-            //
-            $column = new TextViewColumn('id', 'Id', $this->dataset);
-            $column->SetOrderable(true);
-            $grid->AddExportColumn($column);
-            
-            //
             // View column for codice field
             //
             $column = new TextViewColumn('codice', 'Codice', $this->dataset);
@@ -390,13 +310,6 @@
             // View column for formula field
             //
             $column = new TextViewColumn('formula', 'Formula', $this->dataset);
-            $column->SetOrderable(true);
-            $grid->AddExportColumn($column);
-            
-            //
-            // View column for critcalc field
-            //
-            $column = new TextViewColumn('critcalc', 'Criterio calcolo', $this->dataset);
             $column->SetOrderable(true);
             $grid->AddExportColumn($column);
         }
@@ -489,8 +402,8 @@
             $this->SetAdvancedSearchAvailable(false);
             $this->SetFilterRowAvailable(false);
             $this->SetVisualEffectsEnabled(true);
-            $this->SetShowTopPageNavigator(false);
-            $this->SetShowBottomPageNavigator(false);
+            $this->SetShowTopPageNavigator(true);
+            $this->SetShowBottomPageNavigator(true);
     
             //
             // Http Handlers

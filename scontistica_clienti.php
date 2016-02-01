@@ -69,7 +69,13 @@
     
         protected function CreatePageNavigator()
         {
-            return null;
+            $result = new CompositePageNavigator($this);
+            
+            $partitionNavigator = new PageNavigator('pnav', $this, $this->dataset);
+            $partitionNavigator->SetRowsPerPage(25);
+            $result->AddPageNavigator($partitionNavigator);
+            
+            return $result;
         }
     
         public function GetPageList()
@@ -112,8 +118,8 @@
         {
             $grid->UseFilter = true;
             $grid->SearchControl = new SimpleSearch('scontistica_clientissearch', $this->dataset,
-                array('id', 'sco-codcli_cli-ragsoc', 'sco-codart_art-descart', 'sco-codvoc_ivo-codvoc', 'sco-sconto'),
-                array($this->RenderText('Id'), $this->RenderText('Codice cliente'), $this->RenderText('Codice articolo'), $this->RenderText('Codice tipo voce'), $this->RenderText('Sconto')),
+                array('sco-codcli_cli-ragsoc', 'sco-codart_art-descart', 'sco-codvoc_ivo-codvoc', 'sco-sconto'),
+                array($this->RenderText('Codice cliente'), $this->RenderText('Codice articolo'), $this->RenderText('Codice tipo voce'), $this->RenderText('Sconto')),
                 array(
                     '=' => $this->GetLocalizerCaptions()->GetMessageString('equals'),
                     '<>' => $this->GetLocalizerCaptions()->GetMessageString('doesNotEquals'),
@@ -133,8 +139,6 @@
         {
             $this->AdvancedSearchControl = new AdvancedSearchControl('scontistica_clientiasearch', $this->dataset, $this->GetLocalizerCaptions(), $this->GetColumnVariableContainer(), $this->CreateLinkBuilder());
             $this->AdvancedSearchControl->setTimerInterval(1000);
-            $this->AdvancedSearchControl->AddSearchColumn($this->AdvancedSearchControl->CreateStringSearchInput('id', $this->RenderText('Id')));
-            
             $lookupDataset = new TableDataset(
                 new MyPDOConnectionFactory(),
                 GetConnectionOptions(),
@@ -152,7 +156,7 @@
             $lookupDataset->AddField($field, false);
             $field = new DateTimeField('datamod');
             $lookupDataset->AddField($field, false);
-            $lookupDataset->SetOrderBy('cli-ragsoc', GetOrderTypeAsSQL(otAscending));
+            $lookupDataset->setOrderByField('cli-ragsoc', GetOrderTypeAsSQL(otAscending));
             $this->AdvancedSearchControl->AddSearchColumn($this->AdvancedSearchControl->CreateLookupSearchInput('sco-codcli', $this->RenderText('Codice cliente'), $lookupDataset, 'cli-codcli', 'cli-ragsoc', false, 8));
             
             $lookupDataset = new TableDataset(
@@ -168,11 +172,13 @@
             $lookupDataset->AddField($field, false);
             $field = new StringField('art-codfam');
             $lookupDataset->AddField($field, false);
+            $field = new IntegerField('art-lungsmu');
+            $lookupDataset->AddField($field, false);
             $field = new DateTimeField('datains');
             $lookupDataset->AddField($field, false);
             $field = new DateTimeField('datamod');
             $lookupDataset->AddField($field, false);
-            $lookupDataset->SetOrderBy('art-descart', GetOrderTypeAsSQL(otAscending));
+            $lookupDataset->setOrderByField('art-descart', GetOrderTypeAsSQL(otAscending));
             $this->AdvancedSearchControl->AddSearchColumn($this->AdvancedSearchControl->CreateLookupSearchInput('sco-codart', $this->RenderText('Codice articolo'), $lookupDataset, 'art-codart', 'art-descart', false, 8));
             
             $lookupDataset = new TableDataset(
@@ -202,7 +208,7 @@
             $lookupDataset->AddField($field, false);
             $field = new DateTimeField('datamod');
             $lookupDataset->AddField($field, false);
-            $lookupDataset->SetOrderBy('ivo-codvoc', GetOrderTypeAsSQL(otAscending));
+            $lookupDataset->setOrderByField('ivo-codvoc', GetOrderTypeAsSQL(otAscending));
             $this->AdvancedSearchControl->AddSearchColumn($this->AdvancedSearchControl->CreateLookupSearchInput('sco-codvoc', $this->RenderText('Codice tipo voce'), $lookupDataset, 'ivo-codvoc', 'ivo-codvoc', false, 8));
             $this->AdvancedSearchControl->AddSearchColumn($this->AdvancedSearchControl->CreateStringSearchInput('sco-sconto', $this->RenderText('Sconto')));
         }
@@ -230,8 +236,8 @@
                 $grid->AddViewColumn($column, $actionsBandName);
                 $column->SetImagePath('images/delete_action.png');
                 $column->OnShow->AddListener('ShowDeleteButtonHandler', $this);
-            $column->SetAdditionalAttribute("data-modal-delete", "true");
-            $column->SetAdditionalAttribute("data-delete-handler-name", $this->GetModalGridDeleteHandler());
+                $column->SetAdditionalAttribute('data-modal-delete', 'true');
+                $column->SetAdditionalAttribute('data-delete-handler-name', $this->GetModalGridDeleteHandler());
             }
         }
     
@@ -277,13 +283,6 @@
     
         protected function AddSingleRecordViewColumns(Grid $grid)
         {
-            //
-            // View column for id field
-            //
-            $column = new TextViewColumn('id', 'Id', $this->dataset);
-            $column->SetOrderable(true);
-            $grid->AddSingleRecordViewColumn($column);
-            
             //
             // View column for cli-ragsoc field
             //
@@ -337,7 +336,7 @@
             $lookupDataset->AddField($field, false);
             $field = new DateTimeField('datamod');
             $lookupDataset->AddField($field, false);
-            $lookupDataset->SetOrderBy('cli-ragsoc', GetOrderTypeAsSQL(otAscending));
+            $lookupDataset->setOrderByField('cli-ragsoc', GetOrderTypeAsSQL(otAscending));
             $editColumn = new LookUpEditColumn(
                 'Codice cliente', 
                 'sco-codcli', 
@@ -364,11 +363,13 @@
             $lookupDataset->AddField($field, false);
             $field = new StringField('art-codfam');
             $lookupDataset->AddField($field, false);
+            $field = new IntegerField('art-lungsmu');
+            $lookupDataset->AddField($field, false);
             $field = new DateTimeField('datains');
             $lookupDataset->AddField($field, false);
             $field = new DateTimeField('datamod');
             $lookupDataset->AddField($field, false);
-            $lookupDataset->SetOrderBy('art-descart', GetOrderTypeAsSQL(otAscending));
+            $lookupDataset->setOrderByField('art-descart', GetOrderTypeAsSQL(otAscending));
             $editColumn = new LookUpEditColumn(
                 'Codice articolo', 
                 'sco-codart', 
@@ -409,7 +410,7 @@
             $lookupDataset->AddField($field, false);
             $field = new DateTimeField('datamod');
             $lookupDataset->AddField($field, false);
-            $lookupDataset->SetOrderBy('ivo-codvoc', GetOrderTypeAsSQL(otAscending));
+            $lookupDataset->setOrderByField('ivo-codvoc', GetOrderTypeAsSQL(otAscending));
             $editColumn = new LookUpEditColumn(
                 'Codice tipo voce', 
                 'sco-codvoc', 
@@ -454,7 +455,7 @@
             $lookupDataset->AddField($field, false);
             $field = new DateTimeField('datamod');
             $lookupDataset->AddField($field, false);
-            $lookupDataset->SetOrderBy('cli-ragsoc', GetOrderTypeAsSQL(otAscending));
+            $lookupDataset->setOrderByField('cli-ragsoc', GetOrderTypeAsSQL(otAscending));
             $editColumn = new LookUpEditColumn(
                 'Codice cliente', 
                 'sco-codcli', 
@@ -481,11 +482,13 @@
             $lookupDataset->AddField($field, false);
             $field = new StringField('art-codfam');
             $lookupDataset->AddField($field, false);
+            $field = new IntegerField('art-lungsmu');
+            $lookupDataset->AddField($field, false);
             $field = new DateTimeField('datains');
             $lookupDataset->AddField($field, false);
             $field = new DateTimeField('datamod');
             $lookupDataset->AddField($field, false);
-            $lookupDataset->SetOrderBy('art-descart', GetOrderTypeAsSQL(otAscending));
+            $lookupDataset->setOrderByField('art-descart', GetOrderTypeAsSQL(otAscending));
             $editColumn = new LookUpEditColumn(
                 'Codice articolo', 
                 'sco-codart', 
@@ -526,7 +529,7 @@
             $lookupDataset->AddField($field, false);
             $field = new DateTimeField('datamod');
             $lookupDataset->AddField($field, false);
-            $lookupDataset->SetOrderBy('ivo-codvoc', GetOrderTypeAsSQL(otAscending));
+            $lookupDataset->setOrderByField('ivo-codvoc', GetOrderTypeAsSQL(otAscending));
             $editColumn = new LookUpEditColumn(
                 'Codice tipo voce', 
                 'sco-codvoc', 
@@ -561,13 +564,6 @@
         protected function AddPrintColumns(Grid $grid)
         {
             //
-            // View column for id field
-            //
-            $column = new TextViewColumn('id', 'Id', $this->dataset);
-            $column->SetOrderable(true);
-            $grid->AddPrintColumn($column);
-            
-            //
             // View column for cli-ragsoc field
             //
             $column = new TextViewColumn('sco-codcli_cli-ragsoc', 'Codice cliente', $this->dataset);
@@ -599,13 +595,6 @@
     
         protected function AddExportColumns(Grid $grid)
         {
-            //
-            // View column for id field
-            //
-            $column = new TextViewColumn('id', 'Id', $this->dataset);
-            $column->SetOrderable(true);
-            $grid->AddExportColumn($column);
-            
             //
             // View column for cli-ragsoc field
             //
@@ -724,8 +713,8 @@
             $this->SetAdvancedSearchAvailable(false);
             $this->SetFilterRowAvailable(false);
             $this->SetVisualEffectsEnabled(true);
-            $this->SetShowTopPageNavigator(false);
-            $this->SetShowBottomPageNavigator(false);
+            $this->SetShowTopPageNavigator(true);
+            $this->SetShowBottomPageNavigator(true);
     
             //
             // Http Handlers

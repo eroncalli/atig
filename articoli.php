@@ -52,6 +52,8 @@
             $this->dataset->AddField($field, false);
             $field = new StringField('art-codfam');
             $this->dataset->AddField($field, false);
+            $field = new IntegerField('art-lungsmu');
+            $this->dataset->AddField($field, false);
             $field = new DateTimeField('datains');
             $this->dataset->AddField($field, false);
             $field = new DateTimeField('datamod');
@@ -65,7 +67,13 @@
     
         protected function CreatePageNavigator()
         {
-            return null;
+            $result = new CompositePageNavigator($this);
+            
+            $partitionNavigator = new PageNavigator('pnav', $this, $this->dataset);
+            $partitionNavigator->SetRowsPerPage(25);
+            $result->AddPageNavigator($partitionNavigator);
+            
+            return $result;
         }
     
         public function GetPageList()
@@ -148,7 +156,7 @@
             $lookupDataset->AddField($field, false);
             $field = new DateTimeField('datamod');
             $lookupDataset->AddField($field, false);
-            $lookupDataset->SetOrderBy('fam-descriz', GetOrderTypeAsSQL(otAscending));
+            $lookupDataset->setOrderByField('fam-descriz', GetOrderTypeAsSQL(otAscending));
             $this->AdvancedSearchControl->AddSearchColumn($this->AdvancedSearchControl->CreateLookupSearchInput('art-codfam', $this->RenderText('Famiglia'), $lookupDataset, 'fam-codfam', 'fam-descriz', false, 8));
         }
     
@@ -175,8 +183,8 @@
                 $grid->AddViewColumn($column, $actionsBandName);
                 $column->SetImagePath('images/delete_action.png');
                 $column->OnShow->AddListener('ShowDeleteButtonHandler', $this);
-            $column->SetAdditionalAttribute("data-modal-delete", "true");
-            $column->SetAdditionalAttribute("data-delete-handler-name", $this->GetModalGridDeleteHandler());
+                $column->SetAdditionalAttribute('data-modal-delete', 'true');
+                $column->SetAdditionalAttribute('data-delete-handler-name', $this->GetModalGridDeleteHandler());
             }
         }
     
@@ -214,13 +222,6 @@
     
         protected function AddSingleRecordViewColumns(Grid $grid)
         {
-            //
-            // View column for id field
-            //
-            $column = new TextViewColumn('id', 'Id', $this->dataset);
-            $column->SetOrderable(true);
-            $grid->AddSingleRecordViewColumn($column);
-            
             //
             // View column for art-codart field
             //
@@ -306,7 +307,7 @@
             $lookupDataset->AddField($field, false);
             $field = new DateTimeField('datamod');
             $lookupDataset->AddField($field, false);
-            $lookupDataset->SetOrderBy('fam-descriz', GetOrderTypeAsSQL(otAscending));
+            $lookupDataset->setOrderByField('fam-descriz', GetOrderTypeAsSQL(otAscending));
             $editColumn = new LookUpEditColumn(
                 'Famiglia', 
                 'art-codfam', 
@@ -363,7 +364,7 @@
             $lookupDataset->AddField($field, false);
             $field = new DateTimeField('datamod');
             $lookupDataset->AddField($field, false);
-            $lookupDataset->SetOrderBy('fam-descriz', GetOrderTypeAsSQL(otAscending));
+            $lookupDataset->setOrderByField('fam-descriz', GetOrderTypeAsSQL(otAscending));
             $editColumn = new LookUpEditColumn(
                 'Famiglia', 
                 'art-codfam', 
@@ -535,8 +536,8 @@
             $this->SetAdvancedSearchAvailable(false);
             $this->SetFilterRowAvailable(false);
             $this->SetVisualEffectsEnabled(true);
-            $this->SetShowTopPageNavigator(false);
-            $this->SetShowBottomPageNavigator(false);
+            $this->SetShowTopPageNavigator(true);
+            $this->SetShowBottomPageNavigator(true);
     
             //
             // Http Handlers

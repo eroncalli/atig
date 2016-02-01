@@ -5573,6 +5573,11 @@ footer.footer p {
   width: 16px;
   height: 16px;
 }
+.pg-icon-sort {
+  background-position: -1517px 0;
+  width: 16px;
+  height: 16px;
+}
 .clearfix {
   *zoom: 1;
 }
@@ -6782,6 +6787,10 @@ table.pgui-grid tbody tr.info:hover {
 .modal.pagination-size table td:last-child {
   text-align: center;
 }
+.multiple-sorting-table select {
+  width: 100%;
+  margin-bottom: 0px;
+}
 .nav.nav-list.navpage-options {
   box-shadow: 0 4px 6px -6px #666666 inset, 0 -4px 6px -6px #666666 inset;
   padding-left: 30px;
@@ -7651,6 +7660,29 @@ table.pgui-multilvevel-autocomplete > tbody > tr > td {
 }
 .pgui-edit-form .required-mark {
   color: red;
+}
+.btn-loading {
+  background-image: url('../../images/btn-loading.png') !important;
+  background-position: center 0;
+  background-repeat: repeat-x;
+  -webkit-animation: btn-loading 2.5s linear infinite;
+  animation: btn-loading 2.5s linear infinite;
+}
+@-webkit-keyframes btn-loading {
+  0% {
+    background-position: 0;
+  }
+  100% {
+    background-position: 126px;
+  }
+}
+@keyframes btn-loading {
+  0% {
+    background-position: 0;
+  }
+  100% {
+    background-position: 126px;
+  }
 }
 /* CSS */
 .DynarchCalendar table {

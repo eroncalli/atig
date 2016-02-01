@@ -48,11 +48,7 @@
             $this->dataset->AddField($field, true);
             $field = new IntegerField('ofv-numoff');
             $this->dataset->AddField($field, false);
-            $field = new StringField('ofv-codart');
-            $this->dataset->AddField($field, false);
             $field = new IntegerField('ofv-codvoce');
-            $this->dataset->AddField($field, false);
-            $field = new IntegerField('ofv-num-riga-voce');
             $this->dataset->AddField($field, false);
             $field = new IntegerField('ofv-quantita');
             $this->dataset->AddField($field, false);
@@ -60,7 +56,11 @@
             $this->dataset->AddField($field, false);
             $field = new IntegerField('ofv-larghezza');
             $this->dataset->AddField($field, false);
+            $field = new IntegerField('ofv-spessore');
+            $this->dataset->AddField($field, false);
             $field = new StringField('ofv-tiposmu');
+            $this->dataset->AddField($field, false);
+            $field = new IntegerField('ofv-lungsmu');
             $this->dataset->AddField($field, false);
             $field = new IntegerField('ofv-przacq');
             $this->dataset->AddField($field, false);
@@ -70,7 +70,15 @@
             $this->dataset->AddField($field, false);
             $field = new IntegerField('ofv-valuni-fin');
             $this->dataset->AddField($field, false);
+            $field = new DateTimeField('datains');
+            $this->dataset->AddField($field, false);
+            $field = new DateTimeField('datamod');
+            $this->dataset->AddField($field, false);
+            $field = new IntegerField('ofv-num-riga-voce');
+            $this->dataset->AddField($field, false);
             $field = new IntegerField('ofv-durata');
+            $this->dataset->AddField($field, false);
+            $field = new StringField('ofv-codart');
             $this->dataset->AddField($field, false);
             $field = new IntegerField('ofv-valtot-fin');
             $this->dataset->AddField($field, false);
@@ -78,9 +86,23 @@
             $this->dataset->AddField($field, false);
             $field = new IntegerField('ofv-codart-agg-prz-lor');
             $this->dataset->AddField($field, false);
-            $field = new DateTimeField('datains');
+            $field = new StringField('ofv-descriz');
             $this->dataset->AddField($field, false);
-            $field = new DateTimeField('datamod');
+            $field = new IntegerField('ofv-formula');
+            $this->dataset->AddField($field, false);
+            $field = new StringField('ofv-desc-formula');
+            $this->dataset->AddField($field, false);
+            $field = new StringField('ofv-critcalc');
+            $this->dataset->AddField($field, false);
+            $field = new IntegerField('ofv-costo');
+            $this->dataset->AddField($field, false);
+            $field = new IntegerField('ofv-dimsmusso');
+            $this->dataset->AddField($field, false);
+            $field = new StringField('ofv-desc1');
+            $this->dataset->AddField($field, false);
+            $field = new StringField('ofv-desc2');
+            $this->dataset->AddField($field, false);
+            $field = new StringField('ofv-desc3');
             $this->dataset->AddField($field, false);
         }
     
@@ -90,7 +112,13 @@
     
         protected function CreatePageNavigator()
         {
-            return null;
+            $result = new CompositePageNavigator($this);
+            
+            $partitionNavigator = new PageNavigator('pnav', $this, $this->dataset);
+            $partitionNavigator->SetRowsPerPage(25);
+            $result->AddPageNavigator($partitionNavigator);
+            
+            return $result;
         }
     
         public function GetPageList()
@@ -192,13 +220,22 @@
                 $grid->AddViewColumn($column, $actionsBandName);
                 $column->SetImagePath('images/delete_action.png');
                 $column->OnShow->AddListener('ShowDeleteButtonHandler', $this);
-            $column->SetAdditionalAttribute("data-modal-delete", "true");
-            $column->SetAdditionalAttribute("data-delete-handler-name", $this->GetModalGridDeleteHandler());
+                $column->SetAdditionalAttribute('data-modal-delete', 'true');
+                $column->SetAdditionalAttribute('data-delete-handler-name', $this->GetModalGridDeleteHandler());
             }
         }
     
         protected function AddFieldColumns(Grid $grid)
         {
+            //
+            // View column for id field
+            //
+            $column = new TextViewColumn('id', 'Id', $this->dataset);
+            $column->SetOrderable(true);
+            $column->SetDescription($this->RenderText(''));
+            $column->SetFixedWidth(null);
+            $grid->AddViewColumn($column);
+            
             //
             // View column for ofv-numoff field
             //
@@ -934,8 +971,8 @@
             $this->SetAdvancedSearchAvailable(false);
             $this->SetFilterRowAvailable(false);
             $this->SetVisualEffectsEnabled(true);
-            $this->SetShowTopPageNavigator(false);
-            $this->SetShowBottomPageNavigator(false);
+            $this->SetShowTopPageNavigator(true);
+            $this->SetShowBottomPageNavigator(true);
     
             //
             // Http Handlers

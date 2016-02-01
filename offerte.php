@@ -50,10 +50,6 @@
             $this->dataset->AddField($field, false);
             $field = new StringField('off-codcli');
             $this->dataset->AddField($field, false);
-            $field = new StringField('off-descriz');
-            $this->dataset->AddField($field, false);
-            $field = new StringField('off-stato');
-            $this->dataset->AddField($field, false);
             $field = new DateTimeField('off-datains');
             $this->dataset->AddField($field, false);
             $field = new DateTimeField('off-dataeva');
@@ -61,6 +57,11 @@
             $field = new DateTimeField('datains');
             $this->dataset->AddField($field, false);
             $field = new DateTimeField('datamod');
+            $this->dataset->AddField($field, false);
+            $field = new StringField('off-stato');
+            $field->SetIsNotNull(true);
+            $this->dataset->AddField($field, false);
+            $field = new StringField('off-descriz');
             $this->dataset->AddField($field, false);
             $this->dataset->AddLookupField('off-codcli', 'clienti', new StringField('cli-codcli'), new StringField('cli-ragsoc', 'off-codcli_cli-ragsoc', 'off-codcli_cli-ragsoc_clienti'), 'off-codcli_cli-ragsoc_clienti');
         }
@@ -71,7 +72,13 @@
     
         protected function CreatePageNavigator()
         {
-            return null;
+            $result = new CompositePageNavigator($this);
+            
+            $partitionNavigator = new PageNavigator('pnav', $this, $this->dataset);
+            $partitionNavigator->SetRowsPerPage(25);
+            $result->AddPageNavigator($partitionNavigator);
+            
+            return $result;
         }
     
         public function GetPageList()
@@ -154,7 +161,7 @@
             $lookupDataset->AddField($field, false);
             $field = new DateTimeField('datamod');
             $lookupDataset->AddField($field, false);
-            $lookupDataset->SetOrderBy('cli-ragsoc', GetOrderTypeAsSQL(otAscending));
+            $lookupDataset->setOrderByField('cli-ragsoc', GetOrderTypeAsSQL(otAscending));
             $this->AdvancedSearchControl->AddSearchColumn($this->AdvancedSearchControl->CreateLookupSearchInput('off-codcli', $this->RenderText('cod.Cliente'), $lookupDataset, 'cli-codcli', 'cli-ragsoc', false, 8));
             $this->AdvancedSearchControl->AddSearchColumn($this->AdvancedSearchControl->CreateDateTimeSearchInput('off-datains', $this->RenderText('Data inserimento'), 'd-m-Y'));
             $this->AdvancedSearchControl->AddSearchColumn($this->AdvancedSearchControl->CreateDateTimeSearchInput('off-dataeva', $this->RenderText('Data evasione'), 'd-m-Y'));
@@ -183,13 +190,22 @@
                 $grid->AddViewColumn($column, $actionsBandName);
                 $column->SetImagePath('images/delete_action.png');
                 $column->OnShow->AddListener('ShowDeleteButtonHandler', $this);
-            $column->SetAdditionalAttribute("data-modal-delete", "true");
-            $column->SetAdditionalAttribute("data-delete-handler-name", $this->GetModalGridDeleteHandler());
+                $column->SetAdditionalAttribute('data-modal-delete', 'true');
+                $column->SetAdditionalAttribute('data-delete-handler-name', $this->GetModalGridDeleteHandler());
             }
         }
     
         protected function AddFieldColumns(Grid $grid)
         {
+            //
+            // View column for id field
+            //
+            $column = new TextViewColumn('id', 'Numero Offerta', $this->dataset);
+            $column->SetOrderable(true);
+            $column->SetDescription($this->RenderText(''));
+            $column->SetFixedWidth(null);
+            $grid->AddViewColumn($column);
+            
             //
             // View column for cli-ragsoc field
             //
@@ -292,7 +308,7 @@
             $lookupDataset->AddField($field, false);
             $field = new DateTimeField('datamod');
             $lookupDataset->AddField($field, false);
-            $lookupDataset->SetOrderBy('cli-ragsoc', GetOrderTypeAsSQL(otAscending));
+            $lookupDataset->setOrderByField('cli-ragsoc', GetOrderTypeAsSQL(otAscending));
             $editColumn = new LookUpEditColumn(
                 'cod.Cliente', 
                 'off-codcli', 
@@ -344,7 +360,7 @@
             $lookupDataset->AddField($field, false);
             $field = new DateTimeField('datamod');
             $lookupDataset->AddField($field, false);
-            $lookupDataset->SetOrderBy('cli-ragsoc', GetOrderTypeAsSQL(otAscending));
+            $lookupDataset->setOrderByField('cli-ragsoc', GetOrderTypeAsSQL(otAscending));
             $editColumn = new LookUpEditColumn(
                 'cod.Cliente', 
                 'off-codcli', 
@@ -537,8 +553,8 @@
             $this->SetAdvancedSearchAvailable(false);
             $this->SetFilterRowAvailable(false);
             $this->SetVisualEffectsEnabled(true);
-            $this->SetShowTopPageNavigator(false);
-            $this->SetShowBottomPageNavigator(false);
+            $this->SetShowTopPageNavigator(true);
+            $this->SetShowBottomPageNavigator(true);
     
             //
             // Http Handlers

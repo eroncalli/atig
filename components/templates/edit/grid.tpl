@@ -7,7 +7,33 @@
 <div class="pgui-edit-form">
     <form class="form-horizontal"  enctype="multipart/form-data" method="POST" action="{$Grid.FormAction}">
 
+        <div class="form-actions top-actions">
 
+            <div class="btn-toolbar">
+                <div class="btn-group">
+                    <button type="submit" class="btn btn-primary submit-button">{$Captions->GetMessageString('Save')}
+                    </button>
+                    <button class="btn btn-primary dropdown-toggle" data-toggle="dropdown">
+                        <span class="caret"></span>
+                    </button>
+                    <ul class="dropdown-menu">
+                        <li data-value="save"><a href="#" class="save-button">{$Captions->GetMessageString('SaveAndBackToList')}</a></li>
+                        <li data-value="saveedit"><a href="#" class="saveedit-button">{$Captions->GetMessageString('SaveAndEdit')}</a></li>
+                        {if count($Grid.Details) > 0}
+                            <li class="divider"></li>
+                        {/if}
+                        {foreach from=$Grid.Details item=Detail}
+                            <li><a class="save-and-open-details" href="#" data-action="{$Detail.Link}">{$Detail.Caption|string_format:$Captions->GetMessageString('SaveAndOpenDetail')}</a></li>
+                        {/foreach}
+                    </ul>
+                </div>
+
+                <div class="btn-group">
+                    <button class="btn" onclick="window.location.href='{$Grid.CancelUrl}'; return false;">{$Captions->GetMessageString('Cancel')}</button>
+                </div>
+
+            </div>
+        </div>
 
 
         {if not $Grid.ErrorMessage eq ''}
@@ -55,10 +81,7 @@
 
             <div class="btn-toolbar">
                 <div class="btn-group">
-                    <button id="submit-button"
-                            class="btn btn-primary submit-button"
-                            onclick="$(this).closest('form').submit(); return false;"
-                            >{$Captions->GetMessageString('Save')}
+                    <button type="submit" id="submit-button" class="btn btn-primary submit-button">{$Captions->GetMessageString('Save')}
                     </button>
                     <button class="btn btn-primary dropdown-toggle" data-toggle="dropdown">
                         <span class="caret"></span>

@@ -9,7 +9,10 @@ abstract class BaseSelectCommand extends EngCommand implements IFilterable {
     private $upLimit;
     private $limitCount;
     private $fieldInfos;
-    private $orderByFields;
+
+    /** @var SortColumn[] */
+    private $sortedColumns;
+
     private $joins;
 
     private $fieldFilters;
@@ -21,7 +24,7 @@ abstract class BaseSelectCommand extends EngCommand implements IFilterable {
         $this->upLimit = null;
         $this->limitCount = null;
         $this->fieldInfos = array();
-        $this->orderByFields = array();
+        $this->sortedColumns = array();
         $this->joins = array();
         $this->compositeFieldFilters = array();
         $this->customConditions = array();
@@ -54,26 +57,38 @@ abstract class BaseSelectCommand extends EngCommand implements IFilterable {
     #region Ordering 
 
     protected final function HasOrdering() {
-        return count($this->orderByFields) > 0;
+        return count($this->sortedColumns) > 0;
     }
 
-    protected final function GetOrderByClause() {
+    protected final function GetOrderByClause()
+    {
         if ($this->HasOrdering()) {
-            $orderByField = '';
-            foreach ($this->orderByFields as $fieldName => $orderType)
-                StringUtils::AddStr($orderByField, $this->GetCommandImp()->GetFieldFullName($this->GetFieldByName($fieldName)) . ' ' . $orderType, ', ');
-            return 'ORDER BY ' . $orderByField;
-        } else
-            return '';
+            $orderByFields = '';
+            foreach ($this->sortedColumns as $value) {
+                $field = $this->GetFieldByName($value->getFieldName());
+                if (!is_null($field)) {
+                    StringUtils::AddStr(
+                        $orderByFields,
+                        $this->GetCommandImp()->GetFieldFullName($field).' '.$value->getSQLOrderType(),
+                        ', '
+                    );
+                }
+            }
+
+            if ($orderByFields) {
+                return 'ORDER BY '.$orderByFields;
+            }
+        }
+
+        return '';
     }
 
     /**
-     * @param string $fieldName
-     * @param string $orderType
+     * @param SortColumn[] $sortedColumns
      * @return void
      */
-    public final function SetOrderBy($fieldName, $orderType) {
-        $this->orderByFields[$fieldName] = $orderType;
+    public final function SetOrderBy($sortedColumns) {
+        $this->sortedColumns = $sortedColumns;
     }
 
     #endregion
@@ -110,12 +125,16 @@ abstract class BaseSelectCommand extends EngCommand implements IFilterable {
         $this->fieldInfos[] = $this->DoCreateFieldInfo($tableName, $fieldName, $fieldType, $alias);
     }
 
-    public final function GetFieldByName($name) {
-        foreach ($this->fieldInfos as $field)
-            if (isset($field->Alias) && $field->Alias != '' && $field->Alias == $name)
+    public final function GetFieldByName($name)
+    {
+        foreach ($this->fieldInfos as $field) {
+            if (isset($field->Alias) && $field->Alias != '' && $field->Alias == $name) {
                 return $field;
-            elseif ($field->Name == $name)
+            } elseif ($field->Name == $name) {
                 return $field;
+            }
+        }
+
         return null;
     }
 
