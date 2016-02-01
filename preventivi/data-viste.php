@@ -31,7 +31,6 @@ $vistaArticoliDelCliente = "
 					 l.`lis-przacq`
 		FROM articoli a, famiglie f, clienti c, listino_articoli l
    WHERE c.`cli-codcli` = ?
-	   AND c.`cli-codlis` = l.`lis-codlis`
 	   AND l.`lis-codart` = a.`art-codart`
 	   AND a.`art-codfam` = f.`fam-codfam`
 	   AND now() BETWEEN l.`lis-dataini` AND l.`lis-datafin`

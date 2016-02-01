@@ -75,6 +75,7 @@ input[field='ofv-valuni-cal']{
 #ofa-unimis {
   padding-bottom: 0px;
   padding-top: 0px;
+  display: inherit;
 }
 
 .no-close .ui-dialog-titlebar-close {
