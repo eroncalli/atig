@@ -57,11 +57,26 @@ function getRowHtml() {
 							<span field="voc-formula"></span>\
 						</td>-->\
 						<td>\
-							<input qta field="ofv-quantita" type="text" class="form-control" placeholder="Qta">\
-							<input qta field="ofv-durata" type="text" class="form-control" placeholder="Minuti">\
-							<input qta field="ofv-lunghezza" type="text" class="form-control" placeholder="Lunghezza">\
-							<input qta field="ofv-larghezza" type="text" class="form-control" placeholder="Larghezza">\
-              <input qta field="ofv-spessore" type="text" class="form-control" placeholder="Spessore">\
+							<div class="input-group width200">\
+                <span qta field="label-quantita" class="input-group-addon">Qta</span>\
+                <input qta field="ofv-quantita" type="text" class="form-control" placeholder="Qta">\
+              </div>\
+              <div class="input-group width200">\
+							 <span qta field="label-durata" class="input-group-addon">Minuti</span>\
+              <input qta field="ofv-durata" type="text" class="form-control" placeholder="Minuti">\
+						  </div>\
+              <div class="input-group width200">\
+                <span qta field="label-lunghezza" class="input-group-addon">Lunghezza</span>\
+                <input qta field="ofv-lunghezza" type="text" class="form-control" placeholder="Lunghezza">\
+							</div>\
+              <div class="input-group width200">\
+                <span qta field="label-larghezza" class="input-group-addon">Larghezza</span>\
+                <input qta field="ofv-larghezza" type="text" class="form-control" placeholder="Larghezza">\
+              </div>\
+              <div class="input-group width200">\
+                <span qta field="label-spessore" class="input-group-addon">Spessore</span>\
+                <input qta field="ofv-spessore" type="text" class="form-control" placeholder="Spessore">\
+              </div>\
               <span field="costo"></span>\
             </td>\
 						<td style="width: 160px;">\
@@ -404,16 +419,21 @@ function loadDettaglioVoci(numoff, codart) {
           switch (item.ofv_critcalc) {
             case "Q": 
               row.find('[field="ofv-quantita"]').show();
+              row.find('[field="label-quantita"]').show();
               break;
             case "T": 
               row.find('[field="ofv-durata"]').show();
+              row.find('[field="label-durata"]').show();
               break;
             case "D": 
               row.find('[field="ofv-lunghezza"]').show();
               row.find('[field="ofv-larghezza"]').show();
+              row.find('[field="label-lunghezza"]').show();
+              row.find('[field="label-larghezza"]').show();
               break;
             case "S": 
               row.find('[field="ofv-spessore"]').show();
+              row.find('[field="label-spessore"]').show();
               break;
           }
 
@@ -1307,16 +1327,21 @@ function init() {
 										switch (critcalc) {
 											case "Q": 
 												row.find('[field="ofv-quantita"]').show();
+                        row.find('[field="label-quantita"]').show();
 												break;
 											case "T": 
 												row.find('[field="ofv-durata"]').show();
+                        row.find('[field="label-durata"]').show();
 												break;
 											case "D": 
 												row.find('[field="ofv-lunghezza"]').show();
 												row.find('[field="ofv-larghezza"]').show();
+                        row.find('[field="label-lunghezza"]').show();
+												row.find('[field="label-larghezza"]').show();
 												break;
 											case "S": 
 												row.find('[field="ofv-spessore"]').show();
+                        row.find('[field="label-spessore"]').show();
 												break;
 										}
                     

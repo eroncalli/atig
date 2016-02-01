@@ -58,6 +58,15 @@ input[field='ofv-sconto']{
 	width: 70px;
 }
 
+.width200 {
+  width: 200px;
+  padding: 0px;
+}
+
+.input-group-addon {
+  padding: 4px 12px;
+}
+
 input[field='ofv-quantita'],
 input[field='ofv-durata'],
 input[field='ofv-lunghezza'],
