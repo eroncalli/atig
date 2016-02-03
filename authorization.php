@@ -35,7 +35,8 @@ $tableCaptions = array('clienti' => 'Clienti',
 'tipo_lavorazioni' => 'Tipo Lavorazioni',
 'spese_aggiuntive' => 'Spese Aggiuntive',
 'scontistica_clienti' => 'Scontistica Clienti',
-'atig_user_perms' => 'Atig User Perms');
+'atig_user_perms' => 'Atig User Perms',
+'elenco_articoli_view' => 'Elenco Articoli View');
 
 function CreateTableBasedGrantsManager()
 {

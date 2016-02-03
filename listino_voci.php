@@ -66,7 +66,7 @@
             $this->dataset->AddField($field, false);
             $field = new DateTimeField('datamod');
             $this->dataset->AddField($field, false);
-            $this->dataset->AddLookupField('ivo-codart', 'articoli', new StringField('art-codart'), new StringField('art-descart', 'ivo-codart_art-descart', 'ivo-codart_art-descart_articoli'), 'ivo-codart_art-descart_articoli');
+            $this->dataset->AddLookupField('ivo-codart', '(SELECT `art-codart`, concat(RTRIM(`art-codart`) , \' - \', RTRIM(`art-descart`)) as descrizione FROM atig.articoli)', new StringField('art-codart'), new StringField('descrizione', 'ivo-codart_descrizione', 'ivo-codart_descrizione_elenco_articoli_view'), 'ivo-codart_descrizione_elenco_articoli_view');
             $this->dataset->AddLookupField('ivo-codvoc', 'listino_voci', new IntegerField('ivo-codvoc'), new IntegerField('ivo-codvoc', 'ivo-codvoc_ivo-codvoc', 'ivo-codvoc_ivo-codvoc_listino_voci'), 'ivo-codvoc_ivo-codvoc_listino_voci');
         }
     
@@ -76,13 +76,7 @@
     
         protected function CreatePageNavigator()
         {
-            $result = new CompositePageNavigator($this);
-            
-            $partitionNavigator = new PageNavigator('pnav', $this, $this->dataset);
-            $partitionNavigator->SetRowsPerPage(25);
-            $result->AddPageNavigator($partitionNavigator);
-            
-            return $result;
+            return null;
         }
     
         public function GetPageList()
@@ -125,7 +119,7 @@
         {
             $grid->UseFilter = true;
             $grid->SearchControl = new SimpleSearch('listino_vocissearch', $this->dataset,
-                array('id', 'ivo-codart_art-descart', 'ivo-codvoc_ivo-codvoc', 'ivo-przunit', 'ivo-flagart', 'ivo-flagsmu', 'ivo-tiposmu', 'ivo-dataini', 'ivo-datafin'),
+                array('id', 'ivo-codart_descrizione', 'ivo-codvoc_ivo-codvoc', 'ivo-przunit', 'ivo-flagart', 'ivo-flagsmu', 'ivo-tiposmu', 'ivo-dataini', 'ivo-datafin'),
                 array($this->RenderText('Id'), $this->RenderText('Codice Articolo'), $this->RenderText('Codice Tipo Voce'), $this->RenderText('Prezzo unitario'), $this->RenderText('Altro articolo'), $this->RenderText('Prevede smusso'), $this->RenderText('Tipo smusso'), $this->RenderText('Data decorrenza listino'), $this->RenderText('Data fine decorrenza listino')),
                 array(
                     '=' => $this->GetLocalizerCaptions()->GetMessageString('equals'),
@@ -148,27 +142,20 @@
             $this->AdvancedSearchControl->setTimerInterval(1000);
             $this->AdvancedSearchControl->AddSearchColumn($this->AdvancedSearchControl->CreateStringSearchInput('id', $this->RenderText('Id')));
             
-            $lookupDataset = new TableDataset(
-                new MyPDOConnectionFactory(),
-                GetConnectionOptions(),
-                '`articoli`');
-            $field = new IntegerField('id', null, null, true);
-            $field->SetIsNotNull(true);
-            $lookupDataset->AddField($field, true);
+            $selectQuery = 'SELECT `art-codart`, concat(RTRIM(`art-codart`) , \' - \', RTRIM(`art-descart`)) as descrizione FROM atig.articoli';
+            $insertQuery = array();
+            $updateQuery = array();
+            $deleteQuery = array();
+            $lookupDataset = new QueryDataset(
+              new MyPDOConnectionFactory(), 
+              GetConnectionOptions(),
+              $selectQuery, $insertQuery, $updateQuery, $deleteQuery, 'elenco_articoli_view');
             $field = new StringField('art-codart');
             $lookupDataset->AddField($field, false);
-            $field = new StringField('art-descart');
+            $field = new StringField('descrizione');
             $lookupDataset->AddField($field, false);
-            $field = new StringField('art-codfam');
-            $lookupDataset->AddField($field, false);
-            $field = new IntegerField('art-lungsmu');
-            $lookupDataset->AddField($field, false);
-            $field = new DateTimeField('datains');
-            $lookupDataset->AddField($field, false);
-            $field = new DateTimeField('datamod');
-            $lookupDataset->AddField($field, false);
-            $lookupDataset->setOrderByField('art-descart', GetOrderTypeAsSQL(otAscending));
-            $this->AdvancedSearchControl->AddSearchColumn($this->AdvancedSearchControl->CreateLookupSearchInput('ivo-codart', $this->RenderText('Codice Articolo'), $lookupDataset, 'art-codart', 'art-descart', false, 8));
+            $lookupDataset->setOrderByField('descrizione', GetOrderTypeAsSQL(otAscending));
+            $this->AdvancedSearchControl->AddSearchColumn($this->AdvancedSearchControl->CreateLookupSearchInput('ivo-codart', $this->RenderText('Codice Articolo'), $lookupDataset, 'art-codart', 'descrizione', false, 8));
             
             $lookupDataset = new TableDataset(
                 new MyPDOConnectionFactory(),
@@ -238,9 +225,9 @@
         protected function AddFieldColumns(Grid $grid)
         {
             //
-            // View column for art-descart field
+            // View column for descrizione field
             //
-            $column = new TextViewColumn('ivo-codart_art-descart', 'Codice Articolo', $this->dataset);
+            $column = new TextViewColumn('ivo-codart_descrizione', 'Codice Articolo', $this->dataset);
             $column->SetOrderable(true);
             $column->SetDescription($this->RenderText(''));
             $column->SetFixedWidth(null);
@@ -295,14 +282,34 @@
             $column->SetDescription($this->RenderText(''));
             $column->SetFixedWidth(null);
             $grid->AddViewColumn($column);
+            
+            //
+            // View column for ivo-dataini field
+            //
+            $column = new DateTimeViewColumn('ivo-dataini', 'Data decorrenza listino', $this->dataset);
+            $column->SetDateTimeFormat('d-m-Y');
+            $column->SetOrderable(true);
+            $column->SetDescription($this->RenderText(''));
+            $column->SetFixedWidth(null);
+            $grid->AddViewColumn($column);
+            
+            //
+            // View column for ivo-datafin field
+            //
+            $column = new DateTimeViewColumn('ivo-datafin', 'Data fine decorrenza listino', $this->dataset);
+            $column->SetDateTimeFormat('d-m-Y');
+            $column->SetOrderable(true);
+            $column->SetDescription($this->RenderText(''));
+            $column->SetFixedWidth(null);
+            $grid->AddViewColumn($column);
         }
     
         protected function AddSingleRecordViewColumns(Grid $grid)
         {
             //
-            // View column for art-descart field
+            // View column for descrizione field
             //
-            $column = new TextViewColumn('ivo-codart_art-descart', 'Codice Articolo', $this->dataset);
+            $column = new TextViewColumn('ivo-codart_descrizione', 'Codice Articolo', $this->dataset);
             $column->SetOrderable(true);
             $grid->AddSingleRecordViewColumn($column);
             
@@ -384,32 +391,24 @@
             //
             // Edit column for ivo-codart field
             //
-            $editor = new ComboBox('ivo-codart_edit', $this->GetLocalizerCaptions()->GetMessageString('PleaseSelect'));
-            $lookupDataset = new TableDataset(
-                new MyPDOConnectionFactory(),
-                GetConnectionOptions(),
-                '`articoli`');
-            $field = new IntegerField('id', null, null, true);
-            $field->SetIsNotNull(true);
-            $lookupDataset->AddField($field, true);
+            $editor = new AutocomleteComboBox('ivo-codart_edit', $this->CreateLinkBuilder());
+            $editor->SetSize('250px');
+            $editor->setAllowClear(true);
+            $editor->setMinimumInputLength(0);
+            $selectQuery = 'SELECT `art-codart`, concat(RTRIM(`art-codart`) , \' - \', RTRIM(`art-descart`)) as descrizione FROM atig.articoli';
+            $insertQuery = array();
+            $updateQuery = array();
+            $deleteQuery = array();
+            $lookupDataset = new QueryDataset(
+              new MyPDOConnectionFactory(), 
+              GetConnectionOptions(),
+              $selectQuery, $insertQuery, $updateQuery, $deleteQuery, 'elenco_articoli_view');
             $field = new StringField('art-codart');
             $lookupDataset->AddField($field, false);
-            $field = new StringField('art-descart');
+            $field = new StringField('descrizione');
             $lookupDataset->AddField($field, false);
-            $field = new StringField('art-codfam');
-            $lookupDataset->AddField($field, false);
-            $field = new IntegerField('art-lungsmu');
-            $lookupDataset->AddField($field, false);
-            $field = new DateTimeField('datains');
-            $lookupDataset->AddField($field, false);
-            $field = new DateTimeField('datamod');
-            $lookupDataset->AddField($field, false);
-            $lookupDataset->setOrderByField('art-descart', GetOrderTypeAsSQL(otAscending));
-            $editColumn = new LookUpEditColumn(
-                'Codice Articolo', 
-                'ivo-codart', 
-                $editor, 
-                $this->dataset, 'art-codart', 'art-descart', $lookupDataset);
+            $lookupDataset->setOrderByField('descrizione', GetOrderTypeAsSQL(otAscending));
+            $editColumn = new DynamicLookupEditColumn('Codice Articolo', 'ivo-codart', 'ivo-codart_descrizione', 'edit_ivo-codart_descrizione_search', $editor, $this->dataset, $lookupDataset, 'art-codart', 'descrizione', '');
             $editColumn->SetAllowSetToNull(true);
             $this->ApplyCommonColumnEditProperties($editColumn);
             $grid->AddEditColumn($editColumn);
@@ -517,32 +516,24 @@
             //
             // Edit column for ivo-codart field
             //
-            $editor = new ComboBox('ivo-codart_edit', $this->GetLocalizerCaptions()->GetMessageString('PleaseSelect'));
-            $lookupDataset = new TableDataset(
-                new MyPDOConnectionFactory(),
-                GetConnectionOptions(),
-                '`articoli`');
-            $field = new IntegerField('id', null, null, true);
-            $field->SetIsNotNull(true);
-            $lookupDataset->AddField($field, true);
+            $editor = new AutocomleteComboBox('ivo-codart_edit', $this->CreateLinkBuilder());
+            $editor->SetSize('250px');
+            $editor->setAllowClear(true);
+            $editor->setMinimumInputLength(0);
+            $selectQuery = 'SELECT `art-codart`, concat(RTRIM(`art-codart`) , \' - \', RTRIM(`art-descart`)) as descrizione FROM atig.articoli';
+            $insertQuery = array();
+            $updateQuery = array();
+            $deleteQuery = array();
+            $lookupDataset = new QueryDataset(
+              new MyPDOConnectionFactory(), 
+              GetConnectionOptions(),
+              $selectQuery, $insertQuery, $updateQuery, $deleteQuery, 'elenco_articoli_view');
             $field = new StringField('art-codart');
             $lookupDataset->AddField($field, false);
-            $field = new StringField('art-descart');
+            $field = new StringField('descrizione');
             $lookupDataset->AddField($field, false);
-            $field = new StringField('art-codfam');
-            $lookupDataset->AddField($field, false);
-            $field = new IntegerField('art-lungsmu');
-            $lookupDataset->AddField($field, false);
-            $field = new DateTimeField('datains');
-            $lookupDataset->AddField($field, false);
-            $field = new DateTimeField('datamod');
-            $lookupDataset->AddField($field, false);
-            $lookupDataset->setOrderByField('art-descart', GetOrderTypeAsSQL(otAscending));
-            $editColumn = new LookUpEditColumn(
-                'Codice Articolo', 
-                'ivo-codart', 
-                $editor, 
-                $this->dataset, 'art-codart', 'art-descart', $lookupDataset);
+            $lookupDataset->setOrderByField('descrizione', GetOrderTypeAsSQL(otAscending));
+            $editColumn = new DynamicLookupEditColumn('Codice Articolo', 'ivo-codart', 'ivo-codart_descrizione', 'insert_ivo-codart_descrizione_search', $editor, $this->dataset, $lookupDataset, 'art-codart', 'descrizione', '');
             $editColumn->SetAllowSetToNull(true);
             $this->ApplyCommonColumnEditProperties($editColumn);
             $grid->AddInsertColumn($editColumn);
@@ -665,9 +656,9 @@
             $grid->AddPrintColumn($column);
             
             //
-            // View column for art-descart field
+            // View column for descrizione field
             //
-            $column = new TextViewColumn('ivo-codart_art-descart', 'Codice Articolo', $this->dataset);
+            $column = new TextViewColumn('ivo-codart_descrizione', 'Codice Articolo', $this->dataset);
             $column->SetOrderable(true);
             $grid->AddPrintColumn($column);
             
@@ -738,9 +729,9 @@
             $grid->AddExportColumn($column);
             
             //
-            // View column for art-descart field
+            // View column for descrizione field
             //
-            $column = new TextViewColumn('ivo-codart_art-descart', 'Codice Articolo', $this->dataset);
+            $column = new TextViewColumn('ivo-codart_descrizione', 'Codice Articolo', $this->dataset);
             $column->SetOrderable(true);
             $grid->AddExportColumn($column);
             
@@ -889,13 +880,44 @@
             $this->SetAdvancedSearchAvailable(false);
             $this->SetFilterRowAvailable(false);
             $this->SetVisualEffectsEnabled(true);
-            $this->SetShowTopPageNavigator(true);
-            $this->SetShowBottomPageNavigator(true);
+            $this->SetShowTopPageNavigator(false);
+            $this->SetShowBottomPageNavigator(false);
     
             //
             // Http Handlers
             //
-    
+            $selectQuery = 'SELECT `art-codart`, concat(RTRIM(`art-codart`) , \' - \', RTRIM(`art-descart`)) as descrizione FROM atig.articoli';
+            $insertQuery = array();
+            $updateQuery = array();
+            $deleteQuery = array();
+            $lookupDataset = new QueryDataset(
+              new MyPDOConnectionFactory(), 
+              GetConnectionOptions(),
+              $selectQuery, $insertQuery, $updateQuery, $deleteQuery, 'elenco_articoli_view');
+            $field = new StringField('art-codart');
+            $lookupDataset->AddField($field, false);
+            $field = new StringField('descrizione');
+            $lookupDataset->AddField($field, false);
+            $lookupDataset->setOrderByField('descrizione', GetOrderTypeAsSQL(otAscending));
+            $lookupDataset->AddCustomCondition(EnvVariablesUtils::EvaluateVariableTemplate($this->GetColumnVariableContainer(), ''));
+            $handler = new DynamicSearchHandler($lookupDataset, $this, 'edit_ivo-codart_descrizione_search', 'art-codart', 'descrizione', null);
+            GetApplication()->RegisterHTTPHandler($handler);
+            $selectQuery = 'SELECT `art-codart`, concat(RTRIM(`art-codart`) , \' - \', RTRIM(`art-descart`)) as descrizione FROM atig.articoli';
+            $insertQuery = array();
+            $updateQuery = array();
+            $deleteQuery = array();
+            $lookupDataset = new QueryDataset(
+              new MyPDOConnectionFactory(), 
+              GetConnectionOptions(),
+              $selectQuery, $insertQuery, $updateQuery, $deleteQuery, 'elenco_articoli_view');
+            $field = new StringField('art-codart');
+            $lookupDataset->AddField($field, false);
+            $field = new StringField('descrizione');
+            $lookupDataset->AddField($field, false);
+            $lookupDataset->setOrderByField('descrizione', GetOrderTypeAsSQL(otAscending));
+            $lookupDataset->AddCustomCondition(EnvVariablesUtils::EvaluateVariableTemplate($this->GetColumnVariableContainer(), ''));
+            $handler = new DynamicSearchHandler($lookupDataset, $this, 'insert_ivo-codart_descrizione_search', 'art-codart', 'descrizione', null);
+            GetApplication()->RegisterHTTPHandler($handler);
             return $result;
         }
         

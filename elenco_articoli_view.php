@@ -35,23 +35,22 @@
     
     
     
-    class spese_aggiuntivePage extends Page
+    class elenco_articoli_viewPage extends Page
     {
         protected function DoBeforeCreate()
         {
-            $this->dataset = new TableDataset(
-                new MyPDOConnectionFactory(),
-                GetConnectionOptions(),
-                '`spese_aggiuntive`');
-            $field = new IntegerField('id', null, null, true);
-            $field->SetIsNotNull(true);
+            $selectQuery = 'SELECT `art-codart`, concat(RTRIM(`art-codart`) , \' - \', RTRIM(`art-descart`)) as descrizione FROM atig.articoli';
+            $insertQuery = array();
+            $updateQuery = array();
+            $deleteQuery = array();
+            $this->dataset = new QueryDataset(
+              new MyPDOConnectionFactory(), 
+              GetConnectionOptions(),
+              $selectQuery, $insertQuery, $updateQuery, $deleteQuery, 'elenco_articoli_view');
+            $field = new StringField('art-codart');
             $this->dataset->AddField($field, true);
-            $field = new StringField('spe-codspe');
-            $this->dataset->AddField($field, false);
-            $field = new StringField('spe-tipspe');
-            $this->dataset->AddField($field, false);
-            $field = new StringField('spe-descspe');
-            $this->dataset->AddField($field, false);
+            $field = new StringField('descrizione');
+            $this->dataset->AddField($field, true);
         }
     
         protected function DoPrepare() {
@@ -60,7 +59,13 @@
     
         protected function CreatePageNavigator()
         {
-            return null;
+            $result = new CompositePageNavigator($this);
+            
+            $partitionNavigator = new PageNavigator('pnav', $this, $this->dataset);
+            $partitionNavigator->SetRowsPerPage(25);
+            $result->AddPageNavigator($partitionNavigator);
+            
+            return $result;
         }
     
         public function GetPageList()
@@ -102,9 +107,9 @@
         protected function CreateGridSearchControl(Grid $grid)
         {
             $grid->UseFilter = true;
-            $grid->SearchControl = new SimpleSearch('spese_aggiuntivessearch', $this->dataset,
-                array('id', 'spe-codspe', 'spe-tipspe', 'spe-descspe'),
-                array($this->RenderText('Id'), $this->RenderText('Spe-codspe'), $this->RenderText('Spe-tipspe'), $this->RenderText('Spe-descspe')),
+            $grid->SearchControl = new SimpleSearch('elenco_articoli_viewssearch', $this->dataset,
+                array('art-codart', 'descrizione'),
+                array($this->RenderText('Art-codart'), $this->RenderText('Descrizione')),
                 array(
                     '=' => $this->GetLocalizerCaptions()->GetMessageString('equals'),
                     '<>' => $this->GetLocalizerCaptions()->GetMessageString('doesNotEquals'),
@@ -122,12 +127,10 @@
     
         protected function CreateGridAdvancedSearchControl(Grid $grid)
         {
-            $this->AdvancedSearchControl = new AdvancedSearchControl('spese_aggiuntiveasearch', $this->dataset, $this->GetLocalizerCaptions(), $this->GetColumnVariableContainer(), $this->CreateLinkBuilder());
+            $this->AdvancedSearchControl = new AdvancedSearchControl('elenco_articoli_viewasearch', $this->dataset, $this->GetLocalizerCaptions(), $this->GetColumnVariableContainer(), $this->CreateLinkBuilder());
             $this->AdvancedSearchControl->setTimerInterval(1000);
-            $this->AdvancedSearchControl->AddSearchColumn($this->AdvancedSearchControl->CreateStringSearchInput('id', $this->RenderText('Id')));
-            $this->AdvancedSearchControl->AddSearchColumn($this->AdvancedSearchControl->CreateStringSearchInput('spe-codspe', $this->RenderText('Spe-codspe')));
-            $this->AdvancedSearchControl->AddSearchColumn($this->AdvancedSearchControl->CreateStringSearchInput('spe-tipspe', $this->RenderText('Spe-tipspe')));
-            $this->AdvancedSearchControl->AddSearchColumn($this->AdvancedSearchControl->CreateStringSearchInput('spe-descspe', $this->RenderText('Spe-descspe')));
+            $this->AdvancedSearchControl->AddSearchColumn($this->AdvancedSearchControl->CreateStringSearchInput('art-codart', $this->RenderText('Art-codart')));
+            $this->AdvancedSearchControl->AddSearchColumn($this->AdvancedSearchControl->CreateStringSearchInput('descrizione', $this->RenderText('Descrizione')));
         }
     
         protected function AddOperationsColumns(Grid $grid)
@@ -140,60 +143,24 @@
                 $grid->AddViewColumn($column, $actionsBandName);
                 $column->SetImagePath('images/view_action.png');
             }
-            if ($this->GetSecurityInfo()->HasEditGrant())
-            {
-                $column = new RowOperationByLinkColumn($this->GetLocalizerCaptions()->GetMessageString('Edit'), OPERATION_EDIT, $this->dataset);
-                $grid->AddViewColumn($column, $actionsBandName);
-                $column->SetImagePath('images/edit_action.png');
-                $column->OnShow->AddListener('ShowEditButtonHandler', $this);
-            }
-            if ($this->GetSecurityInfo()->HasDeleteGrant())
-            {
-                $column = new RowOperationByLinkColumn($this->GetLocalizerCaptions()->GetMessageString('Delete'), OPERATION_DELETE, $this->dataset);
-                $grid->AddViewColumn($column, $actionsBandName);
-                $column->SetImagePath('images/delete_action.png');
-                $column->OnShow->AddListener('ShowDeleteButtonHandler', $this);
-                $column->SetAdditionalAttribute('data-modal-delete', 'true');
-                $column->SetAdditionalAttribute('data-delete-handler-name', $this->GetModalGridDeleteHandler());
-            }
         }
     
         protected function AddFieldColumns(Grid $grid)
         {
             //
-            // View column for id field
+            // View column for art-codart field
             //
-            $column = new TextViewColumn('id', 'Id', $this->dataset);
+            $column = new TextViewColumn('art-codart', 'Art-codart', $this->dataset);
             $column->SetOrderable(true);
             $column->SetDescription($this->RenderText(''));
             $column->SetFixedWidth(null);
             $grid->AddViewColumn($column);
             
             //
-            // View column for spe-codspe field
+            // View column for descrizione field
             //
-            $column = new TextViewColumn('spe-codspe', 'Spe-codspe', $this->dataset);
+            $column = new TextViewColumn('descrizione', 'Descrizione', $this->dataset);
             $column->SetOrderable(true);
-            $column->SetDescription($this->RenderText(''));
-            $column->SetFixedWidth(null);
-            $grid->AddViewColumn($column);
-            
-            //
-            // View column for spe-tipspe field
-            //
-            $column = new TextViewColumn('spe-tipspe', 'Spe-tipspe', $this->dataset);
-            $column->SetOrderable(true);
-            $column->SetDescription($this->RenderText(''));
-            $column->SetFixedWidth(null);
-            $grid->AddViewColumn($column);
-            
-            //
-            // View column for spe-descspe field
-            //
-            $column = new TextViewColumn('spe-descspe', 'Spe-descspe', $this->dataset);
-            $column->SetOrderable(true);
-            $column->SetMaxLength(75);
-            $column->SetFullTextWindowHandlerName('spese_aggiuntiveGrid_spe-descspe_handler_list');
             $column->SetDescription($this->RenderText(''));
             $column->SetFixedWidth(null);
             $grid->AddViewColumn($column);
@@ -202,68 +169,39 @@
         protected function AddSingleRecordViewColumns(Grid $grid)
         {
             //
-            // View column for id field
+            // View column for art-codart field
             //
-            $column = new TextViewColumn('id', 'Id', $this->dataset);
+            $column = new TextViewColumn('art-codart', 'Art-codart', $this->dataset);
             $column->SetOrderable(true);
             $grid->AddSingleRecordViewColumn($column);
             
             //
-            // View column for spe-codspe field
+            // View column for descrizione field
             //
-            $column = new TextViewColumn('spe-codspe', 'Spe-codspe', $this->dataset);
+            $column = new TextViewColumn('descrizione', 'Descrizione', $this->dataset);
             $column->SetOrderable(true);
-            $grid->AddSingleRecordViewColumn($column);
-            
-            //
-            // View column for spe-tipspe field
-            //
-            $column = new TextViewColumn('spe-tipspe', 'Spe-tipspe', $this->dataset);
-            $column->SetOrderable(true);
-            $grid->AddSingleRecordViewColumn($column);
-            
-            //
-            // View column for spe-descspe field
-            //
-            $column = new TextViewColumn('spe-descspe', 'Spe-descspe', $this->dataset);
-            $column->SetOrderable(true);
-            $column->SetMaxLength(75);
-            $column->SetFullTextWindowHandlerName('spese_aggiuntiveGrid_spe-descspe_handler_view');
             $grid->AddSingleRecordViewColumn($column);
         }
     
         protected function AddEditColumns(Grid $grid)
         {
             //
-            // Edit column for spe-codspe field
+            // Edit column for art-codart field
             //
-            $editor = new TextEdit('spe-codspe_edit');
-            $editor->SetSize(10);
-            $editor->SetMaxLength(10);
-            $editColumn = new CustomEditColumn('Spe-codspe', 'spe-codspe', $editor, $this->dataset);
-            $editColumn->SetAllowSetToNull(true);
+            $editor = new TextEdit('art-codart_edit');
+            $editColumn = new CustomEditColumn('Art-codart', 'art-codart', $editor, $this->dataset);
+            $validator = new RequiredValidator(StringUtils::Format($this->GetLocalizerCaptions()->GetMessageString('RequiredValidationMessage'), $this->RenderText($editColumn->GetCaption())));
+            $editor->GetValidatorCollection()->AddValidator($validator);
             $this->ApplyCommonColumnEditProperties($editColumn);
             $grid->AddEditColumn($editColumn);
             
             //
-            // Edit column for spe-tipspe field
+            // Edit column for descrizione field
             //
-            $editor = new TextEdit('spe-tipspe_edit');
-            $editor->SetSize(1);
-            $editor->SetMaxLength(1);
-            $editColumn = new CustomEditColumn('Spe-tipspe', 'spe-tipspe', $editor, $this->dataset);
-            $editColumn->SetAllowSetToNull(true);
-            $this->ApplyCommonColumnEditProperties($editColumn);
-            $grid->AddEditColumn($editColumn);
-            
-            //
-            // Edit column for spe-descspe field
-            //
-            $editor = new TextEdit('spe-descspe_edit');
-            $editor->SetSize(100);
-            $editor->SetMaxLength(100);
-            $editColumn = new CustomEditColumn('Spe-descspe', 'spe-descspe', $editor, $this->dataset);
-            $editColumn->SetAllowSetToNull(true);
+            $editor = new TextEdit('descrizione_edit');
+            $editColumn = new CustomEditColumn('Descrizione', 'descrizione', $editor, $this->dataset);
+            $validator = new RequiredValidator(StringUtils::Format($this->GetLocalizerCaptions()->GetMessageString('RequiredValidationMessage'), $this->RenderText($editColumn->GetCaption())));
+            $editor->GetValidatorCollection()->AddValidator($validator);
             $this->ApplyCommonColumnEditProperties($editColumn);
             $grid->AddEditColumn($editColumn);
         }
@@ -271,40 +209,27 @@
         protected function AddInsertColumns(Grid $grid)
         {
             //
-            // Edit column for spe-codspe field
+            // Edit column for art-codart field
             //
-            $editor = new TextEdit('spe-codspe_edit');
-            $editor->SetSize(10);
-            $editor->SetMaxLength(10);
-            $editColumn = new CustomEditColumn('Spe-codspe', 'spe-codspe', $editor, $this->dataset);
-            $editColumn->SetAllowSetToNull(true);
+            $editor = new TextEdit('art-codart_edit');
+            $editColumn = new CustomEditColumn('Art-codart', 'art-codart', $editor, $this->dataset);
+            $validator = new RequiredValidator(StringUtils::Format($this->GetLocalizerCaptions()->GetMessageString('RequiredValidationMessage'), $this->RenderText($editColumn->GetCaption())));
+            $editor->GetValidatorCollection()->AddValidator($validator);
             $this->ApplyCommonColumnEditProperties($editColumn);
             $grid->AddInsertColumn($editColumn);
             
             //
-            // Edit column for spe-tipspe field
+            // Edit column for descrizione field
             //
-            $editor = new TextEdit('spe-tipspe_edit');
-            $editor->SetSize(1);
-            $editor->SetMaxLength(1);
-            $editColumn = new CustomEditColumn('Spe-tipspe', 'spe-tipspe', $editor, $this->dataset);
-            $editColumn->SetAllowSetToNull(true);
-            $this->ApplyCommonColumnEditProperties($editColumn);
-            $grid->AddInsertColumn($editColumn);
-            
-            //
-            // Edit column for spe-descspe field
-            //
-            $editor = new TextEdit('spe-descspe_edit');
-            $editor->SetSize(100);
-            $editor->SetMaxLength(100);
-            $editColumn = new CustomEditColumn('Spe-descspe', 'spe-descspe', $editor, $this->dataset);
-            $editColumn->SetAllowSetToNull(true);
+            $editor = new TextEdit('descrizione_edit');
+            $editColumn = new CustomEditColumn('Descrizione', 'descrizione', $editor, $this->dataset);
+            $validator = new RequiredValidator(StringUtils::Format($this->GetLocalizerCaptions()->GetMessageString('RequiredValidationMessage'), $this->RenderText($editColumn->GetCaption())));
+            $editor->GetValidatorCollection()->AddValidator($validator);
             $this->ApplyCommonColumnEditProperties($editColumn);
             $grid->AddInsertColumn($editColumn);
             if ($this->GetSecurityInfo()->HasAddGrant())
             {
-                $grid->SetShowAddButton(true);
+                $grid->SetShowAddButton(false);
                 $grid->SetShowInlineAddButton(false);
             }
             else
@@ -317,30 +242,16 @@
         protected function AddPrintColumns(Grid $grid)
         {
             //
-            // View column for id field
+            // View column for art-codart field
             //
-            $column = new TextViewColumn('id', 'Id', $this->dataset);
+            $column = new TextViewColumn('art-codart', 'Art-codart', $this->dataset);
             $column->SetOrderable(true);
             $grid->AddPrintColumn($column);
             
             //
-            // View column for spe-codspe field
+            // View column for descrizione field
             //
-            $column = new TextViewColumn('spe-codspe', 'Spe-codspe', $this->dataset);
-            $column->SetOrderable(true);
-            $grid->AddPrintColumn($column);
-            
-            //
-            // View column for spe-tipspe field
-            //
-            $column = new TextViewColumn('spe-tipspe', 'Spe-tipspe', $this->dataset);
-            $column->SetOrderable(true);
-            $grid->AddPrintColumn($column);
-            
-            //
-            // View column for spe-descspe field
-            //
-            $column = new TextViewColumn('spe-descspe', 'Spe-descspe', $this->dataset);
+            $column = new TextViewColumn('descrizione', 'Descrizione', $this->dataset);
             $column->SetOrderable(true);
             $grid->AddPrintColumn($column);
         }
@@ -348,30 +259,16 @@
         protected function AddExportColumns(Grid $grid)
         {
             //
-            // View column for id field
+            // View column for art-codart field
             //
-            $column = new TextViewColumn('id', 'Id', $this->dataset);
+            $column = new TextViewColumn('art-codart', 'Art-codart', $this->dataset);
             $column->SetOrderable(true);
             $grid->AddExportColumn($column);
             
             //
-            // View column for spe-codspe field
+            // View column for descrizione field
             //
-            $column = new TextViewColumn('spe-codspe', 'Spe-codspe', $this->dataset);
-            $column->SetOrderable(true);
-            $grid->AddExportColumn($column);
-            
-            //
-            // View column for spe-tipspe field
-            //
-            $column = new TextViewColumn('spe-tipspe', 'Spe-tipspe', $this->dataset);
-            $column->SetOrderable(true);
-            $grid->AddExportColumn($column);
-            
-            //
-            // View column for spe-descspe field
-            //
-            $column = new TextViewColumn('spe-descspe', 'Spe-descspe', $this->dataset);
+            $column = new TextViewColumn('descrizione', 'Descrizione', $this->dataset);
             $column->SetOrderable(true);
             $grid->AddExportColumn($column);
         }
@@ -397,23 +294,10 @@
         {
             return ;
         }
-        public function ShowEditButtonHandler(&$show)
-        {
-            if ($this->GetRecordPermission() != null)
-                $show = $this->GetRecordPermission()->HasEditGrant($this->GetDataset());
-        }
-        public function ShowDeleteButtonHandler(&$show)
-        {
-            if ($this->GetRecordPermission() != null)
-                $show = $this->GetRecordPermission()->HasDeleteGrant($this->GetDataset());
-        }
-        
-        public function GetModalGridDeleteHandler() { return 'spese_aggiuntive_modal_delete'; }
-        protected function GetEnableModalGridDelete() { return true; }
     
         protected function CreateGrid()
         {
-            $result = new Grid($this, $this->dataset, 'spese_aggiuntiveGrid');
+            $result = new Grid($this, $this->dataset, 'elenco_articoli_viewGrid');
             if ($this->GetSecurityInfo()->HasDeleteGrant())
                $result->SetAllowDeleteSelected(false);
             else
@@ -431,14 +315,14 @@
             $result->SetWidth('');
             $this->CreateGridSearchControl($result);
             $this->CreateGridAdvancedSearchControl($result);
-            $this->AddOperationsColumns($result);
+    
             $this->AddFieldColumns($result);
             $this->AddSingleRecordViewColumns($result);
             $this->AddEditColumns($result);
             $this->AddInsertColumns($result);
             $this->AddPrintColumns($result);
             $this->AddExportColumns($result);
-    
+            $this->AddOperationsColumns($result);
             $this->SetShowPageList(true);
             $this->SetHidePageListByDefault(false);
             $this->SetExportToExcelAvailable(false);
@@ -451,25 +335,13 @@
             $this->SetAdvancedSearchAvailable(false);
             $this->SetFilterRowAvailable(false);
             $this->SetVisualEffectsEnabled(true);
-            $this->SetShowTopPageNavigator(false);
-            $this->SetShowBottomPageNavigator(false);
+            $this->SetShowTopPageNavigator(true);
+            $this->SetShowBottomPageNavigator(true);
     
             //
             // Http Handlers
             //
-            //
-            // View column for spe-descspe field
-            //
-            $column = new TextViewColumn('spe-descspe', 'Spe-descspe', $this->dataset);
-            $column->SetOrderable(true);
-            $handler = new ShowTextBlobHandler($this->dataset, $this, 'spese_aggiuntiveGrid_spe-descspe_handler_list', $column);
-            GetApplication()->RegisterHTTPHandler($handler);//
-            // View column for spe-descspe field
-            //
-            $column = new TextViewColumn('spe-descspe', 'Spe-descspe', $this->dataset);
-            $column->SetOrderable(true);
-            $handler = new ShowTextBlobHandler($this->dataset, $this, 'spese_aggiuntiveGrid_spe-descspe_handler_view', $column);
-            GetApplication()->RegisterHTTPHandler($handler);
+    
             return $result;
         }
         
@@ -488,12 +360,12 @@
 
     try
     {
-        $Page = new spese_aggiuntivePage("spese_aggiuntive.php", "spese_aggiuntive", GetCurrentUserGrantForDataSource("spese_aggiuntive"), 'UTF-8');
-        $Page->SetShortCaption('Spese Aggiuntive');
+        $Page = new elenco_articoli_viewPage("elenco_articoli_view.php", "elenco_articoli_view", GetCurrentUserGrantForDataSource("elenco_articoli_view"), 'UTF-8');
+        $Page->SetShortCaption('Elenco Articoli View');
         $Page->SetHeader(GetPagesHeader());
         $Page->SetFooter(GetPagesFooter());
-        $Page->SetCaption('Spese Aggiuntive');
-        $Page->SetRecordPermission(GetCurrentUserRecordPermissionsForDataSource("spese_aggiuntive"));
+        $Page->SetCaption('Elenco Articoli View');
+        $Page->SetRecordPermission(GetCurrentUserRecordPermissionsForDataSource("elenco_articoli_view"));
         GetApplication()->SetEnableLessRunTimeCompile(GetEnableLessFilesRunTimeCompilation());
         GetApplication()->SetCanUserChangeOwnPassword(
             !function_exists('CanUserChangeOwnPassword') || CanUserChangeOwnPassword());

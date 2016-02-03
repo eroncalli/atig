@@ -95,13 +95,7 @@
     
         protected function CreatePageNavigator()
         {
-            $result = new CompositePageNavigator($this);
-            
-            $partitionNavigator = new PageNavigator('pnav', $this, $this->dataset);
-            $partitionNavigator->SetRowsPerPage(25);
-            $result->AddPageNavigator($partitionNavigator);
-            
-            return $result;
+            return null;
         }
     
         public function GetPageList()
@@ -179,7 +173,15 @@
             $lookupDataset->AddField($field, false);
             $field = new StringField('art-descart');
             $lookupDataset->AddField($field, false);
+            $field = new StringField('art-dessup');
+            $lookupDataset->AddField($field, false);
+            $field = new StringField('art-codprod');
+            $lookupDataset->AddField($field, false);
             $field = new StringField('art-codfam');
+            $lookupDataset->AddField($field, false);
+            $field = new StringField('art-gruppo-merc');
+            $lookupDataset->AddField($field, false);
+            $field = new StringField('art-categoria-omogenea');
             $lookupDataset->AddField($field, false);
             $field = new IntegerField('art-lungsmu');
             $lookupDataset->AddField($field, false);
@@ -542,7 +544,15 @@
             $lookupDataset->AddField($field, false);
             $field = new StringField('art-descart');
             $lookupDataset->AddField($field, false);
+            $field = new StringField('art-dessup');
+            $lookupDataset->AddField($field, false);
+            $field = new StringField('art-codprod');
+            $lookupDataset->AddField($field, false);
             $field = new StringField('art-codfam');
+            $lookupDataset->AddField($field, false);
+            $field = new StringField('art-gruppo-merc');
+            $lookupDataset->AddField($field, false);
+            $field = new StringField('art-categoria-omogenea');
             $lookupDataset->AddField($field, false);
             $field = new IntegerField('art-lungsmu');
             $lookupDataset->AddField($field, false);
@@ -706,7 +716,15 @@
             $lookupDataset->AddField($field, false);
             $field = new StringField('art-descart');
             $lookupDataset->AddField($field, false);
+            $field = new StringField('art-dessup');
+            $lookupDataset->AddField($field, false);
+            $field = new StringField('art-codprod');
+            $lookupDataset->AddField($field, false);
             $field = new StringField('art-codfam');
+            $lookupDataset->AddField($field, false);
+            $field = new StringField('art-gruppo-merc');
+            $lookupDataset->AddField($field, false);
+            $field = new StringField('art-categoria-omogenea');
             $lookupDataset->AddField($field, false);
             $field = new IntegerField('art-lungsmu');
             $lookupDataset->AddField($field, false);
@@ -1162,14 +1180,14 @@
             $result->SetWidth('');
             $this->CreateGridSearchControl($result);
             $this->CreateGridAdvancedSearchControl($result);
-    
+            $this->AddOperationsColumns($result);
             $this->AddFieldColumns($result);
             $this->AddSingleRecordViewColumns($result);
             $this->AddEditColumns($result);
             $this->AddInsertColumns($result);
             $this->AddPrintColumns($result);
             $this->AddExportColumns($result);
-            $this->AddOperationsColumns($result);
+    
             $this->SetShowPageList(true);
             $this->SetHidePageListByDefault(false);
             $this->SetExportToExcelAvailable(false);
@@ -1182,8 +1200,8 @@
             $this->SetAdvancedSearchAvailable(false);
             $this->SetFilterRowAvailable(false);
             $this->SetVisualEffectsEnabled(true);
-            $this->SetShowTopPageNavigator(true);
-            $this->SetShowBottomPageNavigator(true);
+            $this->SetShowTopPageNavigator(false);
+            $this->SetShowBottomPageNavigator(false);
     
             //
             // Http Handlers

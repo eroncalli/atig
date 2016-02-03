@@ -72,13 +72,7 @@
     
         protected function CreatePageNavigator()
         {
-            $result = new CompositePageNavigator($this);
-            
-            $partitionNavigator = new PageNavigator('pnav', $this, $this->dataset);
-            $partitionNavigator->SetRowsPerPage(25);
-            $result->AddPageNavigator($partitionNavigator);
-            
-            return $result;
+            return null;
         }
     
         public function GetPageList()
@@ -533,14 +527,14 @@
             $result->BeforeInsertRecord->AddListener('offerteGrid' . '_' . 'BeforeInsertRecord', $this);
             $this->CreateGridSearchControl($result);
             $this->CreateGridAdvancedSearchControl($result);
-    
+            $this->AddOperationsColumns($result);
             $this->AddFieldColumns($result);
             $this->AddSingleRecordViewColumns($result);
             $this->AddEditColumns($result);
             $this->AddInsertColumns($result);
             $this->AddPrintColumns($result);
             $this->AddExportColumns($result);
-            $this->AddOperationsColumns($result);
+    
             $this->SetShowPageList(true);
             $this->SetHidePageListByDefault(false);
             $this->SetExportToExcelAvailable(false);
@@ -553,8 +547,8 @@
             $this->SetAdvancedSearchAvailable(false);
             $this->SetFilterRowAvailable(false);
             $this->SetVisualEffectsEnabled(true);
-            $this->SetShowTopPageNavigator(true);
-            $this->SetShowBottomPageNavigator(true);
+            $this->SetShowTopPageNavigator(false);
+            $this->SetShowBottomPageNavigator(false);
     
             //
             // Http Handlers
