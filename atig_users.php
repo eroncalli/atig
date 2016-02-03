@@ -58,7 +58,13 @@
     
         protected function CreatePageNavigator()
         {
-            return null;
+            $result = new CompositePageNavigator($this);
+            
+            $partitionNavigator = new PageNavigator('pnav', $this, $this->dataset);
+            $partitionNavigator->SetRowsPerPage(25);
+            $result->AddPageNavigator($partitionNavigator);
+            
+            return $result;
         }
     
         public function GetPageList()
@@ -392,14 +398,14 @@
             $result->SetWidth('');
             $this->CreateGridSearchControl($result);
             $this->CreateGridAdvancedSearchControl($result);
-            $this->AddOperationsColumns($result);
+    
             $this->AddFieldColumns($result);
             $this->AddSingleRecordViewColumns($result);
             $this->AddEditColumns($result);
             $this->AddInsertColumns($result);
             $this->AddPrintColumns($result);
             $this->AddExportColumns($result);
-    
+            $this->AddOperationsColumns($result);
             $this->SetShowPageList(true);
             $this->SetHidePageListByDefault(false);
             $this->SetExportToExcelAvailable(false);
@@ -412,7 +418,7 @@
             $this->SetAdvancedSearchAvailable(false);
             $this->SetFilterRowAvailable(false);
             $this->SetVisualEffectsEnabled(true);
-            $this->SetShowTopPageNavigator(false);
+            $this->SetShowTopPageNavigator(true);
             $this->SetShowBottomPageNavigator(false);
     
             //
