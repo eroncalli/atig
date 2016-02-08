@@ -1,9 +1,11 @@
 <?php require_once(SMARTY_CORE_DIR . 'core.load_plugins.php');
-smarty_core_load_plugins(array('plugins' => array(array('modifier', 'escape', 'list/grid.tpl', 4, false),array('modifier', 'escapeurl', 'list/grid.tpl', 5, false),array('function', 'jsbool', 'list/grid.tpl', 5, false),array('function', 'jsstring', 'list/grid.tpl', 299, false),array('block', 'style_block', 'list/grid.tpl', 6, false),)), $this); ?>
+smarty_core_load_plugins(array('plugins' => array(array('modifier', 'escape', 'list/grid.tpl', 5, false),array('modifier', 'escapeurl', 'list/grid.tpl', 6, false),array('function', 'jsbool', 'list/grid.tpl', 6, false),array('function', 'jsstring', 'list/grid.tpl', 312, false),array('block', 'style_block', 'list/grid.tpl', 7, false),)), $this); ?>
 <table
     id="<?php echo $this->_tpl_vars['DataGrid']['Id']; ?>
 "
     class="pgui-grid grid legacy <?php echo $this->_tpl_vars['DataGrid']['Classes']; ?>
+"
+    data-is-master="<?php echo $this->_tpl_vars['isMasterGrid']; ?>
 "
     data-grid-hidden-values="<?php echo ((is_array($_tmp=$this->_tpl_vars['DataGrid']['HiddenValuesJson'])) ? $this->_run_mod_handler('escape', true, $_tmp, 'html') : smarty_modifier_escape($_tmp, 'html')); ?>
 "
@@ -72,17 +74,27 @@ smarty_core_load_plugins(array('plugins' => array(array('modifier', 'escape', 'l
                 </div>
             </div>
 
-            <?php if ($this->_tpl_vars['DataGrid']['AllowQuickFilter']): ?>
-            <div id="quick-filter-toolbar" class="btn-toolbar pull-right">
-                <div class="btn-group">
-                    <div class="input-append" style="float: left; margin-bottom: 0;">
-                        <input placeholder="<?php echo $this->_tpl_vars['Captions']->GetMessageString('QuickSearch'); ?>
+            <div class="btn-toolbar pull-right">
+                <?php if ($this->_tpl_vars['DataGrid']['AllowQuickFilter']): ?>
+                    <div id="quick-filter-toolbar" class="btn-group">
+                        <div class="input-append" style="float: left; margin-bottom: 0;">
+                            <input placeholder="<?php echo $this->_tpl_vars['Captions']->GetMessageString('QuickSearch'); ?>
 " type="text" size="16" class="quick-filter-text" value="<?php echo ((is_array($_tmp=$this->_tpl_vars['DataGrid']['QuickFilter']['Value'])) ? $this->_run_mod_handler('escape', true, $_tmp, 'html') : smarty_modifier_escape($_tmp, 'html')); ?>
 "><button type="button" id="quick-filter-go" class="btn quick-filter-go"><i class="pg-icon-quick-find"></i></button><button type="button" class="btn quick-filter-reset"><i class="pg-icon-filter-reset"></i></button>
+                        </div>
                     </div>
-                </div>
+                <?php endif; ?>
+                
+                <?php if (! $this->_tpl_vars['isMasterGrid']): ?>
+                    <div class="btn-group">
+                        <button id="multi-sort-<?php echo $this->_tpl_vars['DataGrid']['Id']; ?>
+" class="btn" title="<?php echo $this->_tpl_vars['Captions']->GetMessageString('Sort'); ?>
+">
+                            <i class="pg-icon-sort"></i>
+                        </button>
+                    </div>
+                <?php endif; ?>
             </div>
-            <?php endif; ?>
         </td>
     </tr>
     <?php endif; ?>
@@ -124,7 +136,7 @@ smarty_core_load_plugins(array('plugins' => array(array('modifier', 'escape', 'l
     <?php if ($this->_tpl_vars['DataGrid']['ShowLineNumbers']): ?>
         <th>#</th>
     <?php endif; ?>
-        
+
     <!-- <Grid Head Columns> -->
     <?php $_from = $this->_tpl_vars['DataGrid']['Bands']; if (!is_array($_from) && !is_object($_from)) { settype($_from, 'array'); }if (count($_from)):
     foreach ($_from as $this->_tpl_vars['Band']):
@@ -145,9 +157,11 @@ smarty_core_load_plugins(array('plugins' => array(array('modifier', 'escape', 'l
 
                     <?php $this->_tag_stack[] = array('style_block', array()); $_block_repeat=true;smarty_block_style_block($this->_tag_stack[count($this->_tag_stack)-1][1], null, $this, $_block_repeat);while ($_block_repeat) { ob_start(); ?><?php echo $this->_tpl_vars['Column']['Styles']; ?>
 <?php $_block_content = ob_get_contents(); ob_end_clean(); $_block_repeat=false;echo smarty_block_style_block($this->_tag_stack[count($this->_tag_stack)-1][1], $_block_content, $this, $_block_repeat); }  array_pop($this->_tag_stack); ?>
-                    data-sort-url="<?php echo ((is_array($_tmp=$this->_tpl_vars['Column']['SortUrl'])) ? $this->_run_mod_handler('escapeurl', true, $_tmp) : smarty_modifier_escapeurl($_tmp)); ?>
-"
                     data-field-caption="<?php echo $this->_tpl_vars['Column']['Caption']; ?>
+"
+                    data-field-name="<?php echo $this->_tpl_vars['Column']['Name']; ?>
+"
+                    data-sort-index="<?php echo $this->_tpl_vars['Column']['SortIndex']; ?>
 "
                     data-comment="<?php echo $this->_tpl_vars['Column']['Comment']; ?>
 ">
@@ -243,8 +257,7 @@ smarty_core_load_plugins(array('plugins' => array(array('modifier', 'escape', 'l
         <?php endif; ?>
 
         <?php if ($this->_tpl_vars['DataGrid']['HasDetails']): ?>
-            <td class="details">
-                <a class="expand-details collapsed" href="#"><i class="toggle-detail-icon"></i></a>
+            <td dir="ltr" data-column-name="details" class="details" style="width: 40px;">
             </td>
         <?php endif; ?>
 
@@ -334,6 +347,14 @@ unset($_smarty_tpl_vars);
 </tfoot>
 
 </table>
+
+<?php if (! $this->_tpl_vars['isMasterGrid']): ?>
+    <?php $_smarty_tpl_vars = $this->_tpl_vars;
+$this->_smarty_include(array('smarty_include_tpl_file' => "list/multiple_sorting.tpl", 'smarty_include_vars' => array('GridId' => $this->_tpl_vars['DataGrid']['Id'],'Levels' => $this->_tpl_vars['DataGrid']['DataSortPriority'],'SortableHeaders' => $this->_tpl_vars['DataGrid']['SortableColumns'])));
+$this->_tpl_vars = $_smarty_tpl_vars;
+unset($_smarty_tpl_vars);
+ ?>
+<?php endif; ?>
 
 <script type="text/javascript">
 

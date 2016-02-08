@@ -1,5 +1,5 @@
 <?php require_once(SMARTY_CORE_DIR . 'core.load_plugins.php');
-smarty_core_load_plugins(array('plugins' => array(array('modifier', 'string_format', 'insert/grid.tpl', 74, false),)), $this); ?>
+smarty_core_load_plugins(array('plugins' => array(array('modifier', 'string_format', 'insert/grid.tpl', 26, false),)), $this); ?>
 <div id="pgui-insert-grid" class="row-fluid">
 
     <div class="page-header form-header">
@@ -11,7 +11,42 @@ smarty_core_load_plugins(array('plugins' => array(array('modifier', 'string_form
         <form class="form-horizontal"  enctype="multipart/form-data" method="POST" action="<?php echo $this->_tpl_vars['Grid']['FormAction']; ?>
 ">
 
-            
+            <div class="form-actions top-actions">
+
+                <div class="btn-toolbar">
+                    <div class="btn-group">
+                        <button type="submit" class="btn btn-primary submit-button"><?php echo $this->_tpl_vars['Captions']->GetMessageString('Save'); ?>
+</button>
+                        <button class="btn btn-primary dropdown-toggle" data-toggle="dropdown">
+                            <span class="caret"></span>
+                        </button>
+                        <ul class="dropdown-menu">
+                            <li data-value="save"><a href="#" class="save-button"><?php echo $this->_tpl_vars['Captions']->GetMessageString('SaveAndBackToList'); ?>
+</a></li>
+                            <li data-value="saveinsert"><a href="#" class="saveinsert-button"><?php echo $this->_tpl_vars['Captions']->GetMessageString('SaveAndInsert'); ?>
+</a></li>
+                            <li data-value="saveedit"><a href="#" class="saveedit-button"><?php echo $this->_tpl_vars['Captions']->GetMessageString('SaveAndEdit'); ?>
+</a></li>
+                            <?php if (count ( $this->_tpl_vars['Grid']['Details'] ) > 0): ?>
+                                <li class="divider"></li>
+                            <?php endif; ?>
+                            <?php $_from = $this->_tpl_vars['Grid']['Details']; if (!is_array($_from) && !is_object($_from)) { settype($_from, 'array'); }if (count($_from)):
+    foreach ($_from as $this->_tpl_vars['Detail']):
+?>
+                                <li><a class="save-and-open-details" href="#" data-action="<?php echo $this->_tpl_vars['Detail']['Link']; ?>
+"><?php echo ((is_array($_tmp=$this->_tpl_vars['Detail']['Caption'])) ? $this->_run_mod_handler('string_format', true, $_tmp, $this->_tpl_vars['Captions']->GetMessageString('SaveAndOpenDetail')) : smarty_modifier_string_format($_tmp, $this->_tpl_vars['Captions']->GetMessageString('SaveAndOpenDetail'))); ?>
+</a></li>
+                            <?php endforeach; endif; unset($_from); ?>
+                        </ul>
+                    </div>
+
+                    <div class="btn-group">
+                        <button class="btn" onclick="window.location.href='<?php echo $this->_tpl_vars['Grid']['CancelUrl']; ?>
+'; return false;"><?php echo $this->_tpl_vars['Captions']->GetMessageString('Cancel'); ?>
+</button>
+                    </div>
+                </div>
+            </div>
 
             <?php if (! $this->_tpl_vars['Grid']['ErrorMessage'] == ''): ?>
                 <div class="alert alert-error">
@@ -77,10 +112,7 @@ unset($_smarty_tpl_vars);
                 <div class="btn-toolbar">
                     <div class="btn-group">
 
-                        <button id="submit-button"
-                                class="btn btn-primary submit-button"
-                                onclick="$(this).closest('form').submit(); return false;"
-                                ><?php echo $this->_tpl_vars['Captions']->GetMessageString('Save'); ?>
+                        <button type="submit" id="submit-button" class="btn btn-primary submit-button"><?php echo $this->_tpl_vars['Captions']->GetMessageString('Save'); ?>
 </button>
 
                         <button class="btn btn-primary dropdown-toggle" data-toggle="dropdown">

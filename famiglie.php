@@ -45,6 +45,7 @@
             $field->SetIsNotNull(true);
             $this->dataset->AddField($field, true);
             $field = new StringField('art-codart');
+            $field->SetIsNotNull(true);
             $this->dataset->AddField($field, false);
             $field = new StringField('art-descart');
             $this->dataset->AddField($field, false);
@@ -187,6 +188,7 @@
             $field->SetIsNotNull(true);
             $this->dataset->AddField($field, true);
             $field = new StringField('art-codart');
+            $field->SetIsNotNull(true);
             $this->dataset->AddField($field, false);
             $field = new StringField('art-descart');
             $this->dataset->AddField($field, false);

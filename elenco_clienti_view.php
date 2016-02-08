@@ -35,35 +35,20 @@
     
     
     
-    class offertePage extends Page
+    class elenco_clienti_viewPage extends Page
     {
         protected function DoBeforeCreate()
         {
             $this->dataset = new TableDataset(
                 new MyPDOConnectionFactory(),
                 GetConnectionOptions(),
-                '`offerte`');
-            $field = new IntegerField('id', null, null, true);
+                '`elenco_clienti_view`');
+            $field = new StringField('cli-codcli');
             $field->SetIsNotNull(true);
             $this->dataset->AddField($field, true);
-            $field = new IntegerField('off-numoff');
-            $this->dataset->AddField($field, false);
-            $field = new StringField('off-codcli');
-            $this->dataset->AddField($field, false);
-            $field = new DateTimeField('off-datains');
-            $this->dataset->AddField($field, false);
-            $field = new DateTimeField('off-dataeva');
-            $this->dataset->AddField($field, false);
-            $field = new DateTimeField('datains');
-            $this->dataset->AddField($field, false);
-            $field = new DateTimeField('datamod');
-            $this->dataset->AddField($field, false);
-            $field = new StringField('off-stato');
+            $field = new StringField('descrizione');
             $field->SetIsNotNull(true);
-            $this->dataset->AddField($field, false);
-            $field = new StringField('off-descriz');
-            $this->dataset->AddField($field, false);
-            $this->dataset->AddLookupField('off-codcli', 'clienti', new StringField('cli-codcli'), new StringField('cli-ragsoc', 'off-codcli_cli-ragsoc', 'off-codcli_cli-ragsoc_clienti'), 'off-codcli_cli-ragsoc_clienti');
+            $this->dataset->AddField($field, true);
         }
     
         protected function DoPrepare() {
@@ -100,8 +85,6 @@
                 $result->AddPage(new PageLink($this->RenderText('Voci Costo'), 'voci_costo.php', $this->RenderText('Voci Costo'), $currentPageCaption == $this->RenderText('Voci Costo'), false, $this->RenderText('Default')));
             if (GetCurrentUserGrantForDataSource('formule_calcolo')->HasViewGrant())
                 $result->AddPage(new PageLink($this->RenderText('Formule Calcolo'), 'formule_calcolo.php', $this->RenderText('Formule Calcolo'), $currentPageCaption == $this->RenderText('Formule Calcolo'), false, $this->RenderText('Default')));
-            if (GetCurrentUserGrantForDataSource('listini')->HasViewGrant())
-                $result->AddPage(new PageLink($this->RenderText('Listini'), 'listini.php', $this->RenderText('Listini'), $currentPageCaption == $this->RenderText('Listini'), false, $this->RenderText('Default')));
             if (GetCurrentUserGrantForDataSource('scontistica_clienti')->HasViewGrant())
                 $result->AddPage(new PageLink($this->RenderText('Scontistica Clienti'), 'scontistica_clienti.php', $this->RenderText('Scontistica Clienti'), $currentPageCaption == $this->RenderText('Scontistica Clienti'), false, $this->RenderText('Default')));
             
@@ -120,9 +103,9 @@
         protected function CreateGridSearchControl(Grid $grid)
         {
             $grid->UseFilter = true;
-            $grid->SearchControl = new SimpleSearch('offertessearch', $this->dataset,
-                array('id', 'off-codcli_cli-ragsoc', 'off-datains', 'off-dataeva'),
-                array($this->RenderText('Numero Offerta'), $this->RenderText('cod.Cliente'), $this->RenderText('Data inserimento'), $this->RenderText('Data evasione')),
+            $grid->SearchControl = new SimpleSearch('elenco_clienti_viewssearch', $this->dataset,
+                array('cli-codcli', 'descrizione'),
+                array($this->RenderText('Cli-codcli'), $this->RenderText('Descrizione')),
                 array(
                     '=' => $this->GetLocalizerCaptions()->GetMessageString('equals'),
                     '<>' => $this->GetLocalizerCaptions()->GetMessageString('doesNotEquals'),
@@ -140,33 +123,10 @@
     
         protected function CreateGridAdvancedSearchControl(Grid $grid)
         {
-            $this->AdvancedSearchControl = new AdvancedSearchControl('offerteasearch', $this->dataset, $this->GetLocalizerCaptions(), $this->GetColumnVariableContainer(), $this->CreateLinkBuilder());
+            $this->AdvancedSearchControl = new AdvancedSearchControl('elenco_clienti_viewasearch', $this->dataset, $this->GetLocalizerCaptions(), $this->GetColumnVariableContainer(), $this->CreateLinkBuilder());
             $this->AdvancedSearchControl->setTimerInterval(1000);
-            $this->AdvancedSearchControl->AddSearchColumn($this->AdvancedSearchControl->CreateStringSearchInput('id', $this->RenderText('Numero Offerta')));
-            
-            $lookupDataset = new TableDataset(
-                new MyPDOConnectionFactory(),
-                GetConnectionOptions(),
-                '`clienti`');
-            $field = new IntegerField('id', null, null, true);
-            $field->SetIsNotNull(true);
-            $lookupDataset->AddField($field, true);
-            $field = new StringField('cli-codcli');
-            $field->SetIsNotNull(true);
-            $lookupDataset->AddField($field, false);
-            $field = new StringField('cli-ragsoc');
-            $field->SetIsNotNull(true);
-            $lookupDataset->AddField($field, false);
-            $field = new StringField('cli-codlis');
-            $lookupDataset->AddField($field, false);
-            $field = new DateTimeField('datains');
-            $lookupDataset->AddField($field, false);
-            $field = new DateTimeField('datamod');
-            $lookupDataset->AddField($field, false);
-            $lookupDataset->setOrderByField('cli-ragsoc', GetOrderTypeAsSQL(otAscending));
-            $this->AdvancedSearchControl->AddSearchColumn($this->AdvancedSearchControl->CreateLookupSearchInput('off-codcli', $this->RenderText('cod.Cliente'), $lookupDataset, 'cli-codcli', 'cli-ragsoc', false, 8));
-            $this->AdvancedSearchControl->AddSearchColumn($this->AdvancedSearchControl->CreateDateTimeSearchInput('off-datains', $this->RenderText('Data inserimento'), 'd-m-Y'));
-            $this->AdvancedSearchControl->AddSearchColumn($this->AdvancedSearchControl->CreateDateTimeSearchInput('off-dataeva', $this->RenderText('Data evasione'), 'd-m-Y'));
+            $this->AdvancedSearchControl->AddSearchColumn($this->AdvancedSearchControl->CreateStringSearchInput('cli-codcli', $this->RenderText('Cli-codcli')));
+            $this->AdvancedSearchControl->AddSearchColumn($this->AdvancedSearchControl->CreateStringSearchInput('descrizione', $this->RenderText('Descrizione')));
         }
     
         protected function AddOperationsColumns(Grid $grid)
@@ -192,47 +152,29 @@
                 $grid->AddViewColumn($column, $actionsBandName);
                 $column->SetImagePath('images/delete_action.png');
                 $column->OnShow->AddListener('ShowDeleteButtonHandler', $this);
-                $column->SetAdditionalAttribute('data-modal-delete', 'true');
-                $column->SetAdditionalAttribute('data-delete-handler-name', $this->GetModalGridDeleteHandler());
+            $column->SetAdditionalAttribute("data-modal-delete", "true");
+            $column->SetAdditionalAttribute("data-delete-handler-name", $this->GetModalGridDeleteHandler());
             }
         }
     
         protected function AddFieldColumns(Grid $grid)
         {
             //
-            // View column for id field
+            // View column for cli-codcli field
             //
-            $column = new TextViewColumn('id', 'Numero Offerta', $this->dataset);
+            $column = new TextViewColumn('cli-codcli', 'Cli-codcli', $this->dataset);
             $column->SetOrderable(true);
             $column->SetDescription($this->RenderText(''));
             $column->SetFixedWidth(null);
             $grid->AddViewColumn($column);
             
             //
-            // View column for cli-ragsoc field
+            // View column for descrizione field
             //
-            $column = new TextViewColumn('off-codcli_cli-ragsoc', 'cod.Cliente', $this->dataset);
+            $column = new TextViewColumn('descrizione', 'Descrizione', $this->dataset);
             $column->SetOrderable(true);
-            $column->SetDescription($this->RenderText(''));
-            $column->SetFixedWidth(null);
-            $grid->AddViewColumn($column);
-            
-            //
-            // View column for off-datains field
-            //
-            $column = new DateTimeViewColumn('off-datains', 'Data inserimento', $this->dataset);
-            $column->SetDateTimeFormat('d-m-Y');
-            $column->SetOrderable(true);
-            $column->SetDescription($this->RenderText(''));
-            $column->SetFixedWidth(null);
-            $grid->AddViewColumn($column);
-            
-            //
-            // View column for off-dataeva field
-            //
-            $column = new DateTimeViewColumn('off-dataeva', 'Data evasione', $this->dataset);
-            $column->SetDateTimeFormat('d-m-Y');
-            $column->SetOrderable(true);
+            $column->SetMaxLength(75);
+            $column->SetFullTextWindowHandlerName('elenco_clienti_viewGrid_descrizione_handler_list');
             $column->SetDescription($this->RenderText(''));
             $column->SetFixedWidth(null);
             $grid->AddViewColumn($column);
@@ -241,101 +183,40 @@
         protected function AddSingleRecordViewColumns(Grid $grid)
         {
             //
-            // View column for id field
+            // View column for cli-codcli field
             //
-            $column = new TextViewColumn('id', 'Numero Offerta', $this->dataset);
+            $column = new TextViewColumn('cli-codcli', 'Cli-codcli', $this->dataset);
             $column->SetOrderable(true);
             $grid->AddSingleRecordViewColumn($column);
             
             //
-            // View column for cli-ragsoc field
+            // View column for descrizione field
             //
-            $column = new TextViewColumn('off-codcli_cli-ragsoc', 'cod.Cliente', $this->dataset);
+            $column = new TextViewColumn('descrizione', 'Descrizione', $this->dataset);
             $column->SetOrderable(true);
-            $grid->AddSingleRecordViewColumn($column);
-            
-            //
-            // View column for off-datains field
-            //
-            $column = new DateTimeViewColumn('off-datains', 'Data inserimento', $this->dataset);
-            $column->SetDateTimeFormat('d-m-Y');
-            $column->SetOrderable(true);
-            $grid->AddSingleRecordViewColumn($column);
-            
-            //
-            // View column for off-dataeva field
-            //
-            $column = new DateTimeViewColumn('off-dataeva', 'Data evasione', $this->dataset);
-            $column->SetDateTimeFormat('d-m-Y');
-            $column->SetOrderable(true);
-            $grid->AddSingleRecordViewColumn($column);
-            
-            //
-            // View column for datains field
-            //
-            $column = new DateTimeViewColumn('datains', 'Data ins', $this->dataset);
-            $column->SetDateTimeFormat('d-m-Y');
-            $column->SetOrderable(true);
-            $grid->AddSingleRecordViewColumn($column);
-            
-            //
-            // View column for datamod field
-            //
-            $column = new DateTimeViewColumn('datamod', 'Data mod', $this->dataset);
-            $column->SetDateTimeFormat('d-m-Y');
-            $column->SetOrderable(true);
+            $column->SetMaxLength(75);
+            $column->SetFullTextWindowHandlerName('elenco_clienti_viewGrid_descrizione_handler_view');
             $grid->AddSingleRecordViewColumn($column);
         }
     
         protected function AddEditColumns(Grid $grid)
         {
             //
-            // Edit column for off-codcli field
+            // Edit column for cli-codcli field
             //
-            $editor = new ComboBox('off-codcli_edit', $this->GetLocalizerCaptions()->GetMessageString('PleaseSelect'));
-            $lookupDataset = new TableDataset(
-                new MyPDOConnectionFactory(),
-                GetConnectionOptions(),
-                '`clienti`');
-            $field = new IntegerField('id', null, null, true);
-            $field->SetIsNotNull(true);
-            $lookupDataset->AddField($field, true);
-            $field = new StringField('cli-codcli');
-            $field->SetIsNotNull(true);
-            $lookupDataset->AddField($field, false);
-            $field = new StringField('cli-ragsoc');
-            $field->SetIsNotNull(true);
-            $lookupDataset->AddField($field, false);
-            $field = new StringField('cli-codlis');
-            $lookupDataset->AddField($field, false);
-            $field = new DateTimeField('datains');
-            $lookupDataset->AddField($field, false);
-            $field = new DateTimeField('datamod');
-            $lookupDataset->AddField($field, false);
-            $lookupDataset->setOrderByField('cli-ragsoc', GetOrderTypeAsSQL(otAscending));
-            $editColumn = new LookUpEditColumn(
-                'cod.Cliente', 
-                'off-codcli', 
-                $editor, 
-                $this->dataset, 'cli-codcli', 'cli-ragsoc', $lookupDataset);
+            $editor = new TextEdit('cli-codcli_edit');
+            $editor->SetSize(15);
+            $editor->SetMaxLength(15);
+            $editColumn = new CustomEditColumn('Cli-codcli', 'cli-codcli', $editor, $this->dataset);
             $editColumn->SetAllowSetToNull(true);
             $this->ApplyCommonColumnEditProperties($editColumn);
             $grid->AddEditColumn($editColumn);
             
             //
-            // Edit column for off-datains field
+            // Edit column for descrizione field
             //
-            $editor = new DateTimeEdit('off-datains_edit', true, 'd-m-Y', GetFirstDayOfWeek());
-            $editColumn = new CustomEditColumn('Data inserimento', 'off-datains', $editor, $this->dataset);
-            $editColumn->SetAllowSetToNull(true);
-            $this->ApplyCommonColumnEditProperties($editColumn);
-            $grid->AddEditColumn($editColumn);
-            
-            //
-            // Edit column for off-dataeva field
-            //
-            $editor = new DateTimeEdit('off-dataeva_edit', true, 'd-m-Y', GetFirstDayOfWeek());
-            $editColumn = new CustomEditColumn('Data evasione', 'off-dataeva', $editor, $this->dataset);
+            $editor = new TextAreaEdit('descrizione_edit', 50, 8);
+            $editColumn = new CustomEditColumn('Descrizione', 'descrizione', $editor, $this->dataset);
             $editColumn->SetAllowSetToNull(true);
             $this->ApplyCommonColumnEditProperties($editColumn);
             $grid->AddEditColumn($editColumn);
@@ -344,52 +225,21 @@
         protected function AddInsertColumns(Grid $grid)
         {
             //
-            // Edit column for off-codcli field
+            // Edit column for cli-codcli field
             //
-            $editor = new ComboBox('off-codcli_edit', $this->GetLocalizerCaptions()->GetMessageString('PleaseSelect'));
-            $lookupDataset = new TableDataset(
-                new MyPDOConnectionFactory(),
-                GetConnectionOptions(),
-                '`clienti`');
-            $field = new IntegerField('id', null, null, true);
-            $field->SetIsNotNull(true);
-            $lookupDataset->AddField($field, true);
-            $field = new StringField('cli-codcli');
-            $field->SetIsNotNull(true);
-            $lookupDataset->AddField($field, false);
-            $field = new StringField('cli-ragsoc');
-            $field->SetIsNotNull(true);
-            $lookupDataset->AddField($field, false);
-            $field = new StringField('cli-codlis');
-            $lookupDataset->AddField($field, false);
-            $field = new DateTimeField('datains');
-            $lookupDataset->AddField($field, false);
-            $field = new DateTimeField('datamod');
-            $lookupDataset->AddField($field, false);
-            $lookupDataset->setOrderByField('cli-ragsoc', GetOrderTypeAsSQL(otAscending));
-            $editColumn = new LookUpEditColumn(
-                'cod.Cliente', 
-                'off-codcli', 
-                $editor, 
-                $this->dataset, 'cli-codcli', 'cli-ragsoc', $lookupDataset);
+            $editor = new TextEdit('cli-codcli_edit');
+            $editor->SetSize(15);
+            $editor->SetMaxLength(15);
+            $editColumn = new CustomEditColumn('Cli-codcli', 'cli-codcli', $editor, $this->dataset);
             $editColumn->SetAllowSetToNull(true);
             $this->ApplyCommonColumnEditProperties($editColumn);
             $grid->AddInsertColumn($editColumn);
             
             //
-            // Edit column for off-datains field
+            // Edit column for descrizione field
             //
-            $editor = new DateTimeEdit('off-datains_edit', true, 'd-m-Y', GetFirstDayOfWeek());
-            $editColumn = new CustomEditColumn('Data inserimento', 'off-datains', $editor, $this->dataset);
-            $editColumn->SetAllowSetToNull(true);
-            $this->ApplyCommonColumnEditProperties($editColumn);
-            $grid->AddInsertColumn($editColumn);
-            
-            //
-            // Edit column for off-dataeva field
-            //
-            $editor = new DateTimeEdit('off-dataeva_edit', true, 'd-m-Y', GetFirstDayOfWeek());
-            $editColumn = new CustomEditColumn('Data evasione', 'off-dataeva', $editor, $this->dataset);
+            $editor = new TextAreaEdit('descrizione_edit', 50, 8);
+            $editColumn = new CustomEditColumn('Descrizione', 'descrizione', $editor, $this->dataset);
             $editColumn->SetAllowSetToNull(true);
             $this->ApplyCommonColumnEditProperties($editColumn);
             $grid->AddInsertColumn($editColumn);
@@ -408,32 +258,16 @@
         protected function AddPrintColumns(Grid $grid)
         {
             //
-            // View column for id field
+            // View column for cli-codcli field
             //
-            $column = new TextViewColumn('id', 'Numero Offerta', $this->dataset);
+            $column = new TextViewColumn('cli-codcli', 'Cli-codcli', $this->dataset);
             $column->SetOrderable(true);
             $grid->AddPrintColumn($column);
             
             //
-            // View column for cli-ragsoc field
+            // View column for descrizione field
             //
-            $column = new TextViewColumn('off-codcli_cli-ragsoc', 'cod.Cliente', $this->dataset);
-            $column->SetOrderable(true);
-            $grid->AddPrintColumn($column);
-            
-            //
-            // View column for off-datains field
-            //
-            $column = new DateTimeViewColumn('off-datains', 'Data inserimento', $this->dataset);
-            $column->SetDateTimeFormat('d-m-Y');
-            $column->SetOrderable(true);
-            $grid->AddPrintColumn($column);
-            
-            //
-            // View column for off-dataeva field
-            //
-            $column = new DateTimeViewColumn('off-dataeva', 'Data evasione', $this->dataset);
-            $column->SetDateTimeFormat('d-m-Y');
+            $column = new TextViewColumn('descrizione', 'Descrizione', $this->dataset);
             $column->SetOrderable(true);
             $grid->AddPrintColumn($column);
         }
@@ -441,32 +275,16 @@
         protected function AddExportColumns(Grid $grid)
         {
             //
-            // View column for id field
+            // View column for cli-codcli field
             //
-            $column = new TextViewColumn('id', 'Numero Offerta', $this->dataset);
+            $column = new TextViewColumn('cli-codcli', 'Cli-codcli', $this->dataset);
             $column->SetOrderable(true);
             $grid->AddExportColumn($column);
             
             //
-            // View column for cli-ragsoc field
+            // View column for descrizione field
             //
-            $column = new TextViewColumn('off-codcli_cli-ragsoc', 'cod.Cliente', $this->dataset);
-            $column->SetOrderable(true);
-            $grid->AddExportColumn($column);
-            
-            //
-            // View column for off-datains field
-            //
-            $column = new DateTimeViewColumn('off-datains', 'Data inserimento', $this->dataset);
-            $column->SetDateTimeFormat('d-m-Y');
-            $column->SetOrderable(true);
-            $grid->AddExportColumn($column);
-            
-            //
-            // View column for off-dataeva field
-            //
-            $column = new DateTimeViewColumn('off-dataeva', 'Data evasione', $this->dataset);
-            $column->SetDateTimeFormat('d-m-Y');
+            $column = new TextViewColumn('descrizione', 'Descrizione', $this->dataset);
             $column->SetOrderable(true);
             $grid->AddExportColumn($column);
         }
@@ -492,17 +310,6 @@
         {
             return ;
         }
-        function offerteGrid_BeforeUpdateRecord($page, &$rowData, &$cancel, &$message, $tableName)
-        {
-            $date = new DateTime();
-            $rowData['datamod'] = $date;
-        }
-        function offerteGrid_BeforeInsertRecord($page, &$rowData, &$cancel, &$message, $tableName)
-        {
-            $date = new DateTime();
-            $rowData['datamod'] = $date;
-            $rowData['datains'] = $date;
-        }
         public function ShowEditButtonHandler(&$show)
         {
             if ($this->GetRecordPermission() != null)
@@ -514,14 +321,14 @@
                 $show = $this->GetRecordPermission()->HasDeleteGrant($this->GetDataset());
         }
         
-        public function GetModalGridDeleteHandler() { return 'offerte_modal_delete'; }
+        public function GetModalGridDeleteHandler() { return 'elenco_clienti_view_modal_delete'; }
         protected function GetEnableModalGridDelete() { return true; }
     
         protected function CreateGrid()
         {
-            $result = new Grid($this, $this->dataset, 'offerteGrid');
+            $result = new Grid($this, $this->dataset, 'elenco_clienti_viewGrid');
             if ($this->GetSecurityInfo()->HasDeleteGrant())
-               $result->SetAllowDeleteSelected(false);
+               $result->SetAllowDeleteSelected(true);
             else
                $result->SetAllowDeleteSelected(false);   
             
@@ -529,14 +336,10 @@
             
             $result->SetUseImagesForActions(true);
             $result->SetUseFixedHeader(false);
-            $result->SetShowLineNumbers(true);
-            
-            $result->SetAllowOrdering(false);
+            $result->SetShowLineNumbers(false);
             
             $result->SetHighlightRowAtHover(false);
             $result->SetWidth('');
-            $result->BeforeUpdateRecord->AddListener('offerteGrid' . '_' . 'BeforeUpdateRecord', $this);
-            $result->BeforeInsertRecord->AddListener('offerteGrid' . '_' . 'BeforeInsertRecord', $this);
             $this->CreateGridSearchControl($result);
             $this->CreateGridAdvancedSearchControl($result);
     
@@ -560,12 +363,24 @@
             $this->SetFilterRowAvailable(false);
             $this->SetVisualEffectsEnabled(true);
             $this->SetShowTopPageNavigator(true);
-            $this->SetShowBottomPageNavigator(false);
+            $this->SetShowBottomPageNavigator(true);
     
             //
             // Http Handlers
             //
-    
+            //
+            // View column for descrizione field
+            //
+            $column = new TextViewColumn('descrizione', 'Descrizione', $this->dataset);
+            $column->SetOrderable(true);
+            $handler = new ShowTextBlobHandler($this->dataset, $this, 'elenco_clienti_viewGrid_descrizione_handler_list', $column);
+            GetApplication()->RegisterHTTPHandler($handler);//
+            // View column for descrizione field
+            //
+            $column = new TextViewColumn('descrizione', 'Descrizione', $this->dataset);
+            $column->SetOrderable(true);
+            $handler = new ShowTextBlobHandler($this->dataset, $this, 'elenco_clienti_viewGrid_descrizione_handler_view', $column);
+            GetApplication()->RegisterHTTPHandler($handler);
             return $result;
         }
         
@@ -584,12 +399,12 @@
 
     try
     {
-        $Page = new offertePage("offerte.php", "offerte", GetCurrentUserGrantForDataSource("offerte"), 'UTF-8');
-        $Page->SetShortCaption('Offerte');
+        $Page = new elenco_clienti_viewPage("elenco_clienti_view.php", "elenco_clienti_view", GetCurrentUserGrantForDataSource("elenco_clienti_view"), 'UTF-8');
+        $Page->SetShortCaption('Elenco Clienti View');
         $Page->SetHeader(GetPagesHeader());
         $Page->SetFooter(GetPagesFooter());
-        $Page->SetCaption('Offerte');
-        $Page->SetRecordPermission(GetCurrentUserRecordPermissionsForDataSource("offerte"));
+        $Page->SetCaption('Elenco Clienti View');
+        $Page->SetRecordPermission(GetCurrentUserRecordPermissionsForDataSource("elenco_clienti_view"));
         GetApplication()->SetEnableLessRunTimeCompile(GetEnableLessFilesRunTimeCompilation());
         GetApplication()->SetCanUserChangeOwnPassword(
             !function_exists('CanUserChangeOwnPassword') || CanUserChangeOwnPassword());

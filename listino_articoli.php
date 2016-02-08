@@ -49,6 +49,7 @@
             $field = new StringField('lis-codlis');
             $this->dataset->AddField($field, false);
             $field = new StringField('lisdesc');
+            $field->SetIsNotNull(true);
             $this->dataset->AddField($field, false);
             $field = new StringField('lis-unimis');
             $this->dataset->AddField($field, false);
@@ -71,8 +72,7 @@
             $field = new StringField('lis-codart');
             $field->SetIsNotNull(true);
             $this->dataset->AddField($field, false);
-            $this->dataset->AddLookupField('lis-codart', '(SELECT `art-codart`, concat(RTRIM(`art-codart`) , \' - \', RTRIM(`art-descart`)) as descrizione FROM atig.articoli)', new StringField('art-codart'), new StringField('descrizione', 'lis-codart_descrizione', 'lis-codart_descrizione_elenco_articoli_view'), 'lis-codart_descrizione_elenco_articoli_view');
-            $this->dataset->AddLookupField('lisdesc', '(SELECT `art-codart`, concat(RTRIM(`art-codart`) , \' - \', RTRIM(`art-descart`)) as descrizione FROM atig.articoli)', new StringField('art-codart'), new StringField('descrizione', 'lisdesc_descrizione', 'lisdesc_descrizione_elenco_articoli_view'), 'lisdesc_descrizione_elenco_articoli_view');
+            $this->dataset->AddLookupField('lis-codart', 'elenco_articoli_view', new StringField('art-codart'), new StringField('descrizione', 'lis-codart_descrizione', 'lis-codart_descrizione_elenco_articoli_view'), 'lis-codart_descrizione_elenco_articoli_view');
         }
     
         protected function DoPrepare() {
@@ -81,7 +81,13 @@
     
         protected function CreatePageNavigator()
         {
-            return null;
+            $result = new CompositePageNavigator($this);
+            
+            $partitionNavigator = new PageNavigator('pnav', $this, $this->dataset);
+            $partitionNavigator->SetRowsPerPage(20);
+            $result->AddPageNavigator($partitionNavigator);
+            
+            return $result;
         }
     
         public function GetPageList()
@@ -124,7 +130,7 @@
         {
             $grid->UseFilter = true;
             $grid->SearchControl = new SimpleSearch('listino_articolissearch', $this->dataset,
-                array('lis-codart_descrizione', 'lisdesc_descrizione', 'lis-unimis', 'lis-przacq', 'lis-moltipl', 'lis-oneriacc', 'lis-scarto', 'lis-dataini', 'lis-datafin'),
+                array('lis-codart_descrizione', 'lisdesc', 'lis-unimis', 'lis-przacq', 'lis-moltipl', 'lis-oneriacc', 'lis-scarto', 'lis-dataini', 'lis-datafin'),
                 array($this->RenderText('Codice Articolo'), $this->RenderText('Descrizione'), $this->RenderText('Unità misura'), $this->RenderText('Prezzo acquisto'), $this->RenderText('Moltiplicatore'), $this->RenderText('Oneri e accessori'), $this->RenderText('Scarto'), $this->RenderText('Data inizio decorrenza'), $this->RenderText('Data fine decorrenza')),
                 array(
                     '=' => $this->GetLocalizerCaptions()->GetMessageString('equals'),
@@ -145,35 +151,18 @@
         {
             $this->AdvancedSearchControl = new AdvancedSearchControl('listino_articoliasearch', $this->dataset, $this->GetLocalizerCaptions(), $this->GetColumnVariableContainer(), $this->CreateLinkBuilder());
             $this->AdvancedSearchControl->setTimerInterval(1000);
-            $selectQuery = 'SELECT `art-codart`, concat(RTRIM(`art-codart`) , \' - \', RTRIM(`art-descart`)) as descrizione FROM atig.articoli';
-            $insertQuery = array();
-            $updateQuery = array();
-            $deleteQuery = array();
-            $lookupDataset = new QueryDataset(
-              new MyPDOConnectionFactory(), 
-              GetConnectionOptions(),
-              $selectQuery, $insertQuery, $updateQuery, $deleteQuery, 'elenco_articoli_view');
+            $lookupDataset = new TableDataset(
+                new MyPDOConnectionFactory(),
+                GetConnectionOptions(),
+                '`elenco_articoli_view`');
             $field = new StringField('art-codart');
+            $field->SetIsNotNull(true);
             $lookupDataset->AddField($field, false);
             $field = new StringField('descrizione');
             $lookupDataset->AddField($field, false);
             $lookupDataset->setOrderByField('descrizione', GetOrderTypeAsSQL(otAscending));
             $this->AdvancedSearchControl->AddSearchColumn($this->AdvancedSearchControl->CreateLookupSearchInput('lis-codart', $this->RenderText('Codice Articolo'), $lookupDataset, 'art-codart', 'descrizione', false, 8));
-            
-            $selectQuery = 'SELECT `art-codart`, concat(RTRIM(`art-codart`) , \' - \', RTRIM(`art-descart`)) as descrizione FROM atig.articoli';
-            $insertQuery = array();
-            $updateQuery = array();
-            $deleteQuery = array();
-            $lookupDataset = new QueryDataset(
-              new MyPDOConnectionFactory(), 
-              GetConnectionOptions(),
-              $selectQuery, $insertQuery, $updateQuery, $deleteQuery, 'elenco_articoli_view');
-            $field = new StringField('art-codart');
-            $lookupDataset->AddField($field, false);
-            $field = new StringField('descrizione');
-            $lookupDataset->AddField($field, false);
-            $lookupDataset->setOrderByField('descrizione', GetOrderTypeAsSQL(otAscending));
-            $this->AdvancedSearchControl->AddSearchColumn($this->AdvancedSearchControl->CreateLookupSearchInput('lisdesc', $this->RenderText('Descrizione'), $lookupDataset, 'art-codart', 'descrizione', false, 8));
+            $this->AdvancedSearchControl->AddSearchColumn($this->AdvancedSearchControl->CreateStringSearchInput('lisdesc', $this->RenderText('Descrizione')));
             $this->AdvancedSearchControl->AddSearchColumn($this->AdvancedSearchControl->CreateStringSearchInput('lis-unimis', $this->RenderText('Unità misura')));
             $this->AdvancedSearchControl->AddSearchColumn($this->AdvancedSearchControl->CreateStringSearchInput('lis-przacq', $this->RenderText('Prezzo acquisto')));
             $this->AdvancedSearchControl->AddSearchColumn($this->AdvancedSearchControl->CreateStringSearchInput('lis-moltipl', $this->RenderText('Moltiplicatore')));
@@ -223,12 +212,12 @@
             $grid->AddViewColumn($column);
             
             //
-            // View column for descrizione field
+            // View column for lisdesc field
             //
-            $column = new TextViewColumn('lisdesc_descrizione', 'Descrizione', $this->dataset);
+            $column = new TextViewColumn('lisdesc', 'Descrizione', $this->dataset);
             $column->SetOrderable(true);
             $column->SetMaxLength(75);
-            $column->SetFullTextWindowHandlerName('listino_articoliGrid_descrizione_handler_list');
+            $column->SetFullTextWindowHandlerName('listino_articoliGrid_lisdesc_handler_list');
             $column->SetDescription($this->RenderText(''));
             $column->SetFixedWidth(null);
             $grid->AddViewColumn($column);
@@ -244,12 +233,12 @@
             $grid->AddSingleRecordViewColumn($column);
             
             //
-            // View column for descrizione field
+            // View column for lisdesc field
             //
-            $column = new TextViewColumn('lisdesc_descrizione', 'Descrizione', $this->dataset);
+            $column = new TextViewColumn('lisdesc', 'Descrizione', $this->dataset);
             $column->SetOrderable(true);
             $column->SetMaxLength(75);
-            $column->SetFullTextWindowHandlerName('listino_articoliGrid_descrizione_handler_view');
+            $column->SetFullTextWindowHandlerName('listino_articoliGrid_lisdesc_handler_view');
             $grid->AddSingleRecordViewColumn($column);
             
             //
@@ -312,25 +301,21 @@
             //
             // Edit column for lis-codart field
             //
-            $editor = new ComboBox('lis-codart_edit', $this->GetLocalizerCaptions()->GetMessageString('PleaseSelect'));
-            $selectQuery = 'SELECT `art-codart`, concat(RTRIM(`art-codart`) , \' - \', RTRIM(`art-descart`)) as descrizione FROM atig.articoli';
-            $insertQuery = array();
-            $updateQuery = array();
-            $deleteQuery = array();
-            $lookupDataset = new QueryDataset(
-              new MyPDOConnectionFactory(), 
-              GetConnectionOptions(),
-              $selectQuery, $insertQuery, $updateQuery, $deleteQuery, 'elenco_articoli_view');
+            $editor = new AutocomleteComboBox('lis-codart_edit', $this->CreateLinkBuilder());
+            $editor->SetSize('350px');
+            $editor->setAllowClear(true);
+            $editor->setMinimumInputLength(0);
+            $lookupDataset = new TableDataset(
+                new MyPDOConnectionFactory(),
+                GetConnectionOptions(),
+                '`elenco_articoli_view`');
             $field = new StringField('art-codart');
+            $field->SetIsNotNull(true);
             $lookupDataset->AddField($field, false);
             $field = new StringField('descrizione');
             $lookupDataset->AddField($field, false);
             $lookupDataset->setOrderByField('descrizione', GetOrderTypeAsSQL(otAscending));
-            $editColumn = new LookUpEditColumn(
-                'Codice Articolo', 
-                'lis-codart', 
-                $editor, 
-                $this->dataset, 'art-codart', 'descrizione', $lookupDataset);
+            $editColumn = new DynamicLookupEditColumn('Codice Articolo', 'lis-codart', 'lis-codart_descrizione', 'edit_lis-codart_descrizione_search', $editor, $this->dataset, $lookupDataset, 'art-codart', 'descrizione', '');
             $editColumn->SetAllowSetToNull(true);
             $this->ApplyCommonColumnEditProperties($editColumn);
             $grid->AddEditColumn($editColumn);
@@ -338,24 +323,9 @@
             //
             // Edit column for lisdesc field
             //
-            $editor = new AutocomleteComboBox('lisdesc_edit', $this->CreateLinkBuilder());
-            $editor->SetSize('250px');
-            $editor->setAllowClear(true);
-            $editor->setMinimumInputLength(0);
-            $selectQuery = 'SELECT `art-codart`, concat(RTRIM(`art-codart`) , \' - \', RTRIM(`art-descart`)) as descrizione FROM atig.articoli';
-            $insertQuery = array();
-            $updateQuery = array();
-            $deleteQuery = array();
-            $lookupDataset = new QueryDataset(
-              new MyPDOConnectionFactory(), 
-              GetConnectionOptions(),
-              $selectQuery, $insertQuery, $updateQuery, $deleteQuery, 'elenco_articoli_view');
-            $field = new StringField('art-codart');
-            $lookupDataset->AddField($field, false);
-            $field = new StringField('descrizione');
-            $lookupDataset->AddField($field, false);
-            $lookupDataset->setOrderByField('descrizione', GetOrderTypeAsSQL(otAscending));
-            $editColumn = new DynamicLookupEditColumn('Descrizione', 'lisdesc', 'lisdesc_descrizione', 'edit_lisdesc_descrizione_search', $editor, $this->dataset, $lookupDataset, 'art-codart', 'descrizione', '');
+            $editor = new TextEdit('lisdesc_edit');
+            $editor->SetSize(100);
+            $editColumn = new CustomEditColumn('Descrizione', 'lisdesc', $editor, $this->dataset);
             $editColumn->SetAllowSetToNull(true);
             $this->ApplyCommonColumnEditProperties($editColumn);
             $grid->AddEditColumn($editColumn);
@@ -431,25 +401,21 @@
             //
             // Edit column for lis-codart field
             //
-            $editor = new ComboBox('lis-codart_edit', $this->GetLocalizerCaptions()->GetMessageString('PleaseSelect'));
-            $selectQuery = 'SELECT `art-codart`, concat(RTRIM(`art-codart`) , \' - \', RTRIM(`art-descart`)) as descrizione FROM atig.articoli';
-            $insertQuery = array();
-            $updateQuery = array();
-            $deleteQuery = array();
-            $lookupDataset = new QueryDataset(
-              new MyPDOConnectionFactory(), 
-              GetConnectionOptions(),
-              $selectQuery, $insertQuery, $updateQuery, $deleteQuery, 'elenco_articoli_view');
+            $editor = new AutocomleteComboBox('lis-codart_edit', $this->CreateLinkBuilder());
+            $editor->SetSize('350px');
+            $editor->setAllowClear(true);
+            $editor->setMinimumInputLength(0);
+            $lookupDataset = new TableDataset(
+                new MyPDOConnectionFactory(),
+                GetConnectionOptions(),
+                '`elenco_articoli_view`');
             $field = new StringField('art-codart');
+            $field->SetIsNotNull(true);
             $lookupDataset->AddField($field, false);
             $field = new StringField('descrizione');
             $lookupDataset->AddField($field, false);
             $lookupDataset->setOrderByField('descrizione', GetOrderTypeAsSQL(otAscending));
-            $editColumn = new LookUpEditColumn(
-                'Codice Articolo', 
-                'lis-codart', 
-                $editor, 
-                $this->dataset, 'art-codart', 'descrizione', $lookupDataset);
+            $editColumn = new DynamicLookupEditColumn('Codice Articolo', 'lis-codart', 'lis-codart_descrizione', 'insert_lis-codart_descrizione_search', $editor, $this->dataset, $lookupDataset, 'art-codart', 'descrizione', '');
             $editColumn->SetAllowSetToNull(true);
             $this->ApplyCommonColumnEditProperties($editColumn);
             $grid->AddInsertColumn($editColumn);
@@ -457,24 +423,9 @@
             //
             // Edit column for lisdesc field
             //
-            $editor = new AutocomleteComboBox('lisdesc_edit', $this->CreateLinkBuilder());
-            $editor->SetSize('250px');
-            $editor->setAllowClear(true);
-            $editor->setMinimumInputLength(0);
-            $selectQuery = 'SELECT `art-codart`, concat(RTRIM(`art-codart`) , \' - \', RTRIM(`art-descart`)) as descrizione FROM atig.articoli';
-            $insertQuery = array();
-            $updateQuery = array();
-            $deleteQuery = array();
-            $lookupDataset = new QueryDataset(
-              new MyPDOConnectionFactory(), 
-              GetConnectionOptions(),
-              $selectQuery, $insertQuery, $updateQuery, $deleteQuery, 'elenco_articoli_view');
-            $field = new StringField('art-codart');
-            $lookupDataset->AddField($field, false);
-            $field = new StringField('descrizione');
-            $lookupDataset->AddField($field, false);
-            $lookupDataset->setOrderByField('descrizione', GetOrderTypeAsSQL(otAscending));
-            $editColumn = new DynamicLookupEditColumn('Descrizione', 'lisdesc', 'lisdesc_descrizione', 'insert_lisdesc_descrizione_search', $editor, $this->dataset, $lookupDataset, 'art-codart', 'descrizione', '');
+            $editor = new TextEdit('lisdesc_edit');
+            $editor->SetSize(100);
+            $editColumn = new CustomEditColumn('Descrizione', 'lisdesc', $editor, $this->dataset);
             $editColumn->SetAllowSetToNull(true);
             $this->ApplyCommonColumnEditProperties($editColumn);
             $grid->AddInsertColumn($editColumn);
@@ -505,6 +456,7 @@
             $editor = new TextEdit('lis-moltipl_edit');
             $editColumn = new CustomEditColumn('Moltiplicatore', 'lis-moltipl', $editor, $this->dataset);
             $editColumn->SetAllowSetToNull(true);
+            $editColumn->SetInsertDefaultValue($this->RenderText('5'));
             $this->ApplyCommonColumnEditProperties($editColumn);
             $grid->AddInsertColumn($editColumn);
             
@@ -785,56 +737,50 @@
             $this->SetAdvancedSearchAvailable(false);
             $this->SetFilterRowAvailable(false);
             $this->SetVisualEffectsEnabled(true);
-            $this->SetShowTopPageNavigator(false);
-            $this->SetShowBottomPageNavigator(false);
+            $this->SetShowTopPageNavigator(true);
+            $this->SetShowBottomPageNavigator(true);
     
             //
             // Http Handlers
             //
             //
-            // View column for descrizione field
+            // View column for lisdesc field
             //
-            $column = new TextViewColumn('lisdesc_descrizione', 'Descrizione', $this->dataset);
+            $column = new TextViewColumn('lisdesc', 'Descrizione', $this->dataset);
             $column->SetOrderable(true);
-            $handler = new ShowTextBlobHandler($this->dataset, $this, 'listino_articoliGrid_descrizione_handler_list', $column);
+            $handler = new ShowTextBlobHandler($this->dataset, $this, 'listino_articoliGrid_lisdesc_handler_list', $column);
             GetApplication()->RegisterHTTPHandler($handler);//
-            // View column for descrizione field
+            // View column for lisdesc field
             //
-            $column = new TextViewColumn('lisdesc_descrizione', 'Descrizione', $this->dataset);
+            $column = new TextViewColumn('lisdesc', 'Descrizione', $this->dataset);
             $column->SetOrderable(true);
-            $handler = new ShowTextBlobHandler($this->dataset, $this, 'listino_articoliGrid_descrizione_handler_view', $column);
+            $handler = new ShowTextBlobHandler($this->dataset, $this, 'listino_articoliGrid_lisdesc_handler_view', $column);
             GetApplication()->RegisterHTTPHandler($handler);
-            $selectQuery = 'SELECT `art-codart`, concat(RTRIM(`art-codart`) , \' - \', RTRIM(`art-descart`)) as descrizione FROM atig.articoli';
-            $insertQuery = array();
-            $updateQuery = array();
-            $deleteQuery = array();
-            $lookupDataset = new QueryDataset(
-              new MyPDOConnectionFactory(), 
-              GetConnectionOptions(),
-              $selectQuery, $insertQuery, $updateQuery, $deleteQuery, 'elenco_articoli_view');
+            $lookupDataset = new TableDataset(
+                new MyPDOConnectionFactory(),
+                GetConnectionOptions(),
+                '`elenco_articoli_view`');
             $field = new StringField('art-codart');
+            $field->SetIsNotNull(true);
             $lookupDataset->AddField($field, false);
             $field = new StringField('descrizione');
             $lookupDataset->AddField($field, false);
             $lookupDataset->setOrderByField('descrizione', GetOrderTypeAsSQL(otAscending));
             $lookupDataset->AddCustomCondition(EnvVariablesUtils::EvaluateVariableTemplate($this->GetColumnVariableContainer(), ''));
-            $handler = new DynamicSearchHandler($lookupDataset, $this, 'edit_lisdesc_descrizione_search', 'art-codart', 'descrizione', null);
+            $handler = new DynamicSearchHandler($lookupDataset, $this, 'edit_lis-codart_descrizione_search', 'art-codart', 'descrizione', null);
             GetApplication()->RegisterHTTPHandler($handler);
-            $selectQuery = 'SELECT `art-codart`, concat(RTRIM(`art-codart`) , \' - \', RTRIM(`art-descart`)) as descrizione FROM atig.articoli';
-            $insertQuery = array();
-            $updateQuery = array();
-            $deleteQuery = array();
-            $lookupDataset = new QueryDataset(
-              new MyPDOConnectionFactory(), 
-              GetConnectionOptions(),
-              $selectQuery, $insertQuery, $updateQuery, $deleteQuery, 'elenco_articoli_view');
+            $lookupDataset = new TableDataset(
+                new MyPDOConnectionFactory(),
+                GetConnectionOptions(),
+                '`elenco_articoli_view`');
             $field = new StringField('art-codart');
+            $field->SetIsNotNull(true);
             $lookupDataset->AddField($field, false);
             $field = new StringField('descrizione');
             $lookupDataset->AddField($field, false);
             $lookupDataset->setOrderByField('descrizione', GetOrderTypeAsSQL(otAscending));
             $lookupDataset->AddCustomCondition(EnvVariablesUtils::EvaluateVariableTemplate($this->GetColumnVariableContainer(), ''));
-            $handler = new DynamicSearchHandler($lookupDataset, $this, 'insert_lisdesc_descrizione_search', 'art-codart', 'descrizione', null);
+            $handler = new DynamicSearchHandler($lookupDataset, $this, 'insert_lis-codart_descrizione_search', 'art-codart', 'descrizione', null);
             GetApplication()->RegisterHTTPHandler($handler);
             return $result;
         }

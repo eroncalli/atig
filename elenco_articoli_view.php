@@ -39,15 +39,12 @@
     {
         protected function DoBeforeCreate()
         {
-            $selectQuery = 'SELECT `art-codart`, concat(RTRIM(`art-codart`) , \' - \', RTRIM(`art-descart`)) as descrizione FROM atig.articoli';
-            $insertQuery = array();
-            $updateQuery = array();
-            $deleteQuery = array();
-            $this->dataset = new QueryDataset(
-              new MyPDOConnectionFactory(), 
-              GetConnectionOptions(),
-              $selectQuery, $insertQuery, $updateQuery, $deleteQuery, 'elenco_articoli_view');
+            $this->dataset = new TableDataset(
+                new MyPDOConnectionFactory(),
+                GetConnectionOptions(),
+                '`elenco_articoli_view`');
             $field = new StringField('art-codart');
+            $field->SetIsNotNull(true);
             $this->dataset->AddField($field, true);
             $field = new StringField('descrizione');
             $this->dataset->AddField($field, true);

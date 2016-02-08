@@ -24,7 +24,7 @@ smarty_core_load_plugins(array('plugins' => array(array('function', 'n', 'list/p
             <?php $this->assign('row_count', $this->_tpl_vars['PageNavigator']->GetRowCount()); ?>
             <p><?php echo smarty_function_eval(array('var' => $this->_tpl_vars['Captions']->GetMessageString('ChangePageSizeText')), $this);?>
 </p>
-            <form>
+
             <table class="table table-bordered">
                 <tr>
                     <th><?php echo $this->_tpl_vars['Captions']->GetMessageString('RecordsPerPage'); ?>
@@ -60,7 +60,7 @@ smarty_core_load_plugins(array('plugins' => array(array('function', 'n', 'list/p
                             </label>
                             <label class="text">
                                 <input type="text" value="<?php echo ((is_array($_tmp=$this->_tpl_vars['PageNavigator']->GetRowsPerPage())) ? $this->_run_mod_handler('escape', true, $_tmp, 'html') : smarty_modifier_escape($_tmp, 'html')); ?>
-" class="input-medium js-pgui-custom-page-size">
+" class="input-medium pgui-custom-page-size">
                             </label>
                         </div>
 
@@ -69,7 +69,7 @@ smarty_core_load_plugins(array('plugins' => array(array('function', 'n', 'list/p
 </span></td>
                 </tr>
             </table>
-            </form>
+
         </div>
 
         <div class="modal-footer">

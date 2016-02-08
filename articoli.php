@@ -47,6 +47,7 @@
             $field->SetIsNotNull(true);
             $this->dataset->AddField($field, true);
             $field = new StringField('art-codart');
+            $field->SetIsNotNull(true);
             $this->dataset->AddField($field, false);
             $field = new StringField('art-descart');
             $this->dataset->AddField($field, false);
@@ -78,7 +79,7 @@
             $result = new CompositePageNavigator($this);
             
             $partitionNavigator = new PageNavigator('pnav', $this, $this->dataset);
-            $partitionNavigator->SetRowsPerPage(25);
+            $partitionNavigator->SetRowsPerPage(20);
             $result->AddPageNavigator($partitionNavigator);
             
             return $result;
@@ -124,8 +125,8 @@
         {
             $grid->UseFilter = true;
             $grid->SearchControl = new SimpleSearch('articolissearch', $this->dataset,
-                array('id', 'art-codart', 'art-descart', 'art-codfam_fam-descriz', 'art-dessup', 'art-codprod', 'art-gruppo-merc', 'art-categoria-omogenea'),
-                array($this->RenderText('Id'), $this->RenderText('Codice articolo'), $this->RenderText('Descrizione'), $this->RenderText('Famiglia'), $this->RenderText('Art-dessup'), $this->RenderText('Art-codprod'), $this->RenderText('Art-gruppo-merc'), $this->RenderText('Art-categoria-omogenea')),
+                array('id', 'art-codart', 'art-descart', 'art-codfam_fam-descriz', 'art-codprod', 'art-gruppo-merc', 'art-categoria-omogenea'),
+                array($this->RenderText('Id'), $this->RenderText('Codice articolo'), $this->RenderText('Descrizione'), $this->RenderText('Famiglia'), $this->RenderText('Codice Produzione'), $this->RenderText('Gruppo merceologico'), $this->RenderText('Categoria omogenea')),
                 array(
                     '=' => $this->GetLocalizerCaptions()->GetMessageString('equals'),
                     '<>' => $this->GetLocalizerCaptions()->GetMessageString('doesNotEquals'),
@@ -146,20 +147,7 @@
             $this->AdvancedSearchControl = new AdvancedSearchControl('articoliasearch', $this->dataset, $this->GetLocalizerCaptions(), $this->GetColumnVariableContainer(), $this->CreateLinkBuilder());
             $this->AdvancedSearchControl->setTimerInterval(1000);
             $this->AdvancedSearchControl->AddSearchColumn($this->AdvancedSearchControl->CreateStringSearchInput('id', $this->RenderText('Id')));
-            
-            $selectQuery = 'SELECT `art-codart`, concat(RTRIM(`art-codart`) , \' - \', RTRIM(`art-descart`)) as descrizione FROM atig.articoli';
-            $insertQuery = array();
-            $updateQuery = array();
-            $deleteQuery = array();
-            $lookupDataset = new QueryDataset(
-              new MyPDOConnectionFactory(), 
-              GetConnectionOptions(),
-              $selectQuery, $insertQuery, $updateQuery, $deleteQuery, 'elenco_articoli_view');
-            $field = new StringField('art-codart');
-            $lookupDataset->AddField($field, false);
-            $field = new StringField('descrizione');
-            $lookupDataset->AddField($field, false);
-            $this->AdvancedSearchControl->AddSearchColumn($this->AdvancedSearchControl->CreateLookupSearchInput('art-codart', $this->RenderText('Codice articolo'), $lookupDataset, 'descrizione', '', false, 8));
+            $this->AdvancedSearchControl->AddSearchColumn($this->AdvancedSearchControl->CreateStringSearchInput('art-codart', $this->RenderText('Codice articolo')));
             $this->AdvancedSearchControl->AddSearchColumn($this->AdvancedSearchControl->CreateStringSearchInput('art-descart', $this->RenderText('Descrizione')));
             
             $lookupDataset = new TableDataset(
@@ -179,10 +167,9 @@
             $lookupDataset->AddField($field, false);
             $lookupDataset->setOrderByField('fam-descriz', GetOrderTypeAsSQL(otAscending));
             $this->AdvancedSearchControl->AddSearchColumn($this->AdvancedSearchControl->CreateLookupSearchInput('art-codfam', $this->RenderText('Famiglia'), $lookupDataset, 'fam-codfam', 'fam-descriz', false, 8));
-            $this->AdvancedSearchControl->AddSearchColumn($this->AdvancedSearchControl->CreateStringSearchInput('art-dessup', $this->RenderText('Art-dessup')));
-            $this->AdvancedSearchControl->AddSearchColumn($this->AdvancedSearchControl->CreateStringSearchInput('art-codprod', $this->RenderText('Art-codprod')));
-            $this->AdvancedSearchControl->AddSearchColumn($this->AdvancedSearchControl->CreateStringSearchInput('art-gruppo-merc', $this->RenderText('Art-gruppo-merc')));
-            $this->AdvancedSearchControl->AddSearchColumn($this->AdvancedSearchControl->CreateStringSearchInput('art-categoria-omogenea', $this->RenderText('Art-categoria-omogenea')));
+            $this->AdvancedSearchControl->AddSearchColumn($this->AdvancedSearchControl->CreateStringSearchInput('art-codprod', $this->RenderText('Codice Produzione')));
+            $this->AdvancedSearchControl->AddSearchColumn($this->AdvancedSearchControl->CreateStringSearchInput('art-gruppo-merc', $this->RenderText('Gruppo merceologico')));
+            $this->AdvancedSearchControl->AddSearchColumn($this->AdvancedSearchControl->CreateStringSearchInput('art-categoria-omogenea', $this->RenderText('Categoria omogenea')));
         }
     
         protected function AddOperationsColumns(Grid $grid)
@@ -234,17 +221,6 @@
             $column->SetDescription($this->RenderText(''));
             $column->SetFixedWidth(null);
             $grid->AddViewColumn($column);
-            
-            //
-            // View column for art-dessup field
-            //
-            $column = new TextViewColumn('art-dessup', 'Art-dessup', $this->dataset);
-            $column->SetOrderable(true);
-            $column->SetMaxLength(75);
-            $column->SetFullTextWindowHandlerName('articoliGrid_art-dessup_handler_list');
-            $column->SetDescription($this->RenderText(''));
-            $column->SetFixedWidth(null);
-            $grid->AddViewColumn($column);
         }
     
         protected function AddSingleRecordViewColumns(Grid $grid)
@@ -289,32 +265,23 @@
             $grid->AddSingleRecordViewColumn($column);
             
             //
-            // View column for art-dessup field
-            //
-            $column = new TextViewColumn('art-dessup', 'Art-dessup', $this->dataset);
-            $column->SetOrderable(true);
-            $column->SetMaxLength(75);
-            $column->SetFullTextWindowHandlerName('articoliGrid_art-dessup_handler_view');
-            $grid->AddSingleRecordViewColumn($column);
-            
-            //
             // View column for art-codprod field
             //
-            $column = new TextViewColumn('art-codprod', 'Art-codprod', $this->dataset);
+            $column = new TextViewColumn('art-codprod', 'Codice Produzione', $this->dataset);
             $column->SetOrderable(true);
             $grid->AddSingleRecordViewColumn($column);
             
             //
             // View column for art-gruppo-merc field
             //
-            $column = new TextViewColumn('art-gruppo-merc', 'Art-gruppo-merc', $this->dataset);
+            $column = new TextViewColumn('art-gruppo-merc', 'Gruppo merceologico', $this->dataset);
             $column->SetOrderable(true);
             $grid->AddSingleRecordViewColumn($column);
             
             //
             // View column for art-categoria-omogenea field
             //
-            $column = new TextViewColumn('art-categoria-omogenea', 'Art-categoria-omogenea', $this->dataset);
+            $column = new TextViewColumn('art-categoria-omogenea', 'Categoria omogenea', $this->dataset);
             $column->SetOrderable(true);
             $grid->AddSingleRecordViewColumn($column);
         }
@@ -324,10 +291,7 @@
             //
             // Edit column for art-codart field
             //
-            $editor = new AutocomleteComboBox('art-codart_edit', $this->CreateLinkBuilder());
-            $editor->SetSize('250px');
-            $editor->setAllowClear(true);
-            $editor->setMinimumInputLength(0);
+            $editor = new TextEdit('art-codart_edit');
             $editColumn = new CustomEditColumn('Codice articolo', 'art-codart', $editor, $this->dataset);
             $validator = new RequiredValidator(StringUtils::Format($this->GetLocalizerCaptions()->GetMessageString('RequiredValidationMessage'), $this->RenderText($editColumn->GetCaption())));
             $editor->GetValidatorCollection()->AddValidator($validator);
@@ -337,10 +301,9 @@
             //
             // Edit column for art-descart field
             //
-            $editor = new AutocomleteComboBox('art-descart_edit', $this->CreateLinkBuilder());
-            $editor->SetSize('250px');
-            $editor->setAllowClear(true);
-            $editor->setMinimumInputLength(0);
+            $editor = new TextEdit('art-descart_edit');
+            $editor->SetSize(100);
+            $editor->SetMaxLength(300);
             $editColumn = new CustomEditColumn('Descrizione', 'art-descart', $editor, $this->dataset);
             $validator = new RequiredValidator(StringUtils::Format($this->GetLocalizerCaptions()->GetMessageString('RequiredValidationMessage'), $this->RenderText($editColumn->GetCaption())));
             $editor->GetValidatorCollection()->AddValidator($validator);
@@ -378,23 +341,12 @@
             $grid->AddEditColumn($editColumn);
             
             //
-            // Edit column for art-dessup field
-            //
-            $editor = new TextEdit('art-dessup_edit');
-            $editor->SetSize(100);
-            $editor->SetMaxLength(100);
-            $editColumn = new CustomEditColumn('Art-dessup', 'art-dessup', $editor, $this->dataset);
-            $editColumn->SetAllowSetToNull(true);
-            $this->ApplyCommonColumnEditProperties($editColumn);
-            $grid->AddEditColumn($editColumn);
-            
-            //
             // Edit column for art-codprod field
             //
             $editor = new TextEdit('art-codprod_edit');
             $editor->SetSize(45);
             $editor->SetMaxLength(45);
-            $editColumn = new CustomEditColumn('Art-codprod', 'art-codprod', $editor, $this->dataset);
+            $editColumn = new CustomEditColumn('Codice Produzione', 'art-codprod', $editor, $this->dataset);
             $editColumn->SetAllowSetToNull(true);
             $this->ApplyCommonColumnEditProperties($editColumn);
             $grid->AddEditColumn($editColumn);
@@ -405,7 +357,7 @@
             $editor = new TextEdit('art-gruppo-merc_edit');
             $editor->SetSize(5);
             $editor->SetMaxLength(5);
-            $editColumn = new CustomEditColumn('Art-gruppo-merc', 'art-gruppo-merc', $editor, $this->dataset);
+            $editColumn = new CustomEditColumn('Gruppo merceologico', 'art-gruppo-merc', $editor, $this->dataset);
             $editColumn->SetAllowSetToNull(true);
             $this->ApplyCommonColumnEditProperties($editColumn);
             $grid->AddEditColumn($editColumn);
@@ -416,7 +368,7 @@
             $editor = new TextEdit('art-categoria-omogenea_edit');
             $editor->SetSize(5);
             $editor->SetMaxLength(5);
-            $editColumn = new CustomEditColumn('Art-categoria-omogenea', 'art-categoria-omogenea', $editor, $this->dataset);
+            $editColumn = new CustomEditColumn('Categoria omogenea', 'art-categoria-omogenea', $editor, $this->dataset);
             $editColumn->SetAllowSetToNull(true);
             $this->ApplyCommonColumnEditProperties($editColumn);
             $grid->AddEditColumn($editColumn);
@@ -427,10 +379,7 @@
             //
             // Edit column for art-codart field
             //
-            $editor = new AutocomleteComboBox('art-codart_edit', $this->CreateLinkBuilder());
-            $editor->SetSize('250px');
-            $editor->setAllowClear(true);
-            $editor->setMinimumInputLength(0);
+            $editor = new TextEdit('art-codart_edit');
             $editColumn = new CustomEditColumn('Codice articolo', 'art-codart', $editor, $this->dataset);
             $validator = new RequiredValidator(StringUtils::Format($this->GetLocalizerCaptions()->GetMessageString('RequiredValidationMessage'), $this->RenderText($editColumn->GetCaption())));
             $editor->GetValidatorCollection()->AddValidator($validator);
@@ -440,10 +389,9 @@
             //
             // Edit column for art-descart field
             //
-            $editor = new AutocomleteComboBox('art-descart_edit', $this->CreateLinkBuilder());
-            $editor->SetSize('250px');
-            $editor->setAllowClear(true);
-            $editor->setMinimumInputLength(0);
+            $editor = new TextEdit('art-descart_edit');
+            $editor->SetSize(100);
+            $editor->SetMaxLength(300);
             $editColumn = new CustomEditColumn('Descrizione', 'art-descart', $editor, $this->dataset);
             $validator = new RequiredValidator(StringUtils::Format($this->GetLocalizerCaptions()->GetMessageString('RequiredValidationMessage'), $this->RenderText($editColumn->GetCaption())));
             $editor->GetValidatorCollection()->AddValidator($validator);
@@ -481,23 +429,12 @@
             $grid->AddInsertColumn($editColumn);
             
             //
-            // Edit column for art-dessup field
-            //
-            $editor = new TextEdit('art-dessup_edit');
-            $editor->SetSize(100);
-            $editor->SetMaxLength(100);
-            $editColumn = new CustomEditColumn('Art-dessup', 'art-dessup', $editor, $this->dataset);
-            $editColumn->SetAllowSetToNull(true);
-            $this->ApplyCommonColumnEditProperties($editColumn);
-            $grid->AddInsertColumn($editColumn);
-            
-            //
             // Edit column for art-codprod field
             //
             $editor = new TextEdit('art-codprod_edit');
             $editor->SetSize(45);
             $editor->SetMaxLength(45);
-            $editColumn = new CustomEditColumn('Art-codprod', 'art-codprod', $editor, $this->dataset);
+            $editColumn = new CustomEditColumn('Codice Produzione', 'art-codprod', $editor, $this->dataset);
             $editColumn->SetAllowSetToNull(true);
             $this->ApplyCommonColumnEditProperties($editColumn);
             $grid->AddInsertColumn($editColumn);
@@ -508,7 +445,7 @@
             $editor = new TextEdit('art-gruppo-merc_edit');
             $editor->SetSize(5);
             $editor->SetMaxLength(5);
-            $editColumn = new CustomEditColumn('Art-gruppo-merc', 'art-gruppo-merc', $editor, $this->dataset);
+            $editColumn = new CustomEditColumn('Gruppo merceologico', 'art-gruppo-merc', $editor, $this->dataset);
             $editColumn->SetAllowSetToNull(true);
             $this->ApplyCommonColumnEditProperties($editColumn);
             $grid->AddInsertColumn($editColumn);
@@ -519,7 +456,7 @@
             $editor = new TextEdit('art-categoria-omogenea_edit');
             $editor->SetSize(5);
             $editor->SetMaxLength(5);
-            $editColumn = new CustomEditColumn('Art-categoria-omogenea', 'art-categoria-omogenea', $editor, $this->dataset);
+            $editColumn = new CustomEditColumn('Categoria omogenea', 'art-categoria-omogenea', $editor, $this->dataset);
             $editColumn->SetAllowSetToNull(true);
             $this->ApplyCommonColumnEditProperties($editColumn);
             $grid->AddInsertColumn($editColumn);
@@ -566,30 +503,23 @@
             $grid->AddPrintColumn($column);
             
             //
-            // View column for art-dessup field
-            //
-            $column = new TextViewColumn('art-dessup', 'Art-dessup', $this->dataset);
-            $column->SetOrderable(true);
-            $grid->AddPrintColumn($column);
-            
-            //
             // View column for art-codprod field
             //
-            $column = new TextViewColumn('art-codprod', 'Art-codprod', $this->dataset);
+            $column = new TextViewColumn('art-codprod', 'Codice Produzione', $this->dataset);
             $column->SetOrderable(true);
             $grid->AddPrintColumn($column);
             
             //
             // View column for art-gruppo-merc field
             //
-            $column = new TextViewColumn('art-gruppo-merc', 'Art-gruppo-merc', $this->dataset);
+            $column = new TextViewColumn('art-gruppo-merc', 'Gruppo merceologico', $this->dataset);
             $column->SetOrderable(true);
             $grid->AddPrintColumn($column);
             
             //
             // View column for art-categoria-omogenea field
             //
-            $column = new TextViewColumn('art-categoria-omogenea', 'Art-categoria-omogenea', $this->dataset);
+            $column = new TextViewColumn('art-categoria-omogenea', 'Categoria omogenea', $this->dataset);
             $column->SetOrderable(true);
             $grid->AddPrintColumn($column);
         }
@@ -625,30 +555,23 @@
             $grid->AddExportColumn($column);
             
             //
-            // View column for art-dessup field
-            //
-            $column = new TextViewColumn('art-dessup', 'Art-dessup', $this->dataset);
-            $column->SetOrderable(true);
-            $grid->AddExportColumn($column);
-            
-            //
             // View column for art-codprod field
             //
-            $column = new TextViewColumn('art-codprod', 'Art-codprod', $this->dataset);
+            $column = new TextViewColumn('art-codprod', 'Codice Produzione', $this->dataset);
             $column->SetOrderable(true);
             $grid->AddExportColumn($column);
             
             //
             // View column for art-gruppo-merc field
             //
-            $column = new TextViewColumn('art-gruppo-merc', 'Art-gruppo-merc', $this->dataset);
+            $column = new TextViewColumn('art-gruppo-merc', 'Gruppo merceologico', $this->dataset);
             $column->SetOrderable(true);
             $grid->AddExportColumn($column);
             
             //
             // View column for art-categoria-omogenea field
             //
-            $column = new TextViewColumn('art-categoria-omogenea', 'Art-categoria-omogenea', $this->dataset);
+            $column = new TextViewColumn('art-categoria-omogenea', 'Categoria omogenea', $this->dataset);
             $column->SetOrderable(true);
             $grid->AddExportColumn($column);
         }
@@ -711,9 +634,7 @@
             
             $result->SetUseImagesForActions(true);
             $result->SetUseFixedHeader(false);
-            $result->SetShowLineNumbers(true);
-            
-            $result->SetAllowOrdering(false);
+            $result->SetShowLineNumbers(false);
             
             $result->SetHighlightRowAtHover(false);
             $result->SetWidth('');
@@ -737,12 +658,12 @@
             $this->SetExportToCsvAvailable(false);
             $this->SetExportToPdfAvailable(false);
             $this->SetPrinterFriendlyAvailable(false);
-            $this->SetSimpleSearchAvailable(false);
+            $this->SetSimpleSearchAvailable(true);
             $this->SetAdvancedSearchAvailable(false);
             $this->SetFilterRowAvailable(false);
             $this->SetVisualEffectsEnabled(true);
             $this->SetShowTopPageNavigator(true);
-            $this->SetShowBottomPageNavigator(false);
+            $this->SetShowBottomPageNavigator(true);
     
             //
             // Http Handlers
@@ -753,26 +674,12 @@
             $column = new TextViewColumn('art-descart', 'Descrizione', $this->dataset);
             $column->SetOrderable(true);
             $handler = new ShowTextBlobHandler($this->dataset, $this, 'articoliGrid_art-descart_handler_list', $column);
-            GetApplication()->RegisterHTTPHandler($handler);
-            //
-            // View column for art-dessup field
-            //
-            $column = new TextViewColumn('art-dessup', 'Art-dessup', $this->dataset);
-            $column->SetOrderable(true);
-            $handler = new ShowTextBlobHandler($this->dataset, $this, 'articoliGrid_art-dessup_handler_list', $column);
             GetApplication()->RegisterHTTPHandler($handler);//
             // View column for art-descart field
             //
             $column = new TextViewColumn('art-descart', 'Descrizione', $this->dataset);
             $column->SetOrderable(true);
             $handler = new ShowTextBlobHandler($this->dataset, $this, 'articoliGrid_art-descart_handler_view', $column);
-            GetApplication()->RegisterHTTPHandler($handler);
-            //
-            // View column for art-dessup field
-            //
-            $column = new TextViewColumn('art-dessup', 'Art-dessup', $this->dataset);
-            $column->SetOrderable(true);
-            $handler = new ShowTextBlobHandler($this->dataset, $this, 'articoliGrid_art-dessup_handler_view', $column);
             GetApplication()->RegisterHTTPHandler($handler);
             return $result;
         }

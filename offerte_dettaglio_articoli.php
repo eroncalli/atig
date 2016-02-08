@@ -176,6 +176,7 @@
             $field->SetIsNotNull(true);
             $lookupDataset->AddField($field, true);
             $field = new StringField('art-codart');
+            $field->SetIsNotNull(true);
             $lookupDataset->AddField($field, false);
             $field = new StringField('art-descart');
             $lookupDataset->AddField($field, false);
@@ -547,6 +548,7 @@
             $field->SetIsNotNull(true);
             $lookupDataset->AddField($field, true);
             $field = new StringField('art-codart');
+            $field->SetIsNotNull(true);
             $lookupDataset->AddField($field, false);
             $field = new StringField('art-descart');
             $lookupDataset->AddField($field, false);
@@ -719,6 +721,7 @@
             $field->SetIsNotNull(true);
             $lookupDataset->AddField($field, true);
             $field = new StringField('art-codart');
+            $field->SetIsNotNull(true);
             $lookupDataset->AddField($field, false);
             $field = new StringField('art-descart');
             $lookupDataset->AddField($field, false);

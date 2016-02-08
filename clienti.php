@@ -47,8 +47,10 @@
             $field->SetIsNotNull(true);
             $this->dataset->AddField($field, true);
             $field = new StringField('cli-codcli');
+            $field->SetIsNotNull(true);
             $this->dataset->AddField($field, false);
             $field = new StringField('cli-ragsoc');
+            $field->SetIsNotNull(true);
             $this->dataset->AddField($field, false);
             $field = new StringField('cli-codlis');
             $this->dataset->AddField($field, false);
@@ -68,7 +70,7 @@
             $result = new CompositePageNavigator($this);
             
             $partitionNavigator = new PageNavigator('pnav', $this, $this->dataset);
-            $partitionNavigator->SetRowsPerPage(25);
+            $partitionNavigator->SetRowsPerPage(20);
             $result->AddPageNavigator($partitionNavigator);
             
             return $result;
@@ -114,8 +116,8 @@
         {
             $grid->UseFilter = true;
             $grid->SearchControl = new SimpleSearch('clientissearch', $this->dataset,
-                array('id', 'cli-codcli', 'cli-ragsoc'),
-                array($this->RenderText('Id'), $this->RenderText('Codice Cliente'), $this->RenderText('Ragione sociale')),
+                array('cli-codcli', 'cli-ragsoc'),
+                array($this->RenderText('Codice Cliente'), $this->RenderText('Ragione sociale')),
                 array(
                     '=' => $this->GetLocalizerCaptions()->GetMessageString('equals'),
                     '<>' => $this->GetLocalizerCaptions()->GetMessageString('doesNotEquals'),
@@ -135,8 +137,6 @@
         {
             $this->AdvancedSearchControl = new AdvancedSearchControl('clientiasearch', $this->dataset, $this->GetLocalizerCaptions(), $this->GetColumnVariableContainer(), $this->CreateLinkBuilder());
             $this->AdvancedSearchControl->setTimerInterval(1000);
-            $this->AdvancedSearchControl->AddSearchColumn($this->AdvancedSearchControl->CreateStringSearchInput('id', $this->RenderText('Id')));
-            
             $lookupDataset = new TableDataset(
                 new MyPDOConnectionFactory(),
                 GetConnectionOptions(),
@@ -145,8 +145,10 @@
             $field->SetIsNotNull(true);
             $lookupDataset->AddField($field, true);
             $field = new StringField('cli-codcli');
+            $field->SetIsNotNull(true);
             $lookupDataset->AddField($field, false);
             $field = new StringField('cli-ragsoc');
+            $field->SetIsNotNull(true);
             $lookupDataset->AddField($field, false);
             $field = new StringField('cli-codlis');
             $lookupDataset->AddField($field, false);
@@ -171,13 +173,10 @@
             }
             if ($this->GetSecurityInfo()->HasEditGrant())
             {
-                $column = new InlineEditRowColumn('Edit', $this->dataset,
-                    $this->GetLocalizerCaptions()->GetMessageString('Edit'),
-                    $this->GetLocalizerCaptions()->GetMessageString('Cancel'),
-                    $this->GetLocalizerCaptions()->GetMessageString('Commit'),
-                    true);
+                $column = new RowOperationByLinkColumn($this->GetLocalizerCaptions()->GetMessageString('Edit'), OPERATION_EDIT, $this->dataset);
                 $grid->AddViewColumn($column, $actionsBandName);
-                $column->OnShow->AddListener('ShowInlineEditButtonHandler', $this);
+                $column->SetImagePath('images/edit_action.png');
+                $column->OnShow->AddListener('ShowEditButtonHandler', $this);
             }
             if ($this->GetSecurityInfo()->HasDeleteGrant())
             {
@@ -199,34 +198,6 @@
             $column->SetOrderable(true);
             $column->SetMaxLength(10);
             $column->SetFullTextWindowHandlerName('clientiGrid_cli-codcli_handler_list');
-            
-            /* <inline edit column> */
-            //
-            // Edit column for cli-codcli field
-            //
-            $editor = new AutocomleteComboBox('cli-codcli_edit', $this->CreateLinkBuilder());
-            $editor->SetSize('250px');
-            $editor->setAllowClear(true);
-            $editor->setMinimumInputLength(0);
-            $editColumn = new CustomEditColumn('Codice Cliente', 'cli-codcli', $editor, $this->dataset);
-            $editColumn->SetAllowSetToNull(true);
-            $this->ApplyCommonColumnEditProperties($editColumn);
-            $column->SetEditOperationColumn($editColumn);
-            /* </inline edit column> */
-            
-            /* <inline insert column> */
-            //
-            // Edit column for cli-codcli field
-            //
-            $editor = new AutocomleteComboBox('cli-codcli_edit', $this->CreateLinkBuilder());
-            $editor->SetSize('250px');
-            $editor->setAllowClear(true);
-            $editor->setMinimumInputLength(0);
-            $editColumn = new CustomEditColumn('Codice Cliente', 'cli-codcli', $editor, $this->dataset);
-            $editColumn->SetAllowSetToNull(true);
-            $this->ApplyCommonColumnEditProperties($editColumn);
-            $column->SetInsertOperationColumn($editColumn);
-            /* </inline insert column> */
             $column->SetDescription($this->RenderText(''));
             $column->SetFixedWidth(null);
             $grid->AddViewColumn($column);
@@ -238,36 +209,6 @@
             $column->SetOrderable(true);
             $column->SetMaxLength(75);
             $column->SetFullTextWindowHandlerName('clientiGrid_cli-ragsoc_handler_list');
-            
-            /* <inline edit column> */
-            //
-            // Edit column for cli-ragsoc field
-            //
-            $editor = new AutocomleteComboBox('cli-ragsoc_edit', $this->CreateLinkBuilder());
-            $editor->SetSize('250px');
-            $editor->setAllowClear(true);
-            $editor->setMinimumInputLength(0);
-            $editColumn = new CustomEditColumn('Ragione sociale', 'cli-ragsoc', $editor, $this->dataset);
-            $validator = new RequiredValidator(StringUtils::Format($this->GetLocalizerCaptions()->GetMessageString('RequiredValidationMessage'), $this->RenderText($editColumn->GetCaption())));
-            $editor->GetValidatorCollection()->AddValidator($validator);
-            $this->ApplyCommonColumnEditProperties($editColumn);
-            $column->SetEditOperationColumn($editColumn);
-            /* </inline edit column> */
-            
-            /* <inline insert column> */
-            //
-            // Edit column for cli-ragsoc field
-            //
-            $editor = new AutocomleteComboBox('cli-ragsoc_edit', $this->CreateLinkBuilder());
-            $editor->SetSize('250px');
-            $editor->setAllowClear(true);
-            $editor->setMinimumInputLength(0);
-            $editColumn = new CustomEditColumn('Ragione sociale', 'cli-ragsoc', $editor, $this->dataset);
-            $validator = new RequiredValidator(StringUtils::Format($this->GetLocalizerCaptions()->GetMessageString('RequiredValidationMessage'), $this->RenderText($editColumn->GetCaption())));
-            $editor->GetValidatorCollection()->AddValidator($validator);
-            $this->ApplyCommonColumnEditProperties($editColumn);
-            $column->SetInsertOperationColumn($editColumn);
-            /* </inline insert column> */
             $column->SetDescription($this->RenderText(''));
             $column->SetFixedWidth(null);
             $grid->AddViewColumn($column);
@@ -312,16 +253,50 @@
     
         protected function AddEditColumns(Grid $grid)
         {
-    
+            //
+            // Edit column for cli-codcli field
+            //
+            $editor = new TextEdit('cli-codcli_edit');
+            $editColumn = new CustomEditColumn('Codice Cliente', 'cli-codcli', $editor, $this->dataset);
+            $editColumn->SetAllowSetToNull(true);
+            $this->ApplyCommonColumnEditProperties($editColumn);
+            $grid->AddEditColumn($editColumn);
+            
+            //
+            // Edit column for cli-ragsoc field
+            //
+            $editor = new TextEdit('cli-ragsoc_edit');
+            $editColumn = new CustomEditColumn('Ragione sociale', 'cli-ragsoc', $editor, $this->dataset);
+            $validator = new RequiredValidator(StringUtils::Format($this->GetLocalizerCaptions()->GetMessageString('RequiredValidationMessage'), $this->RenderText($editColumn->GetCaption())));
+            $editor->GetValidatorCollection()->AddValidator($validator);
+            $this->ApplyCommonColumnEditProperties($editColumn);
+            $grid->AddEditColumn($editColumn);
         }
     
         protected function AddInsertColumns(Grid $grid)
         {
-    
+            //
+            // Edit column for cli-codcli field
+            //
+            $editor = new TextEdit('cli-codcli_edit');
+            $editColumn = new CustomEditColumn('Codice Cliente', 'cli-codcli', $editor, $this->dataset);
+            $editColumn->SetAllowSetToNull(true);
+            $this->ApplyCommonColumnEditProperties($editColumn);
+            $grid->AddInsertColumn($editColumn);
+            
+            //
+            // Edit column for cli-ragsoc field
+            //
+            $editor = new TextEdit('cli-ragsoc_edit');
+            $editColumn = new CustomEditColumn('Ragione sociale', 'cli-ragsoc', $editor, $this->dataset);
+            $validator = new RequiredValidator(StringUtils::Format($this->GetLocalizerCaptions()->GetMessageString('RequiredValidationMessage'), $this->RenderText($editColumn->GetCaption())));
+            $editor->GetValidatorCollection()->AddValidator($validator);
+            $this->ApplyCommonColumnEditProperties($editColumn);
+            $grid->AddInsertColumn($editColumn);
             if ($this->GetSecurityInfo()->HasAddGrant())
             {
-                $grid->SetShowAddButton(false);
-                $grid->SetShowInlineAddButton(true);
+                $grid->SetShowAddButton(true);
+                $grid->SetShowInlineAddButton(false);
             }
             else
             {
@@ -332,13 +307,6 @@
     
         protected function AddPrintColumns(Grid $grid)
         {
-            //
-            // View column for id field
-            //
-            $column = new TextViewColumn('id', 'Id', $this->dataset);
-            $column->SetOrderable(true);
-            $grid->AddPrintColumn($column);
-            
             //
             // View column for cli-codcli field
             //
@@ -358,13 +326,6 @@
     
         protected function AddExportColumns(Grid $grid)
         {
-            //
-            // View column for id field
-            //
-            $column = new TextViewColumn('id', 'Id', $this->dataset);
-            $column->SetOrderable(true);
-            $grid->AddExportColumn($column);
-            
             //
             // View column for cli-codcli field
             //
@@ -414,7 +375,7 @@
             $rowData['datamod'] = $date;
             $rowData['datains'] = $date;
         }
-        public function ShowInlineEditButtonHandler(&$show)
+        public function ShowEditButtonHandler(&$show)
         {
             if ($this->GetRecordPermission() != null)
                 $show = $this->GetRecordPermission()->HasEditGrant($this->GetDataset());
@@ -464,12 +425,12 @@
             $this->SetExportToCsvAvailable(false);
             $this->SetExportToPdfAvailable(false);
             $this->SetPrinterFriendlyAvailable(false);
-            $this->SetSimpleSearchAvailable(false);
+            $this->SetSimpleSearchAvailable(true);
             $this->SetAdvancedSearchAvailable(false);
             $this->SetFilterRowAvailable(false);
             $this->SetVisualEffectsEnabled(true);
             $this->SetShowTopPageNavigator(true);
-            $this->SetShowBottomPageNavigator(false);
+            $this->SetShowBottomPageNavigator(true);
     
             //
             // Http Handlers
@@ -479,34 +440,6 @@
             //
             $column = new TextViewColumn('cli-codcli', 'Codice Cliente', $this->dataset);
             $column->SetOrderable(true);
-            
-            /* <inline edit column> */
-            //
-            // Edit column for cli-codcli field
-            //
-            $editor = new AutocomleteComboBox('cli-codcli_edit', $this->CreateLinkBuilder());
-            $editor->SetSize('250px');
-            $editor->setAllowClear(true);
-            $editor->setMinimumInputLength(0);
-            $editColumn = new CustomEditColumn('Codice Cliente', 'cli-codcli', $editor, $this->dataset);
-            $editColumn->SetAllowSetToNull(true);
-            $this->ApplyCommonColumnEditProperties($editColumn);
-            $column->SetEditOperationColumn($editColumn);
-            /* </inline edit column> */
-            
-            /* <inline insert column> */
-            //
-            // Edit column for cli-codcli field
-            //
-            $editor = new AutocomleteComboBox('cli-codcli_edit', $this->CreateLinkBuilder());
-            $editor->SetSize('250px');
-            $editor->setAllowClear(true);
-            $editor->setMinimumInputLength(0);
-            $editColumn = new CustomEditColumn('Codice Cliente', 'cli-codcli', $editor, $this->dataset);
-            $editColumn->SetAllowSetToNull(true);
-            $this->ApplyCommonColumnEditProperties($editColumn);
-            $column->SetInsertOperationColumn($editColumn);
-            /* </inline insert column> */
             $handler = new ShowTextBlobHandler($this->dataset, $this, 'clientiGrid_cli-codcli_handler_list', $column);
             GetApplication()->RegisterHTTPHandler($handler);
             //
@@ -514,36 +447,6 @@
             //
             $column = new TextViewColumn('cli-ragsoc', 'Ragione sociale', $this->dataset);
             $column->SetOrderable(true);
-            
-            /* <inline edit column> */
-            //
-            // Edit column for cli-ragsoc field
-            //
-            $editor = new AutocomleteComboBox('cli-ragsoc_edit', $this->CreateLinkBuilder());
-            $editor->SetSize('250px');
-            $editor->setAllowClear(true);
-            $editor->setMinimumInputLength(0);
-            $editColumn = new CustomEditColumn('Ragione sociale', 'cli-ragsoc', $editor, $this->dataset);
-            $validator = new RequiredValidator(StringUtils::Format($this->GetLocalizerCaptions()->GetMessageString('RequiredValidationMessage'), $this->RenderText($editColumn->GetCaption())));
-            $editor->GetValidatorCollection()->AddValidator($validator);
-            $this->ApplyCommonColumnEditProperties($editColumn);
-            $column->SetEditOperationColumn($editColumn);
-            /* </inline edit column> */
-            
-            /* <inline insert column> */
-            //
-            // Edit column for cli-ragsoc field
-            //
-            $editor = new AutocomleteComboBox('cli-ragsoc_edit', $this->CreateLinkBuilder());
-            $editor->SetSize('250px');
-            $editor->setAllowClear(true);
-            $editor->setMinimumInputLength(0);
-            $editColumn = new CustomEditColumn('Ragione sociale', 'cli-ragsoc', $editor, $this->dataset);
-            $validator = new RequiredValidator(StringUtils::Format($this->GetLocalizerCaptions()->GetMessageString('RequiredValidationMessage'), $this->RenderText($editColumn->GetCaption())));
-            $editor->GetValidatorCollection()->AddValidator($validator);
-            $this->ApplyCommonColumnEditProperties($editColumn);
-            $column->SetInsertOperationColumn($editColumn);
-            /* </inline insert column> */
             $handler = new ShowTextBlobHandler($this->dataset, $this, 'clientiGrid_cli-ragsoc_handler_list', $column);
             GetApplication()->RegisterHTTPHandler($handler);//
             // View column for cli-codcli field

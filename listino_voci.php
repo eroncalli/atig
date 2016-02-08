@@ -66,7 +66,7 @@
             $this->dataset->AddField($field, false);
             $field = new DateTimeField('datamod');
             $this->dataset->AddField($field, false);
-            $this->dataset->AddLookupField('ivo-codart', '(SELECT `art-codart`, concat(RTRIM(`art-codart`) , \' - \', RTRIM(`art-descart`)) as descrizione FROM atig.articoli)', new StringField('art-codart'), new StringField('descrizione', 'ivo-codart_descrizione', 'ivo-codart_descrizione_elenco_articoli_view'), 'ivo-codart_descrizione_elenco_articoli_view');
+            $this->dataset->AddLookupField('ivo-codart', 'elenco_articoli_view', new StringField('art-codart'), new StringField('descrizione', 'ivo-codart_descrizione', 'ivo-codart_descrizione_elenco_articoli_view'), 'ivo-codart_descrizione_elenco_articoli_view');
             $this->dataset->AddLookupField('ivo-codvoc', 'listino_voci', new IntegerField('ivo-codvoc'), new IntegerField('ivo-codvoc', 'ivo-codvoc_ivo-codvoc', 'ivo-codvoc_ivo-codvoc_listino_voci'), 'ivo-codvoc_ivo-codvoc_listino_voci');
         }
     
@@ -76,7 +76,13 @@
     
         protected function CreatePageNavigator()
         {
-            return null;
+            $result = new CompositePageNavigator($this);
+            
+            $partitionNavigator = new PageNavigator('pnav', $this, $this->dataset);
+            $partitionNavigator->SetRowsPerPage(25);
+            $result->AddPageNavigator($partitionNavigator);
+            
+            return $result;
         }
     
         public function GetPageList()
@@ -142,15 +148,12 @@
             $this->AdvancedSearchControl->setTimerInterval(1000);
             $this->AdvancedSearchControl->AddSearchColumn($this->AdvancedSearchControl->CreateStringSearchInput('id', $this->RenderText('Id')));
             
-            $selectQuery = 'SELECT `art-codart`, concat(RTRIM(`art-codart`) , \' - \', RTRIM(`art-descart`)) as descrizione FROM atig.articoli';
-            $insertQuery = array();
-            $updateQuery = array();
-            $deleteQuery = array();
-            $lookupDataset = new QueryDataset(
-              new MyPDOConnectionFactory(), 
-              GetConnectionOptions(),
-              $selectQuery, $insertQuery, $updateQuery, $deleteQuery, 'elenco_articoli_view');
+            $lookupDataset = new TableDataset(
+                new MyPDOConnectionFactory(),
+                GetConnectionOptions(),
+                '`elenco_articoli_view`');
             $field = new StringField('art-codart');
+            $field->SetIsNotNull(true);
             $lookupDataset->AddField($field, false);
             $field = new StringField('descrizione');
             $lookupDataset->AddField($field, false);
@@ -395,15 +398,12 @@
             $editor->SetSize('250px');
             $editor->setAllowClear(true);
             $editor->setMinimumInputLength(0);
-            $selectQuery = 'SELECT `art-codart`, concat(RTRIM(`art-codart`) , \' - \', RTRIM(`art-descart`)) as descrizione FROM atig.articoli';
-            $insertQuery = array();
-            $updateQuery = array();
-            $deleteQuery = array();
-            $lookupDataset = new QueryDataset(
-              new MyPDOConnectionFactory(), 
-              GetConnectionOptions(),
-              $selectQuery, $insertQuery, $updateQuery, $deleteQuery, 'elenco_articoli_view');
+            $lookupDataset = new TableDataset(
+                new MyPDOConnectionFactory(),
+                GetConnectionOptions(),
+                '`elenco_articoli_view`');
             $field = new StringField('art-codart');
+            $field->SetIsNotNull(true);
             $lookupDataset->AddField($field, false);
             $field = new StringField('descrizione');
             $lookupDataset->AddField($field, false);
@@ -520,15 +520,12 @@
             $editor->SetSize('250px');
             $editor->setAllowClear(true);
             $editor->setMinimumInputLength(0);
-            $selectQuery = 'SELECT `art-codart`, concat(RTRIM(`art-codart`) , \' - \', RTRIM(`art-descart`)) as descrizione FROM atig.articoli';
-            $insertQuery = array();
-            $updateQuery = array();
-            $deleteQuery = array();
-            $lookupDataset = new QueryDataset(
-              new MyPDOConnectionFactory(), 
-              GetConnectionOptions(),
-              $selectQuery, $insertQuery, $updateQuery, $deleteQuery, 'elenco_articoli_view');
+            $lookupDataset = new TableDataset(
+                new MyPDOConnectionFactory(),
+                GetConnectionOptions(),
+                '`elenco_articoli_view`');
             $field = new StringField('art-codart');
+            $field->SetIsNotNull(true);
             $lookupDataset->AddField($field, false);
             $field = new StringField('descrizione');
             $lookupDataset->AddField($field, false);
@@ -880,21 +877,18 @@
             $this->SetAdvancedSearchAvailable(false);
             $this->SetFilterRowAvailable(false);
             $this->SetVisualEffectsEnabled(true);
-            $this->SetShowTopPageNavigator(false);
+            $this->SetShowTopPageNavigator(true);
             $this->SetShowBottomPageNavigator(false);
     
             //
             // Http Handlers
             //
-            $selectQuery = 'SELECT `art-codart`, concat(RTRIM(`art-codart`) , \' - \', RTRIM(`art-descart`)) as descrizione FROM atig.articoli';
-            $insertQuery = array();
-            $updateQuery = array();
-            $deleteQuery = array();
-            $lookupDataset = new QueryDataset(
-              new MyPDOConnectionFactory(), 
-              GetConnectionOptions(),
-              $selectQuery, $insertQuery, $updateQuery, $deleteQuery, 'elenco_articoli_view');
+            $lookupDataset = new TableDataset(
+                new MyPDOConnectionFactory(),
+                GetConnectionOptions(),
+                '`elenco_articoli_view`');
             $field = new StringField('art-codart');
+            $field->SetIsNotNull(true);
             $lookupDataset->AddField($field, false);
             $field = new StringField('descrizione');
             $lookupDataset->AddField($field, false);
@@ -902,15 +896,12 @@
             $lookupDataset->AddCustomCondition(EnvVariablesUtils::EvaluateVariableTemplate($this->GetColumnVariableContainer(), ''));
             $handler = new DynamicSearchHandler($lookupDataset, $this, 'edit_ivo-codart_descrizione_search', 'art-codart', 'descrizione', null);
             GetApplication()->RegisterHTTPHandler($handler);
-            $selectQuery = 'SELECT `art-codart`, concat(RTRIM(`art-codart`) , \' - \', RTRIM(`art-descart`)) as descrizione FROM atig.articoli';
-            $insertQuery = array();
-            $updateQuery = array();
-            $deleteQuery = array();
-            $lookupDataset = new QueryDataset(
-              new MyPDOConnectionFactory(), 
-              GetConnectionOptions(),
-              $selectQuery, $insertQuery, $updateQuery, $deleteQuery, 'elenco_articoli_view');
+            $lookupDataset = new TableDataset(
+                new MyPDOConnectionFactory(),
+                GetConnectionOptions(),
+                '`elenco_articoli_view`');
             $field = new StringField('art-codart');
+            $field->SetIsNotNull(true);
             $lookupDataset->AddField($field, false);
             $field = new StringField('descrizione');
             $lookupDataset->AddField($field, false);
