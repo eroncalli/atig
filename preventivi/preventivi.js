@@ -1161,6 +1161,14 @@ function init() {
                 .fail(function(data) {
                 });	
 
+                //- Ricalcola in automatico cambiando i valori
+                row.find('[field="ofv-valuni-cal"]').keyup(function() {
+                  $( "#btn-voci-ricalcola" ).trigger( "click" );
+                });
+                row.find('[field="ofv-sconto"]').keyup(function() {
+                  $( "#btn-voci-ricalcola" ).trigger( "click" );
+                });
+                
                 //- Ricalcola
                 $( "#btn-voci-ricalcola" ).trigger( "click" );
               }     
@@ -1331,7 +1339,7 @@ function init() {
                     //- Mostra i campi
                     row.find('[field="ofv-valuni-cal"]').show();
                     row.find('[field="ofv-sconto"]').show();
-										
+                    
 										row.find("[qta]").hide();
 										switch (critcalc) {
 											case "Q": 
@@ -1508,21 +1516,32 @@ function init() {
 									}
 								});
 								
-                //- Gestisce il cambio valore di qta/lun/lar/spe/dur
+                //- Gestisce il cambio valore di qta/lun/lar/spe/dur valore e sconto
                 row.find('[field="ofv-quantita"]').keyup(function() {
                   applyFormula(row); 
+                  $( "#btn-voci-ricalcola" ).trigger( "click" );
                 });
                 row.find('[field="ofv-lunghezza"]').keyup(function() {
                   applyFormula(row); 
+                  $( "#btn-voci-ricalcola" ).trigger( "click" );
                 });
                 row.find('[field="ofv-larghezza"]').keyup(function() {
                   applyFormula(row); 
+                  $( "#btn-voci-ricalcola" ).trigger( "click" );
                 });
                 row.find('[field="ofv-spessore"]').keyup(function() {
                   applyFormula(row); 
+                  $( "#btn-voci-ricalcola" ).trigger( "click" );
                 });
                 row.find('[field="ofv-durata"]').keyup(function() {
                   applyFormula(row);
+                  $( "#btn-voci-ricalcola" ).trigger( "click" );
+                });
+                row.find('[field="ofv-valuni-cal"]').keyup(function() {
+                  $( "#btn-voci-ricalcola" ).trigger( "click" );
+                });
+                row.find('[field="ofv-sconto"]').keyup(function() {
+                  $( "#btn-voci-ricalcola" ).trigger( "click" );
                 });
 
 								//- Cancella una voce
