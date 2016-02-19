@@ -223,11 +223,24 @@ function loadElencoOfferte(stato) {
   });						
 }
 
-function loadDettaglioOfferta(numoff) {
+function loadDettaglioOfferta(numoff, readonly) {
   $("#header-offerta").show();
   $("#elenco-offerta").hide();
   $("#dettaglio-offerta").show();
 
+  if (readonly) {
+    //- Disabilita i campi dell'offerta
+    $("#dettaglio-offerta :input").prop("disabled", true);
+    $( "#btn-offerta-crea" ).hide();
+    $( "#btn-offerta-aggiorna" ).hide();
+  }
+  else {
+    //- Abilita alcuni campi dell'offerta
+    $("#dettaglio-offerta :input").prop("disabled", false);
+    $("#off-numoff").prop("disabled", true);
+    $( "#btn-offerta-crea" ).hide();
+  }
+  
   var getData = {};
   getData.select_one  = true;
   getData.off_numoff  = numoff;
@@ -261,17 +274,35 @@ function loadDettaglioOfferta(numoff) {
       .datepicker( "option", "dateFormat", "dd/mm/yy" );
     }
     
-    loadDettaglioArticolo(numoff);
+    loadDettaglioArticolo(numoff, readonly);
   })
   .fail(function(data) {
   });						
 }
 
-function loadDettaglioArticolo(numoff) {
+function loadDettaglioArticolo(numoff, readonly) {
   $("#header-articolo").show();
   $("#elenco-articolo").hide();
   $("#dettaglio-articolo").show();	
 
+  if (readonly) {
+    //- Disabilita i campi dell'articolo
+    $("#dettaglio-articolo .form-control").prop("disabled", true);
+    $("#btn-articolo-new").hide();
+    $("#btn-articolo-elenco").hide();
+    $("#btn-articolo-inserisci").hide();
+    $("#btn-articolo-aggiorna").hide();
+  }
+  else {
+    //- Abilita alcuni campi dell'articolo
+    $("#dettaglio-articolo .form-control").prop("disabled", false);
+    $("#ofa-codart").prop("disabled", true);
+    $("#btn-articolo-new").hide();
+    $("#btn-articolo-elenco").hide();
+    $("#btn-articolo-inserisci").hide();
+    $("#btn-articolo-aggiorna").show(); 
+  }
+  
   var getData = {};
   getData.select_one  = true;
   getData.ofa_numoff  = numoff;
@@ -313,14 +344,14 @@ function loadDettaglioArticolo(numoff) {
       $( "#ofa-lungsmu" ).autoNumeric('set', data[0].ofa_lungsmu);
       $( "#ofa-quantita" ).autoNumeric('set', data[0].ofa_quantita);
 
-      loadDettaglioVoci(numoff, data[0].ofa_codart)
+      loadDettaglioVoci(numoff, data[0].ofa_codart, readonly)
     }
   })
   .fail(function(data) {
   });						
 }
                             
-function loadDettaglioVoci(numoff, codart) {
+function loadDettaglioVoci(numoff, codart, readonly) {
   $("#header-voci").show();
   $("#dettaglio-voci").show();
   $("#footer-voci").show();
@@ -496,6 +527,23 @@ function loadDettaglioVoci(numoff, codart) {
           });
         });
 
+        if (readonly) {
+          //- Disabilita i campi delle voci
+          $("#dettaglio-voci .form-control").prop("disabled", true);
+          $('#dettaglio-voci [field="btn-voci-delete"]').hide();
+          $("#btn-voci-new").hide();
+          $("#btn-voci-ricalcola").hide();
+          $("#btn-voci-concludi").hide();  
+        }
+        else {
+          //- Abilita i campi delle voci
+          $("#dettaglio-voci .form-control").prop("disabled", false);
+          $('#dettaglio-voci [field="btn-voci-delete"]').show();
+          $("#btn-voci-new").show();
+          $("#btn-voci-ricalcola").show();
+          $("#btn-voci-concludi").show();  
+        }
+        
         //- Ricalcola
         $( "#btn-voci-ricalcola" ).trigger( "click" );
       }     
@@ -536,8 +584,7 @@ function showElencoOfferte(start_i, end_i, data, stato) {
     //- Gestisce pulsante Modifica
     //-
     row.find('[field="btn-offerta-modifica"]').click(function() {
-      loadDettaglioOfferta(item.off_numoff);
-      setFullOffertaInReadonly(false);
+      loadDettaglioOfferta(item.off_numoff, false);
       $( "#btn-offerta-aggiorna" ).hide();
     });
 
@@ -545,8 +592,7 @@ function showElencoOfferte(start_i, end_i, data, stato) {
     //- Gestisce pulsante Visualizza
     //-
     row.find('[field="btn-offerta-visualizza"]').click(function() {
-      loadDettaglioOfferta(item.off_numoff);
-      setFullOffertaInReadonly(true);
+      loadDettaglioOfferta(item.off_numoff, true);
       $( "#btn-offerta-aggiorna" ).hide();
     });
 
@@ -565,8 +611,7 @@ function showElencoOfferte(start_i, end_i, data, stato) {
           alert(data.error);
         } else {
           //- Mostra i dettagli
-          loadDettaglioOfferta(data[0].off_numoff);
-          setFullOffertaInReadonly(false);
+          loadDettaglioOfferta(data[0].off_numoff, false);
           $( "#btn-offerta-aggiorna" ).show();
           
           //- Abilita l'header offerta per l'eventuale cambio di cliente
@@ -620,50 +665,6 @@ function showElencoOfferte(start_i, end_i, data, stato) {
       });
     });
   });
-}
-
-function setFullOffertaInReadonly(readonly) {
-  if (readonly) {
-    //- Disabilita i campi dell'offerta
-    $("#dettaglio-offerta :input").prop("disabled", true);
-    $( "#btn-offerta-crea" ).hide();
-    $( "#btn-offerta-aggiorna" ).hide();
-
-    //- Disabilita i campi dell'articolo
-    $("#dettaglio-articolo .form-control").prop("disabled", true);
-    $("#btn-articolo-new").hide();
-    $("#btn-articolo-elenco").hide();
-    $("#btn-articolo-inserisci").hide();
-    $("#btn-articolo-aggiorna").hide();
-
-    //- Disabilita i campi delle voci
-    $("#dettaglio-voci .form-control").prop("disabled", true);
-    $('#dettaglio-voci [field="btn-voci-delete"]').hide();
-    $("#btn-voci-new").hide();
-    $("#btn-voci-ricalcola").hide();
-    $("#btn-voci-concludi").hide();  
-  }
-  else {
-    //- Abilita alcuni campi dell'offerta
-    $("#dettaglio-offerta :input").prop("disabled", false);
-    $("#off-numoff").prop("disabled", true);
-    $( "#btn-offerta-crea" ).hide();
-
-    //- Abilita alcuni campi dell'articolo
-    $("#dettaglio-articolo .form-control").prop("disabled", false);
-    $("#ofa-codart").prop("disabled", true);
-    $("#btn-articolo-new").hide();
-    $("#btn-articolo-elenco").hide();
-    $("#btn-articolo-inserisci").hide();
-    $("#btn-articolo-aggiorna").show();
-
-    //- Abilita i campi delle voci
-    $("#dettaglio-voci .form-control").prop("disabled", false);
-    $('#dettaglio-voci [field="btn-voci-delete"]').show();
-    $("#btn-voci-new").show();
-    $("#btn-voci-ricalcola").show();
-    $("#btn-voci-concludi").show();  
-  }
 }
 
 function loadCodiciClientiPerOfferta() {
@@ -1668,7 +1669,25 @@ function init() {
 		$.getJSON("data-offerta.php", getData)
 		.done(function(data) {
         //- Imposta tutti i campi in readonly
-        setFullOffertaInReadonly(true);
+
+        //- Disabilita i campi dell'offerta
+        $("#dettaglio-offerta :input").prop("disabled", true);
+        $( "#btn-offerta-crea" ).hide();
+        $( "#btn-offerta-aggiorna" ).hide();
+
+        //- Disabilita i campi dell'articolo
+        $("#dettaglio-articolo .form-control").prop("disabled", true);
+        $("#btn-articolo-new").hide();
+        $("#btn-articolo-elenco").hide();
+        $("#btn-articolo-inserisci").hide();
+        $("#btn-articolo-aggiorna").hide();
+
+        //- Disabilita i campi delle voci
+        $("#dettaglio-voci .form-control").prop("disabled", true);
+        $('#dettaglio-voci [field="btn-voci-delete"]').hide();
+        $("#btn-voci-new").hide();
+        $("#btn-voci-ricalcola").hide();
+        $("#btn-voci-concludi").hide();  
       
         //- Nasconde il pulsante
         $("#footer-voci").hide();
