@@ -200,7 +200,7 @@ function loadElencoOfferte(stato) {
   $.getJSON("data-offerta.php", getData)
   .done(function(data) {
     if (data.error) {
-      alert("error");
+      alert(data.error);
     } else {
 
       $("#pager-offerta").pagination({
@@ -235,7 +235,7 @@ function loadDettaglioOfferta(numoff) {
   $.getJSON("data-offerta.php", getData)
   .done(function(data) {
     if (data.error) {
-      alert("error");
+      alert(data.error);
     } else {
       var d = "";
 
@@ -279,7 +279,7 @@ function loadDettaglioArticolo(numoff) {
   $.getJSON("data-offerta-articoli.php", getData)
   .done(function(data) {
     if (data.error) {
-      alert("error");
+      alert(data.error);
     } else {
       $( "#ofa-przacq-net" ).autoNumeric('init', getNumericOptions("currency6.5"));
       $( "#ofa-przacq-lor" ).autoNumeric('init', getNumericOptions("currency6.5"));
@@ -343,7 +343,7 @@ function loadDettaglioVoci(numoff, codart) {
   $.getJSON("data-offerta-costi.php", getData)
   .done(function(data) {
       if (data.error) {
-        alert("error");
+        alert(data.error);
       } else {
 
         $.each( data, function( i, item ) {
@@ -485,7 +485,7 @@ function loadDettaglioVoci(numoff, codart) {
             $.getJSON("data-offerta-costi.php", getData)
             .done(function(data) {
                 if (data.error) {
-                  alert("error");
+                  alert(data.error);
                 } else {
                   //- Rimuove la riga
                   row.remove();
@@ -562,7 +562,7 @@ function showElencoOfferte(start_i, end_i, data, stato) {
       $.getJSON("data-offerta.php", getData)
       .done(function(data) {
         if (data.error) {
-          alert("error");
+          alert(data.error);
         } else {
           //- Mostra i dettagli
           loadDettaglioOfferta(data[0].off_numoff);
@@ -604,7 +604,7 @@ function showElencoOfferte(start_i, end_i, data, stato) {
             $.getJSON("data-offerta.php", getData)
             .done(function(data) {
               if (data.error) {
-                alert("error");
+                alert(data.error);
               } else {
                 //- Ricarica l'elenco
                 loadElencoOfferte(stato);
@@ -671,7 +671,7 @@ function loadCodiciClientiPerOfferta() {
   $.getJSON("data-viste.php?clienti")
   .done(function(data) {
       if (data.error) {
-        alert("error");
+        alert(data.error);
       } else {
 
         var list_codcli = [];
@@ -848,7 +848,7 @@ function init() {
 		$.getJSON("data-offerta.php", getData)
 		.done(function(data) {
 			if (data.error) {
-				alert("error");
+				alert(data.error);
 			} else {
 				//- Assegna il numoff
 				$("#off-numoff").val(data[0].off_numoff);
@@ -890,7 +890,7 @@ function init() {
 		$.getJSON("data-offerta.php", getData)
 		.done(function(data) {
 			if (data.error) {
-				alert("error");
+				alert(data.error);
 			} else {
 				//- Disabilita i campi dell'offerta
 				//$("#dettaglio-offerta :input").prop("disabled", true);
@@ -930,7 +930,7 @@ function init() {
   	$.getJSON("data-viste.php", getData)
 		.done(function(data) {
 				if (data.error) {
-					alert("error");
+					alert(data.error);
 				} else {
 					
 					var list_codart = [];
@@ -956,6 +956,10 @@ function init() {
                 $( "#ofa-oneri" ).val('');
                 $( "#ofa-przacq-net" ).autoNumeric('set', "");
                 $( "#ofa-przacq-lor" ).autoNumeric('set', "");
+                $( "#ofa-lunghezza" ).autoNumeric('set', "");
+                $( "#ofa-larghezza" ).autoNumeric('set', "");         
+                $( "#ofa-lungsmu" ).autoNumeric('set', "");    
+                $( "#ofa-quantita" ).autoNumeric('set', 1);
               }
             },
 
@@ -992,6 +996,11 @@ function init() {
 								+ (przNetto * $( "#ofa-scarto" ).val() / 100);
 							
               $( "#ofa-przacq-lor" ).autoNumeric('set', przLordo);
+              
+              $( "#ofa-lunghezza" ).autoNumeric('set', "");
+              $( "#ofa-larghezza" ).autoNumeric('set', "");         
+              $( "#ofa-lungsmu" ).autoNumeric('set', "");    
+              $( "#ofa-quantita" ).autoNumeric('set', 1);
 						}
     			});
 
@@ -1053,7 +1062,7 @@ function init() {
 		$.getJSON("data-offerta-articoli.php", getData)
 		.done(function(data) {
 			if (data.error) {
-					alert("error");
+					alert(data.error);
 				} else {		
 					//- Disabilita i campi dell'articolo
 					$("#ofa-codart").prop("disabled", true);
@@ -1085,7 +1094,7 @@ function init() {
           $.getJSON("data-offerta-costi.php", getData)
           .done(function(data) {
               if (data.error) {
-                alert("error");
+                alert(data.error);
               } else {
 
                 var row = $( "tr[num_riga_voce='1']" );
@@ -1144,7 +1153,7 @@ function init() {
                 $.getJSON("data-viste.php", getData)
                 .done(function(data) {
                     if (data.error) {
-                      alert("error");
+                      alert(data.error);
                     } else {
                       row.find('[field="ofv-sconto"]').autoNumeric('set', data[0].sconto);
                     }
@@ -1239,7 +1248,7 @@ function init() {
 		$.getJSON("data-offerta-costi.php", getData)
 		.done(function(data) {
 				if (data.error) {
-					alert("error");
+					alert(data.error);
 				} else {
 					//- Aggiunge una nuova riga nella tabella
 					$("#table-voci-body").append(getRowHtml());
@@ -1263,7 +1272,7 @@ function init() {
 					$.getJSON("data-viste.php", getData)
 					.done(function(data) {
 							if (data.error) {
-								alert("error");
+								alert(data.error);
 							} else {
 
 								var arrVoci = data;
@@ -1355,7 +1364,7 @@ function init() {
 										$.getJSON("data-viste.php", getData)
 										.done(function(data) {
 												if (data.error) {
-													alert("error");
+													alert(data.error);
 												} else {
                           if (data.length > 0) {
                             row.find('[field="ofv-sconto"]').autoNumeric('set', data[0].sconto);
@@ -1379,7 +1388,7 @@ function init() {
                       $.getJSON("data-viste.php", getData)
                       .done(function(data) {
                           if (data.error) {
-                            alert("error");
+                            alert(data.error);
                           } else {
 
                             if (data.length > 0) {
@@ -1406,7 +1415,7 @@ function init() {
                       $.getJSON("data-viste.php", getData)
                       .done(function(data) {
                           if (data.error) {
-                            alert("error");
+                            alert(data.error);
                           } else {
 
                             var list_codart = [];
@@ -1525,7 +1534,7 @@ function init() {
 									$.getJSON("data-offerta-costi.php", getData)
 									.done(function(data) {
 											if (data.error) {
-												alert("error");
+												alert(data.error);
 											} else {
 												//- Rimuove la riga
 												row.remove();

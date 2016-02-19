@@ -4,14 +4,14 @@
  **/
 
 //- Turn off all error reporting
-// error_reporting(0);
+error_reporting(0);
 
 include ('connect.php');
 
 $mysqli = new mysqli($hostname, $username, $password, $database);
 
 if (mysqli_connect_errno()) {
-	echo json_encode(array('error' => 'connection'));
+	echo json_encode(array('error' => 'Errore di connessione al database.'));
 	exit();
 }
 
