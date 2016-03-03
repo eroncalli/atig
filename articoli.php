@@ -57,6 +57,8 @@
             $this->dataset->AddField($field, false);
             $field = new StringField('art-codfam');
             $this->dataset->AddField($field, false);
+            $field = new StringField('unita_misura');
+            $this->dataset->AddField($field, false);
             $field = new StringField('art-gruppo-merc');
             $this->dataset->AddField($field, false);
             $field = new StringField('art-categoria-omogenea');
@@ -79,7 +81,7 @@
             $result = new CompositePageNavigator($this);
             
             $partitionNavigator = new PageNavigator('pnav', $this, $this->dataset);
-            $partitionNavigator->SetRowsPerPage(20);
+            $partitionNavigator->SetRowsPerPage(25);
             $result->AddPageNavigator($partitionNavigator);
             
             return $result;
@@ -125,8 +127,8 @@
         {
             $grid->UseFilter = true;
             $grid->SearchControl = new SimpleSearch('articolissearch', $this->dataset,
-                array('id', 'art-codart', 'art-descart', 'art-codfam_fam-descriz', 'art-codprod', 'art-gruppo-merc', 'art-categoria-omogenea'),
-                array($this->RenderText('Id'), $this->RenderText('Codice articolo'), $this->RenderText('Descrizione'), $this->RenderText('Famiglia'), $this->RenderText('Codice Produzione'), $this->RenderText('Gruppo merceologico'), $this->RenderText('Categoria omogenea')),
+                array('id', 'art-codart', 'art-descart', 'art-codfam_fam-descriz', 'art-codprod', 'art-gruppo-merc', 'art-categoria-omogenea', 'unita_misura'),
+                array($this->RenderText('Id'), $this->RenderText('Codice articolo'), $this->RenderText('Descrizione'), $this->RenderText('Famiglia'), $this->RenderText('Codice Produzione'), $this->RenderText('Gruppo merceologico'), $this->RenderText('Categoria omogenea'), $this->RenderText('Unita Misura')),
                 array(
                     '=' => $this->GetLocalizerCaptions()->GetMessageString('equals'),
                     '<>' => $this->GetLocalizerCaptions()->GetMessageString('doesNotEquals'),
@@ -170,6 +172,7 @@
             $this->AdvancedSearchControl->AddSearchColumn($this->AdvancedSearchControl->CreateStringSearchInput('art-codprod', $this->RenderText('Codice Produzione')));
             $this->AdvancedSearchControl->AddSearchColumn($this->AdvancedSearchControl->CreateStringSearchInput('art-gruppo-merc', $this->RenderText('Gruppo merceologico')));
             $this->AdvancedSearchControl->AddSearchColumn($this->AdvancedSearchControl->CreateStringSearchInput('art-categoria-omogenea', $this->RenderText('Categoria omogenea')));
+            $this->AdvancedSearchControl->AddSearchColumn($this->AdvancedSearchControl->CreateStringSearchInput('unita_misura', $this->RenderText('Unita Misura')));
         }
     
         protected function AddOperationsColumns(Grid $grid)
@@ -251,7 +254,7 @@
             //
             // View column for datains field
             //
-            $column = new DateTimeViewColumn('datains', 'Data ins', $this->dataset);
+            $column = new DateTimeViewColumn('datains', 'Data inserimento', $this->dataset);
             $column->SetDateTimeFormat('d-m-Y H:i:s');
             $column->SetOrderable(true);
             $grid->AddSingleRecordViewColumn($column);
@@ -259,7 +262,7 @@
             //
             // View column for datamod field
             //
-            $column = new DateTimeViewColumn('datamod', 'Data mod', $this->dataset);
+            $column = new DateTimeViewColumn('datamod', 'Data modifica', $this->dataset);
             $column->SetDateTimeFormat('d-m-Y H:i:s');
             $column->SetOrderable(true);
             $grid->AddSingleRecordViewColumn($column);
@@ -282,6 +285,13 @@
             // View column for art-categoria-omogenea field
             //
             $column = new TextViewColumn('art-categoria-omogenea', 'Categoria omogenea', $this->dataset);
+            $column->SetOrderable(true);
+            $grid->AddSingleRecordViewColumn($column);
+            
+            //
+            // View column for unita_misura field
+            //
+            $column = new TextViewColumn('unita_misura', 'Unita Misura', $this->dataset);
             $column->SetOrderable(true);
             $grid->AddSingleRecordViewColumn($column);
         }
@@ -369,6 +379,17 @@
             $editor->SetSize(5);
             $editor->SetMaxLength(5);
             $editColumn = new CustomEditColumn('Categoria omogenea', 'art-categoria-omogenea', $editor, $this->dataset);
+            $editColumn->SetAllowSetToNull(true);
+            $this->ApplyCommonColumnEditProperties($editColumn);
+            $grid->AddEditColumn($editColumn);
+            
+            //
+            // Edit column for unita_misura field
+            //
+            $editor = new TextEdit('unita_misura_edit');
+            $editor->SetSize(3);
+            $editor->SetMaxLength(3);
+            $editColumn = new CustomEditColumn('Unita Misura', 'unita_misura', $editor, $this->dataset);
             $editColumn->SetAllowSetToNull(true);
             $this->ApplyCommonColumnEditProperties($editColumn);
             $grid->AddEditColumn($editColumn);
@@ -460,6 +481,17 @@
             $editColumn->SetAllowSetToNull(true);
             $this->ApplyCommonColumnEditProperties($editColumn);
             $grid->AddInsertColumn($editColumn);
+            
+            //
+            // Edit column for unita_misura field
+            //
+            $editor = new TextEdit('unita_misura_edit');
+            $editor->SetSize(3);
+            $editor->SetMaxLength(3);
+            $editColumn = new CustomEditColumn('Unita Misura', 'unita_misura', $editor, $this->dataset);
+            $editColumn->SetAllowSetToNull(true);
+            $this->ApplyCommonColumnEditProperties($editColumn);
+            $grid->AddInsertColumn($editColumn);
             if ($this->GetSecurityInfo()->HasAddGrant())
             {
                 $grid->SetShowAddButton(true);
@@ -522,6 +554,13 @@
             $column = new TextViewColumn('art-categoria-omogenea', 'Categoria omogenea', $this->dataset);
             $column->SetOrderable(true);
             $grid->AddPrintColumn($column);
+            
+            //
+            // View column for unita_misura field
+            //
+            $column = new TextViewColumn('unita_misura', 'Unita Misura', $this->dataset);
+            $column->SetOrderable(true);
+            $grid->AddPrintColumn($column);
         }
     
         protected function AddExportColumns(Grid $grid)
@@ -572,6 +611,13 @@
             // View column for art-categoria-omogenea field
             //
             $column = new TextViewColumn('art-categoria-omogenea', 'Categoria omogenea', $this->dataset);
+            $column->SetOrderable(true);
+            $grid->AddExportColumn($column);
+            
+            //
+            // View column for unita_misura field
+            //
+            $column = new TextViewColumn('unita_misura', 'Unita Misura', $this->dataset);
             $column->SetOrderable(true);
             $grid->AddExportColumn($column);
         }
@@ -663,7 +709,7 @@
             $this->SetFilterRowAvailable(false);
             $this->SetVisualEffectsEnabled(true);
             $this->SetShowTopPageNavigator(true);
-            $this->SetShowBottomPageNavigator(true);
+            $this->SetShowBottomPageNavigator(false);
     
             //
             // Http Handlers

@@ -69,13 +69,7 @@
     
         protected function CreatePageNavigator()
         {
-            $result = new CompositePageNavigator($this);
-            
-            $partitionNavigator = new PageNavigator('pnav', $this, $this->dataset);
-            $partitionNavigator->SetRowsPerPage(25);
-            $result->AddPageNavigator($partitionNavigator);
-            
-            return $result;
+            return null;
         }
     
         public function GetPageList()
@@ -118,8 +112,8 @@
         {
             $grid->UseFilter = true;
             $grid->SearchControl = new SimpleSearch('scontistica_clientissearch', $this->dataset,
-                array('sco-codcli_cli-ragsoc', 'sco-codart_art-descart', 'sco-codvoc_ivo-codvoc', 'sco-sconto'),
-                array($this->RenderText('Codice cliente'), $this->RenderText('Codice articolo'), $this->RenderText('Codice tipo voce'), $this->RenderText('Sconto')),
+                array('sco-codcli_cli-ragsoc'),
+                array($this->RenderText('Codice cliente')),
                 array(
                     '=' => $this->GetLocalizerCaptions()->GetMessageString('equals'),
                     '<>' => $this->GetLocalizerCaptions()->GetMessageString('doesNotEquals'),
@@ -196,13 +190,15 @@
                 new MyPDOConnectionFactory(),
                 GetConnectionOptions(),
                 '`listino_voci`');
-            $field = new IntegerField('id', null, null, true);
+            $field = new IntegerField('id');
+            $field->SetIsNotNull(true);
+            $lookupDataset->AddField($field, false);
+            $field = new StringField('ivo-codart');
             $field->SetIsNotNull(true);
             $lookupDataset->AddField($field, true);
-            $field = new StringField('ivo-codart');
-            $lookupDataset->AddField($field, false);
             $field = new IntegerField('ivo-codvoc');
-            $lookupDataset->AddField($field, false);
+            $field->SetIsNotNull(true);
+            $lookupDataset->AddField($field, true);
             $field = new IntegerField('ivo-przunit');
             $lookupDataset->AddField($field, false);
             $field = new StringField('ivo-flagart');
@@ -409,13 +405,15 @@
                 new MyPDOConnectionFactory(),
                 GetConnectionOptions(),
                 '`listino_voci`');
-            $field = new IntegerField('id', null, null, true);
+            $field = new IntegerField('id');
+            $field->SetIsNotNull(true);
+            $lookupDataset->AddField($field, false);
+            $field = new StringField('ivo-codart');
             $field->SetIsNotNull(true);
             $lookupDataset->AddField($field, true);
-            $field = new StringField('ivo-codart');
-            $lookupDataset->AddField($field, false);
             $field = new IntegerField('ivo-codvoc');
-            $lookupDataset->AddField($field, false);
+            $field->SetIsNotNull(true);
+            $lookupDataset->AddField($field, true);
             $field = new IntegerField('ivo-przunit');
             $lookupDataset->AddField($field, false);
             $field = new StringField('ivo-flagart');
@@ -539,13 +537,15 @@
                 new MyPDOConnectionFactory(),
                 GetConnectionOptions(),
                 '`listino_voci`');
-            $field = new IntegerField('id', null, null, true);
+            $field = new IntegerField('id');
+            $field->SetIsNotNull(true);
+            $lookupDataset->AddField($field, false);
+            $field = new StringField('ivo-codart');
             $field->SetIsNotNull(true);
             $lookupDataset->AddField($field, true);
-            $field = new StringField('ivo-codart');
-            $lookupDataset->AddField($field, false);
             $field = new IntegerField('ivo-codvoc');
-            $lookupDataset->AddField($field, false);
+            $field->SetIsNotNull(true);
+            $lookupDataset->AddField($field, true);
             $field = new IntegerField('ivo-przunit');
             $lookupDataset->AddField($field, false);
             $field = new StringField('ivo-flagart');
@@ -744,9 +744,9 @@
             $this->SetPrinterFriendlyAvailable(false);
             $this->SetSimpleSearchAvailable(false);
             $this->SetAdvancedSearchAvailable(false);
-            $this->SetFilterRowAvailable(false);
+            $this->SetFilterRowAvailable(true);
             $this->SetVisualEffectsEnabled(true);
-            $this->SetShowTopPageNavigator(true);
+            $this->SetShowTopPageNavigator(false);
             $this->SetShowBottomPageNavigator(false);
     
             //

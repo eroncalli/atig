@@ -61,7 +61,7 @@ function GetPagesHeader()
 function GetPagesFooter()
 {
     return
-        '<a href="http://www.media-web.net">&copy; Media web</a> - Data rilascio 03/02/2016'; 
+        '<a href="http://www.media-web.net">&copy; Media web</a> - Data rilascio 03/03/2016'; 
     }
 
 function ApplyCommonPageSettings(Page $page, Grid $grid)
