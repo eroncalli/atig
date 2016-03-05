@@ -44,11 +44,11 @@
 				<button id='btn-offerta-new' class="btn btn-default" >
 					<span class="glyphicon glyphicon-plus" aria-hidden="true"></span>
 				</button>
-				<button id='btn-offerta-elenco' class="btn btn-primary" >In lavorazione</button>
-        <button id='btn-offerta-completate' class="btn btn-primary" >Completate</button>
+				<button id='btn-offerta-elenco' class="btn btn-default" >In lavorazione</button>
+        <button id='btn-offerta-completate' class="btn btn-default" >Completate</button>
 			</h1>
 		</div>
-		<div id='elenco-offerta' class="padleft20">
+		<div id='elenco-offerta' class="padleft20" stato="empty">
 			<table id='table-offerta' class="table table-striped table-condensed">
   			<thead>
 					<tr>

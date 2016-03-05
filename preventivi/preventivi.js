@@ -777,11 +777,19 @@ function init() {
 	});
 	
   $( "#btn-offerta-elenco" ).click(function() {
-		if ($("#elenco-offerta").is(":visible")) {
+		if ($("#elenco-offerta").is(":visible") && $("#elenco-offerta").attr("stato")==0) {
       $("#elenco-offerta").hide();
       $("#pager-offerta").hide();  
+			
+			$( "#btn-offerta-elenco" ).removeClass( "btn-primary" );
+			$( "#btn-offerta-elenco" ).addClass( "btn-default" );
     }
     else {
+			$( "#btn-offerta-completate" ).removeClass( "btn-primary" );
+			$( "#btn-offerta-completate" ).addClass( "btn-default" );			
+			$( "#btn-offerta-elenco" ).removeClass( "btn-default" );
+			$( "#btn-offerta-elenco" ).addClass( "btn-primary" );
+			
       $("#elenco-offerta").show();
       $("#pager-offerta").show();  
       
@@ -796,17 +804,26 @@ function init() {
       $("#footer-voci").hide();
 	
       $("#btn-articolo-elenco").hide();
+			
+			$("#elenco-offerta").attr("stato", 0);
+			loadElencoOfferte(0);  
     }
-    
-    loadElencoOfferte(0);    
 	});
 
   $( "#btn-offerta-completate" ).click(function() {
-		if ($("#elenco-offerta").is(":visible")) {
+		if ($("#elenco-offerta").is(":visible") && $("#elenco-offerta").attr("stato")==1) {
       $("#elenco-offerta").hide();
       $("#pager-offerta").hide();  
+			
+			$( "#btn-offerta-completate" ).removeClass( "btn-primary" );
+			$( "#btn-offerta-completate" ).addClass( "btn-default" );
     }
     else {
+			$( "#btn-offerta-elenco" ).removeClass( "btn-primary" );
+			$( "#btn-offerta-elenco" ).addClass( "btn-default" );			
+			$( "#btn-offerta-completate" ).removeClass( "btn-default" );
+			$( "#btn-offerta-completate" ).addClass( "btn-primary" );
+			
       $("#elenco-offerta").show();
       $("#pager-offerta").show();  
       
@@ -821,9 +838,10 @@ function init() {
       $("#footer-voci").hide();
 	
       $("#btn-articolo-elenco").hide();
-    }
-    
-    loadElencoOfferte(1);    
+			
+			$("#elenco-offerta").attr("stato", 1);
+			loadElencoOfferte(1);  
+    } 
 	});
   
 	$( "#btn-offerta-modifica" ).click(function() {
