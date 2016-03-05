@@ -141,3 +141,8 @@ text-align:right;
   left: 200px;
   right: 200px;
 }
+
+#filtro{
+	width:350px;
+	display:inline;
+}

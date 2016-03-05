@@ -59,6 +59,12 @@
 			</h1>
 		</div>
 		<div id='elenco-offerta' class="padleft20" stato="empty">
+			<div>
+				<input id="filtro" type="text" class="form-control">
+				<button id='btn-filtro' class="btn-default" >
+					<span class="glyphicon glyphicon-search" aria-hidden="true" style="position: inherit;"></span>
+				</button>
+			</div>
 			<table id='table-offerta' class="table table-striped table-condensed">
   			<thead>
 					<tr>
@@ -89,7 +95,7 @@
 					</tr>
 				</tbody>
 			</table>			
-      <div id='pager-offerta'></div>        
+      <div id='pager-offerta'></div>    
     </div>
 		<div id='dettaglio-offerta' class="padleft20">
 			<label>

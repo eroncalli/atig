@@ -198,10 +198,11 @@ function applyFormula(row) {
   row.find('[field="ofv-valuni-cal"]').autoNumeric('set', valuni);
 }
 
-function loadElencoOfferte(stato) {
+function loadElencoOfferte(stato, filtro) {
   //- Carica l'elenco delle offerte
   var getData = {};
   getData.off_stato = stato;
+	getData.filtro = filtro;
 
   $.getJSON("data-offerta.php", getData)
   .done(function(data) {
@@ -218,7 +219,7 @@ function loadElencoOfferte(stato) {
         onPageClick: function(pageNumber,event) {
           var start_i = 10 * (pageNumber - 1);
           var end_i = (10 * pageNumber) - 1;
-          showElencoOfferte(start_i, end_i, data, stato);
+          showElencoOfferte(start_i, end_i, data, stato, filtro);
         }
       });
       
@@ -564,7 +565,7 @@ function loadDettaglioVoci(numoff, codart, readonly) {
   });  
 }
 
-function showElencoOfferte(start_i, end_i, data, stato) {
+function showElencoOfferte(start_i, end_i, data, stato, filtro) {
   var row;
   
   $("#table-offerta tbody").empty();
@@ -680,7 +681,7 @@ function showElencoOfferte(start_i, end_i, data, stato) {
                 alert(data.error);
               } else {
                 //- Ricarica l'elenco
-                loadElencoOfferte(stato);
+                loadElencoOfferte(stato, filtro);
               }
             })
             .fail(function(data) {
@@ -828,8 +829,9 @@ function init() {
 	
       $("#btn-articolo-elenco").hide();
 			
+			var filtro = $("#filtro").val();
 			$("#elenco-offerta").attr("stato", 0);
-			loadElencoOfferte(0);  
+			loadElencoOfferte(0, filtro);  
     }
 	});
 
@@ -862,9 +864,16 @@ function init() {
 	
       $("#btn-articolo-elenco").hide();
 			
+			var filtro = $("#filtro").val();
 			$("#elenco-offerta").attr("stato", 1);
-			loadElencoOfferte(1);  
+			loadElencoOfferte(1, filtro);  
     } 
+	});
+	
+  $( "#btn-filtro" ).click(function() {
+		var stato = $("#elenco-offerta").attr("stato");
+		var filtro = $("#filtro").val();
+		loadElencoOfferte(stato, filtro);  
 	});
 	
 	$( "#btn-offerta-crea" ).click(function(e) {

@@ -276,15 +276,19 @@ else {
       SELECT t1.`off-numoff`,  t1.`off-descriz`, t1.`off-datains`, t1.`off-codcli`, t2.`cli-ragsoc`, sum(t3.`ofa-totgen`) totgen
         FROM (offerte t1 INNER JOIN clienti t2 ON t1.`off-codcli` = t2.`cli-codcli`) INNER JOIN offerte_dettaglio_articoli t3 ON t1.`off-numoff` = t3.`ofa-numoff`
        WHERE t1.`off-stato` = ?
+			   AND CONCAT(t1.`off-numoff`, ' ', t1.`off-descriz`, ' ', t1.`off-datains`, ' ', t1.`off-codcli`, ' ',  t2.`cli-ragsoc`) LIKE CONCAT('%',?,'%')
     GROUP BY t1.`off-numoff`,  t1.`off-datains`, t1.`off-codcli`, t2.`cli-ragsoc`
     ORDER BY t1.`off-numoff` DESC
 	";
+
 	$result = $mysqli->prepare($query);
-  $result->bind_param('s', $_GET['off_stato']);
+  $result->bind_param('ss', $_GET['off_stato'], $_GET['filtro']);
 	$result->execute();
 	
 	/* bind result variables */
 	$result->bind_result($off_numoff, $off_descriz, $off_datains, $off_codcli,  $cli_ragsoc, $totgen);
+	
+	$elements = array();
 	
 	/* fetch values */
 	while ($result->fetch()) {
