@@ -124,6 +124,10 @@ function getNumericOptions(what) {
     opt.vMax = '99999';
     opt.wEmpty = 'zero';
     break;
+  case "integer4": 
+    opt.vMin = '0';
+    opt.vMax = '9999';
+    break;			
   case "integer12": 
     opt.vMin = '0';
     opt.vMax = '999999999999';
@@ -272,6 +276,9 @@ function loadDettaglioOfferta(numoff, readonly) {
       $( "#off-dataeva" ).datepicker()
       .datepicker( "setDate", d )
       .datepicker( "option", "dateFormat", "dd/mm/yy" );
+			
+			$( "#off-gg-termine-consegna" ).autoNumeric('init', getNumericOptions("integer4"));
+			$( "#off-gg-termine-consegna" ).autoNumeric('set', data[0].off_gg);
     }
     
     loadDettaglioArticolo(numoff, readonly);
@@ -758,6 +765,9 @@ function init() {
 		.datepicker( "setDate", new Date() )
 		.datepicker( "option", "dateFormat", "dd/mm/yy" );
 		
+		$( "#off-gg-termine-consegna" ).autoNumeric('init', getNumericOptions("integer4"));
+		$( "#off-gg-termine-consegna" ).autoNumeric('set', 0);
+		
 		$( "#off-dataeva" ).datepicker()
 		.datepicker( "option", "dateFormat", "dd/mm/yy" );
 
@@ -839,11 +849,20 @@ function init() {
       return;
     }
     
+		//- Calcola la data di evasione
+		var gg = $("#off-gg-termine-consegna").autoNumeric('get');
+		var d1  = $("#off-datains").datepicker("getDate");
+		var d2  = new Date();
+		d2.setTime( d1.getTime() + gg * 86400000 );
+		
+		$( "#off-dataeva" ).datepicker( "setDate", d2 );
+
 		//- Crea una nuova offerta
 		var getData = {};
 		getData.insert      = true;
     getData.off_codcli  = $("#off-codcli").val();
     getData.off_datains = $("#off-datains").val();
+		getData.off_gg      = gg;
 		getData.off_dataeva = $("#off-dataeva").val();
 		
 		$.getJSON("data-offerta.php", getData)

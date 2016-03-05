@@ -34,13 +34,13 @@ if (isset($_GET['insert'])) {
 	
 	// INSERT COMMAND
 	$query = "
-			INSERT INTO offerte (`off-numoff`, `off-codcli`, `off-datains`, `off-dataeva`, `datains`) 
-			SELECT COALESCE(max(`off-numoff`),0)+1, ?, ?, ?, CURRENT_TIMESTAMP 
+			INSERT INTO offerte (`off-numoff`, `off-codcli`, `off-datains`, `off-dataeva`, `off-gg-termine-consegna`, `datains`) 
+			SELECT COALESCE(max(`off-numoff`),0)+1, ?, ?, ?, ?, CURRENT_TIMESTAMP 
 			FROM offerte
 	";
 	$result = $mysqli->prepare($query);
 
-	$result->bind_param('sss', $_GET['off_codcli'], $datains, $dataeva);
+	$result->bind_param('sssi', $_GET['off_codcli'], $datains, $dataeva, $_GET['off_gg']);
 	$res = $result->execute() or trigger_error($result->error, E_USER_ERROR);
 	// printf ("New Record has id %d.\n", $mysqli->insert_id);
   $id = $mysqli->insert_id;
@@ -184,7 +184,7 @@ else if (isset($_GET['delete_hard'])) {
 else if (isset($_GET['select_one'])) {
 	// SELECT COMMAND
 	$query = "
-      SELECT t1.`off-numoff`, t1.`off-datains`, t1.`off-dataeva`, t1.`off-codcli`, t2.`cli-ragsoc`
+      SELECT t1.`off-numoff`, t1.`off-datains`, t1.`off-dataeva`, `off-gg-termine-consegna`, t1.`off-codcli`, t2.`cli-ragsoc`
         FROM (offerte t1 INNER JOIN clienti t2 ON t1.`off-codcli` = t2.`cli-codcli`)
        WHERE t1.`off-numoff` = ?
 	";
@@ -193,7 +193,7 @@ else if (isset($_GET['select_one'])) {
 	$result->execute();
 	
 	/* bind result variables */
-	$result->bind_result($off_numoff, $off_datains, $off_dataeva, $off_codcli,  $cli_ragsoc);
+	$result->bind_result($off_numoff, $off_datains, $off_dataeva, $off_gg_termine_consegna, $off_codcli,  $cli_ragsoc);
 	
 	/* fetch values */
 	while ($result->fetch()) {
@@ -201,6 +201,7 @@ else if (isset($_GET['select_one'])) {
 			'off_numoff'  => $off_numoff,
       'off_datains' => $off_datains,
       'off_dataeva' => $off_dataeva,
+			'off_gg'      => $off_gg_termine_consegna,
 			'off_codcli'  => $off_codcli,
       'cli_ragsoc'  => $cli_ragsoc
 		);

@@ -93,6 +93,10 @@
 				<input id="off-datains" type="text" class="form-control" readonly>
 			</label>
 			<label>
+				<span>Termine di consegna (gg)</span>
+				<input id="off-gg-termine-consegna" type="text" class="form-control">
+			</label>			
+			<label style="display:none">
 				<span>Data evasione presunta</span>
 				<input id="off-dataeva" type="text"class="form-control" readonly>
 			</label>
