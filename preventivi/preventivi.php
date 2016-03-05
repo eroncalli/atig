@@ -25,6 +25,16 @@
   </script>
 </head>
 <body>
+	<div class="container">
+		<div id="alert-success" class="alert alert-success" style="display:none">
+			<a href="#" class="close" data-dismiss="alert" aria-label="close">&times;</a>
+			<span id="alert-success-msg"></span>
+		</div>
+		<div id="alert-danger" class="alert alert-danger" style="display:none">
+			<a href="#" class="close" data-dismiss="alert" aria-label="close">&times;</a>
+			<span id="alert-danger-msg"></span>
+		</div>	
+	</div>
   <div id="dialog-message" title="Messaggio" style="display:none">
     <p>
       <span class="ui-icon ui-icon-circle-check" style="float:left; margin:0 7px 50px 0;"></span>
@@ -42,10 +52,10 @@
 			<h1>
 				<span>Offerta</span>
 				<button id='btn-offerta-new' class="btn btn-default" >
-					<span class="glyphicon glyphicon-plus" aria-hidden="true"></span>
+					<span class="glyphicon glyphicon-plus" aria-hidden="true" style="position: inherit;"></span>
 				</button>
 				<button id='btn-offerta-elenco' class="btn btn-default" >In lavorazione</button>
-        <button id='btn-offerta-completate' class="btn btn-default" >Completate</button>
+        <button id='btn-offerta-completate' class="btn btn-default" >Consolidate</button>
 			</h1>
 		</div>
 		<div id='elenco-offerta' class="padleft20" stato="empty">
@@ -53,6 +63,7 @@
   			<thead>
 					<tr>
 						<th>N. offerta</th>
+						<th>Descrizione</th>
 						<th>Data offerta</th>
 						<th>Cod. Cliente</th>
 						<th>Ragione sociale</th>
@@ -64,6 +75,7 @@
 				<tbody>
 					<tr>
 						<td>999999999</td>
+						<td>xxxxxxxxxxxxxxxxxxxxxxxxxx</td>
 						<td>gg/mm/aaaa</td>
 						<td>999999999</td>
 						<td>xxxxxxxxxxxxxxxxxxxxxxxxxx</td>
@@ -99,6 +111,10 @@
 			<label style="display:none">
 				<span>Data evasione presunta</span>
 				<input id="off-dataeva" type="text"class="form-control" readonly>
+			</label>
+			<label>
+				<span>Descrizione</span>
+				<input id="off-descriz" maxlength="50" type="text" class="form-control">
 			</label>
 			<label>
 				<span>Numero offerta</span>

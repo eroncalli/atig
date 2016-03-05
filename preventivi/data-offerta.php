@@ -3,6 +3,49 @@
  * Gestisce la tabella 'Offerta'
  **/
 
+function cleanDB($mysqli) {
+	// DELETE COMMAND
+	$del1 = "
+		DELETE FROM offerte_dettaglio_costi 
+		WHERE `ofv-codvoce` IS NULL
+	";
+	
+	$del2 = "
+		DELETE FROM offerte_dettaglio_articoli
+		WHERE `ofa-numoff` IN (
+			SELECT `off-numoff`
+			FROM offerte 
+			WHERE `off-stato` = 'Z'
+		)
+	";
+	
+	$del3 = "
+		DELETE FROM offerte_dettaglio_costi 
+		WHERE `ofv-numoff` IN (
+			SELECT `off-numoff`
+			FROM offerte 
+			WHERE `off-stato` = 'Z'
+		)
+	";
+	
+	$del4 = "
+		DELETE FROM offerte 
+		WHERE `off-stato` = 'Z'
+	";
+	
+	$result = $mysqli->prepare($del1);
+	$res = $result->execute() or trigger_error($result->error, E_USER_ERROR);
+
+	$result = $mysqli->prepare($del2);
+	$res = $result->execute() or trigger_error($result->error, E_USER_ERROR);
+
+	$result = $mysqli->prepare($del3);
+	$res = $result->execute() or trigger_error($result->error, E_USER_ERROR);	
+	
+	$result = $mysqli->prepare($del4);
+	$res = $result->execute() or trigger_error($result->error, E_USER_ERROR);	
+}
+
 //- Turn off all error reporting
 error_reporting(0);
 
@@ -16,6 +59,8 @@ if (mysqli_connect_errno()) {
 }
 
 if (isset($_GET['insert'])) {
+	cleanDB($mysqli);
+		
 	$datains = null;
 	$dataeva = null;
 	if (isset($_GET['off_datains'])) {
@@ -34,13 +79,13 @@ if (isset($_GET['insert'])) {
 	
 	// INSERT COMMAND
 	$query = "
-			INSERT INTO offerte (`off-numoff`, `off-codcli`, `off-datains`, `off-dataeva`, `off-gg-termine-consegna`, `datains`) 
-			SELECT COALESCE(max(`off-numoff`),0)+1, ?, ?, ?, ?, CURRENT_TIMESTAMP 
+			INSERT INTO offerte (`off-numoff`, `off-codcli`, `off-datains`, `off-dataeva`, `off-gg-termine-consegna`, `off-descriz`, `datains`) 
+			SELECT COALESCE(max(`off-numoff`),0)+1, ?, ?, ?, ?, ?, CURRENT_TIMESTAMP 
 			FROM offerte
 	";
 	$result = $mysqli->prepare($query);
 
-	$result->bind_param('sssi', $_GET['off_codcli'], $datains, $dataeva, $_GET['off_gg']);
+	$result->bind_param('sssis', $_GET['off_codcli'], $datains, $dataeva, $_GET['off_gg'],  $_GET['off_descriz']);
 	$res = $result->execute() or trigger_error($result->error, E_USER_ERROR);
 	// printf ("New Record has id %d.\n", $mysqli->insert_id);
   $id = $mysqli->insert_id;
@@ -145,11 +190,16 @@ else if (isset($_GET['update'])) {
 	// UPDATE COMMAND
 	$query = "
         UPDATE `offerte` 
-        SET `off-codcli` = ?, `off-datains` = ?, `off-dataeva` = ?, `datamod` = CURRENT_TIMESTAMP
+        SET `off-codcli` = ?, 
+					`off-datains` = ?, 
+					`off-dataeva` = ?, 
+					`datamod` = CURRENT_TIMESTAMP, 
+					`off-gg-termine-consegna`= ?, 
+					`off-descriz` = ?
         WHERE `off-numoff` = ?
   ";
 	$result = $mysqli->prepare($query);
-	$result->bind_param('sssi', $_GET['off_codcli'], $datains, $dataeva, $_GET['off_numoff']);
+	$result->bind_param('sssisi', $_GET['off_codcli'], $datains, $dataeva, $_GET['off_gg'], $_GET['off_descriz'], $_GET['off_numoff']);
 	$res = $result->execute() or trigger_error($result->error, E_USER_ERROR);
 
 	echo $res;
@@ -162,6 +212,7 @@ else if (isset($_GET['update_stato_salva'])) {
 	$res = $result->execute() or trigger_error($result->error, E_USER_ERROR);
 
 	echo $res;
+	cleanDB($mysqli);
 } 
 else if (isset($_GET['update_stato'])) {
 	// UPDATE COMMAND
@@ -171,6 +222,7 @@ else if (isset($_GET['update_stato'])) {
 	$res = $result->execute() or trigger_error($result->error, E_USER_ERROR);
 
 	echo $res;
+	cleanDB($mysqli);
 } 
 else if (isset($_GET['delete_logic'])) {
 	// LOGIC DELETE COMMAND
@@ -193,7 +245,7 @@ else if (isset($_GET['delete_hard'])) {
 else if (isset($_GET['select_one'])) {
 	// SELECT COMMAND
 	$query = "
-      SELECT t1.`off-numoff`, t1.`off-datains`, t1.`off-dataeva`, `off-gg-termine-consegna`, t1.`off-codcli`, t2.`cli-ragsoc`
+      SELECT t1.`off-numoff`, t1.`off-datains`, t1.`off-dataeva`, t1.`off-gg-termine-consegna`, t1.`off-descriz`, t1.`off-codcli`, t2.`cli-ragsoc`
         FROM (offerte t1 INNER JOIN clienti t2 ON t1.`off-codcli` = t2.`cli-codcli`)
        WHERE t1.`off-numoff` = ?
 	";
@@ -202,7 +254,7 @@ else if (isset($_GET['select_one'])) {
 	$result->execute();
 	
 	/* bind result variables */
-	$result->bind_result($off_numoff, $off_datains, $off_dataeva, $off_gg_termine_consegna, $off_codcli,  $cli_ragsoc);
+	$result->bind_result($off_numoff, $off_datains, $off_dataeva, $off_gg_termine_consegna, $off_descriz, $off_codcli,  $cli_ragsoc);
 	
 	/* fetch values */
 	while ($result->fetch()) {
@@ -211,6 +263,7 @@ else if (isset($_GET['select_one'])) {
       'off_datains' => $off_datains,
       'off_dataeva' => $off_dataeva,
 			'off_gg'      => $off_gg_termine_consegna,
+			'off_descriz' => $off_descriz,
 			'off_codcli'  => $off_codcli,
       'cli_ragsoc'  => $cli_ragsoc
 		);
@@ -220,7 +273,7 @@ else if (isset($_GET['select_one'])) {
 else {
 	// SELECT COMMAND
 	$query = "
-      SELECT t1.`off-numoff`,  t1.`off-datains`, t1.`off-codcli`, t2.`cli-ragsoc`, sum(t3.`ofa-totgen`) totgen
+      SELECT t1.`off-numoff`,  t1.`off-descriz`, t1.`off-datains`, t1.`off-codcli`, t2.`cli-ragsoc`, sum(t3.`ofa-totgen`) totgen
         FROM (offerte t1 INNER JOIN clienti t2 ON t1.`off-codcli` = t2.`cli-codcli`) INNER JOIN offerte_dettaglio_articoli t3 ON t1.`off-numoff` = t3.`ofa-numoff`
        WHERE t1.`off-stato` = ?
     GROUP BY t1.`off-numoff`,  t1.`off-datains`, t1.`off-codcli`, t2.`cli-ragsoc`
@@ -231,12 +284,13 @@ else {
 	$result->execute();
 	
 	/* bind result variables */
-	$result->bind_result($off_numoff, $off_datains, $off_codcli,  $cli_ragsoc, $totgen);
+	$result->bind_result($off_numoff, $off_descriz, $off_datains, $off_codcli,  $cli_ragsoc, $totgen);
 	
 	/* fetch values */
 	while ($result->fetch()) {
 		$elements[] = array(
 			'off_numoff'  => $off_numoff,
+			'off_descriz' => $off_descriz,
       'off_datains' => $off_datains,
 			'off_codcli'  => $off_codcli,
       'cli_ragsoc'  => $cli_ragsoc,

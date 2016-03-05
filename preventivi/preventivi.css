@@ -119,6 +119,9 @@ text-align:right;
 #off-gg-termine-consegna{
 	width:120px;
 }
+#off-descriz{
+	width:350px;
+}
 #off-numoff{
 	width:100px;
 }
@@ -129,4 +132,12 @@ text-align:right;
 #btn-voci-salva,
 #btn-voci-consolida { 
 	margin-left: 1em;
+}
+
+#alert-success,
+#alert-danger {
+	position: absolute;
+  top: 0px;
+  left: 200px;
+  right: 200px;
 }
