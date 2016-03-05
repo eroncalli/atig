@@ -125,6 +125,8 @@ text-align:right;
 
 #btn-articolo-inserisci,
 #btn-articolo-aggiorna,
-#btn-voci-ricalcola { 
+#btn-voci-ricalcola,
+#btn-voci-salva,
+#btn-voci-consolida { 
 	margin-left: 1em;
 }

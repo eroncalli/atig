@@ -540,7 +540,8 @@ function loadDettaglioVoci(numoff, codart, readonly) {
           $('#dettaglio-voci [field="btn-voci-delete"]').hide();
           $("#btn-voci-new").hide();
           $("#btn-voci-ricalcola").hide();
-          $("#btn-voci-concludi").hide();  
+					$("#btn-voci-salva").hide();  
+          $("#btn-voci-consolida").hide();  
         }
         else {
           //- Abilita i campi delle voci
@@ -548,7 +549,8 @@ function loadDettaglioVoci(numoff, codart, readonly) {
           $('#dettaglio-voci [field="btn-voci-delete"]').show();
           $("#btn-voci-new").show();
           $("#btn-voci-ricalcola").show();
-          $("#btn-voci-concludi").show();  
+					$("#btn-voci-salva").show();
+          $("#btn-voci-consolida").show();  
         }
         
         //- Ricalcola
@@ -1093,6 +1095,10 @@ function init() {
 					$("#header-voci").show();
 					$("#dettaglio-voci").show();
           $("#footer-voci").show();
+					$("#btn-voci-new").show();
+        	$("#btn-voci-ricalcola").show();
+					$("#btn-voci-salva").show();
+        	$("#btn-voci-consolida").show();  
           
           //- Imposta il formato dei totali
           $("#valuni-cal").autoNumeric('init', getNumericOptions("currency"));
@@ -1678,7 +1684,23 @@ function init() {
 
 	});
 
-  $( "#btn-voci-concludi" ).click(function() {
+	
+  $( "#btn-voci-salva" ).click(function() {
+    
+		//- Cambia lo stato dell'offerta in completato
+		var getData = {};
+		getData.update_stato_salva  = true;
+    getData.off_numoff          = $("#off-numoff").val();
+    
+		$.getJSON("data-offerta.php", getData)
+		.done(function(data) {
+		})
+		.fail(function(data) {
+		});						
+    
+	});
+ 
+  $( "#btn-voci-consolida" ).click(function() {
     
 		//- Cambia lo stato dell'offerta in completato
 		var getData = {};
@@ -1706,7 +1728,8 @@ function init() {
         $('#dettaglio-voci [field="btn-voci-delete"]').hide();
         $("#btn-voci-new").hide();
         $("#btn-voci-ricalcola").hide();
-        $("#btn-voci-concludi").hide();  
+				$("#btn-voci-salva").hide();
+        $("#btn-voci-consolida").hide();  
       
         //- Nasconde il pulsante
         $("#footer-voci").hide();

@@ -321,7 +321,8 @@
 		</div>
 		<div id='footer-voci' class="padleft20 bottom200">
 			<h3>
-				<button id='btn-voci-concludi' class="btn btn-success right">Concludi</button>
+				<button id='btn-voci-consolida' class="btn btn-success right">Consolida</button>
+				<button id='btn-voci-salva' class="btn btn-success right">Salva</button>
 			</h3>
 		</div>
   </div>

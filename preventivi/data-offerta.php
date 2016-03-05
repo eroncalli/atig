@@ -154,6 +154,15 @@ else if (isset($_GET['update'])) {
 
 	echo $res;
 }
+else if (isset($_GET['update_stato_salva'])) {
+	// UPDATE COMMAND
+	$query = "UPDATE `offerte` SET `off-stato` = 0, `datamod` = CURRENT_TIMESTAMP WHERE `off-numoff` = ?";
+	$result = $mysqli->prepare($query);
+	$result->bind_param('i', $_GET['off_numoff']);
+	$res = $result->execute() or trigger_error($result->error, E_USER_ERROR);
+
+	echo $res;
+} 
 else if (isset($_GET['update_stato'])) {
 	// UPDATE COMMAND
 	$query = "UPDATE `offerte` SET `off-stato` = 1, `datamod` = CURRENT_TIMESTAMP WHERE `off-numoff` = ?";
@@ -218,7 +227,7 @@ else {
     ORDER BY t1.`off-numoff` DESC
 	";
 	$result = $mysqli->prepare($query);
-  $result->bind_param('i', $_GET['off_stato']);
+  $result->bind_param('s', $_GET['off_stato']);
 	$result->execute();
 	
 	/* bind result variables */
