@@ -81,13 +81,7 @@
     
         protected function CreatePageNavigator()
         {
-            $result = new CompositePageNavigator($this);
-            
-            $partitionNavigator = new PageNavigator('pnav', $this, $this->dataset);
-            $partitionNavigator->SetRowsPerPage(20);
-            $result->AddPageNavigator($partitionNavigator);
-            
-            return $result;
+            return null;
         }
     
         public function GetPageList()
@@ -333,9 +327,13 @@
             //
             // Edit column for lis-unimis field
             //
-            $editor = new TextEdit('lis-unimis_edit');
-            $editor->SetSize(3);
-            $editor->SetMaxLength(3);
+            $editor = new ComboBox('lis-unimis_edit', $this->GetLocalizerCaptions()->GetMessageString('PleaseSelect'));
+            $editor->AddValue('N', $this->RenderText('Nessuna'));
+            $editor->AddValue('LT', $this->RenderText('Litri'));
+            $editor->AddValue('KG', $this->RenderText('Chili'));
+            $editor->AddValue('CF', $this->RenderText('Confezione'));
+            $editor->AddValue('MC', $this->RenderText('Metri cubi'));
+            $editor->AddValue('MT', $this->RenderText('Metri'));
             $editColumn = new CustomEditColumn('Unità misura', 'lis-unimis', $editor, $this->dataset);
             $editColumn->SetAllowSetToNull(true);
             $this->ApplyCommonColumnEditProperties($editColumn);
@@ -355,6 +353,7 @@
             //
             $editor = new TextEdit('lis-moltipl_edit');
             $editColumn = new CustomEditColumn('Moltiplicatore', 'lis-moltipl', $editor, $this->dataset);
+            $editColumn->SetReadOnly(true);
             $editColumn->SetAllowSetToNull(true);
             $this->ApplyCommonColumnEditProperties($editColumn);
             $grid->AddEditColumn($editColumn);
@@ -363,6 +362,7 @@
             // Edit column for lis-oneriacc field
             //
             $editor = new TextEdit('lis-oneriacc_edit');
+            $editor->SetSuffix($this->RenderText('%'));
             $editColumn = new CustomEditColumn('Oneri e accessori', 'lis-oneriacc', $editor, $this->dataset);
             $editColumn->SetAllowSetToNull(true);
             $this->ApplyCommonColumnEditProperties($editColumn);
@@ -372,6 +372,7 @@
             // Edit column for lis-scarto field
             //
             $editor = new TextEdit('lis-scarto_edit');
+            $editor->SetSuffix($this->RenderText('%'));
             $editColumn = new CustomEditColumn('Scarto', 'lis-scarto', $editor, $this->dataset);
             $editColumn->SetAllowSetToNull(true);
             $this->ApplyCommonColumnEditProperties($editColumn);
@@ -433,9 +434,13 @@
             //
             // Edit column for lis-unimis field
             //
-            $editor = new TextEdit('lis-unimis_edit');
-            $editor->SetSize(3);
-            $editor->SetMaxLength(3);
+            $editor = new ComboBox('lis-unimis_edit', $this->GetLocalizerCaptions()->GetMessageString('PleaseSelect'));
+            $editor->AddValue('N', $this->RenderText('Nessuna'));
+            $editor->AddValue('LT', $this->RenderText('Litri'));
+            $editor->AddValue('KG', $this->RenderText('Chili'));
+            $editor->AddValue('CF', $this->RenderText('Confezione'));
+            $editor->AddValue('MC', $this->RenderText('Metri cubi'));
+            $editor->AddValue('MT', $this->RenderText('Metri'));
             $editColumn = new CustomEditColumn('Unità misura', 'lis-unimis', $editor, $this->dataset);
             $editColumn->SetAllowSetToNull(true);
             $this->ApplyCommonColumnEditProperties($editColumn);
@@ -455,6 +460,7 @@
             //
             $editor = new TextEdit('lis-moltipl_edit');
             $editColumn = new CustomEditColumn('Moltiplicatore', 'lis-moltipl', $editor, $this->dataset);
+            $editColumn->SetReadOnly(true);
             $editColumn->SetAllowSetToNull(true);
             $editColumn->SetInsertDefaultValue($this->RenderText('5'));
             $this->ApplyCommonColumnEditProperties($editColumn);
@@ -464,6 +470,7 @@
             // Edit column for lis-oneriacc field
             //
             $editor = new TextEdit('lis-oneriacc_edit');
+            $editor->SetSuffix($this->RenderText('%'));
             $editColumn = new CustomEditColumn('Oneri e accessori', 'lis-oneriacc', $editor, $this->dataset);
             $editColumn->SetAllowSetToNull(true);
             $this->ApplyCommonColumnEditProperties($editColumn);
@@ -473,6 +480,7 @@
             // Edit column for lis-scarto field
             //
             $editor = new TextEdit('lis-scarto_edit');
+            $editor->SetSuffix($this->RenderText('%'));
             $editColumn = new CustomEditColumn('Scarto', 'lis-scarto', $editor, $this->dataset);
             $editColumn->SetAllowSetToNull(true);
             $this->ApplyCommonColumnEditProperties($editColumn);
@@ -735,10 +743,10 @@
             $this->SetPrinterFriendlyAvailable(false);
             $this->SetSimpleSearchAvailable(false);
             $this->SetAdvancedSearchAvailable(false);
-            $this->SetFilterRowAvailable(false);
+            $this->SetFilterRowAvailable(true);
             $this->SetVisualEffectsEnabled(true);
-            $this->SetShowTopPageNavigator(true);
-            $this->SetShowBottomPageNavigator(true);
+            $this->SetShowTopPageNavigator(false);
+            $this->SetShowBottomPageNavigator(false);
     
             //
             // Http Handlers

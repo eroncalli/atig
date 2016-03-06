@@ -43,13 +43,15 @@
                 new MyPDOConnectionFactory(),
                 GetConnectionOptions(),
                 '`listino_voci`');
-            $field = new IntegerField('id', null, null, true);
+            $field = new IntegerField('id');
+            $field->SetIsNotNull(true);
+            $this->dataset->AddField($field, false);
+            $field = new StringField('ivo-codart');
             $field->SetIsNotNull(true);
             $this->dataset->AddField($field, true);
-            $field = new StringField('ivo-codart');
-            $this->dataset->AddField($field, false);
             $field = new IntegerField('ivo-codvoc');
-            $this->dataset->AddField($field, false);
+            $field->SetIsNotNull(true);
+            $this->dataset->AddField($field, true);
             $field = new IntegerField('ivo-przunit');
             $this->dataset->AddField($field, false);
             $field = new StringField('ivo-flagart');
@@ -67,7 +69,7 @@
             $field = new DateTimeField('datamod');
             $this->dataset->AddField($field, false);
             $this->dataset->AddLookupField('ivo-codart', 'elenco_articoli_view', new StringField('art-codart'), new StringField('descrizione', 'ivo-codart_descrizione', 'ivo-codart_descrizione_elenco_articoli_view'), 'ivo-codart_descrizione_elenco_articoli_view');
-            $this->dataset->AddLookupField('ivo-codvoc', 'listino_voci', new IntegerField('ivo-codvoc'), new IntegerField('ivo-codvoc', 'ivo-codvoc_ivo-codvoc', 'ivo-codvoc_ivo-codvoc_listino_voci'), 'ivo-codvoc_ivo-codvoc_listino_voci');
+            $this->dataset->AddLookupField('ivo-codvoc', 'voci_costo', new IntegerField('voc-codvoce'), new StringField('voc-descriz', 'ivo-codvoc_voc-descriz', 'ivo-codvoc_voc-descriz_voci_costo'), 'ivo-codvoc_voc-descriz_voci_costo');
         }
     
         protected function DoPrepare() {
@@ -76,13 +78,7 @@
     
         protected function CreatePageNavigator()
         {
-            $result = new CompositePageNavigator($this);
-            
-            $partitionNavigator = new PageNavigator('pnav', $this, $this->dataset);
-            $partitionNavigator->SetRowsPerPage(25);
-            $result->AddPageNavigator($partitionNavigator);
-            
-            return $result;
+            return null;
         }
     
         public function GetPageList()
@@ -125,7 +121,7 @@
         {
             $grid->UseFilter = true;
             $grid->SearchControl = new SimpleSearch('listino_vocissearch', $this->dataset,
-                array('id', 'ivo-codart_descrizione', 'ivo-codvoc_ivo-codvoc', 'ivo-przunit', 'ivo-flagart', 'ivo-flagsmu', 'ivo-tiposmu', 'ivo-dataini', 'ivo-datafin'),
+                array('id', 'ivo-codart_descrizione', 'ivo-codvoc_voc-descriz', 'ivo-przunit', 'ivo-flagart', 'ivo-flagsmu', 'ivo-tiposmu', 'ivo-dataini', 'ivo-datafin'),
                 array($this->RenderText('Id'), $this->RenderText('Codice Articolo'), $this->RenderText('Codice Tipo Voce'), $this->RenderText('Prezzo unitario'), $this->RenderText('Altro articolo'), $this->RenderText('Prevede smusso'), $this->RenderText('Tipo smusso'), $this->RenderText('Data decorrenza listino'), $this->RenderText('Data fine decorrenza listino')),
                 array(
                     '=' => $this->GetLocalizerCaptions()->GetMessageString('equals'),
@@ -163,32 +159,26 @@
             $lookupDataset = new TableDataset(
                 new MyPDOConnectionFactory(),
                 GetConnectionOptions(),
-                '`listino_voci`');
+                '`voci_costo`');
             $field = new IntegerField('id', null, null, true);
             $field->SetIsNotNull(true);
             $lookupDataset->AddField($field, true);
-            $field = new StringField('ivo-codart');
+            $field = new IntegerField('voc-codvoce');
+            $field->SetIsNotNull(true);
             $lookupDataset->AddField($field, false);
-            $field = new IntegerField('ivo-codvoc');
+            $field = new StringField('voc-descriz');
+            $field->SetIsNotNull(true);
             $lookupDataset->AddField($field, false);
-            $field = new IntegerField('ivo-przunit');
+            $field = new IntegerField('voc-semanual');
             $lookupDataset->AddField($field, false);
-            $field = new StringField('ivo-flagart');
-            $lookupDataset->AddField($field, false);
-            $field = new StringField('ivo-flagsmu');
-            $lookupDataset->AddField($field, false);
-            $field = new StringField('ivo-tiposmu');
-            $lookupDataset->AddField($field, false);
-            $field = new DateTimeField('ivo-dataini');
-            $lookupDataset->AddField($field, false);
-            $field = new DateTimeField('ivo-datafin');
+            $field = new IntegerField('voc-formula');
             $lookupDataset->AddField($field, false);
             $field = new DateTimeField('datains');
             $lookupDataset->AddField($field, false);
             $field = new DateTimeField('datamod');
             $lookupDataset->AddField($field, false);
-            $lookupDataset->setOrderByField('ivo-codvoc', GetOrderTypeAsSQL(otAscending));
-            $this->AdvancedSearchControl->AddSearchColumn($this->AdvancedSearchControl->CreateLookupSearchInput('ivo-codvoc', $this->RenderText('Codice Tipo Voce'), $lookupDataset, 'ivo-codvoc', 'ivo-codvoc', false, 8));
+            $lookupDataset->setOrderByField('voc-descriz', GetOrderTypeAsSQL(otAscending));
+            $this->AdvancedSearchControl->AddSearchColumn($this->AdvancedSearchControl->CreateLookupSearchInput('ivo-codvoc', $this->RenderText('Codice Tipo Voce'), $lookupDataset, 'voc-codvoce', 'voc-descriz', false, 8));
             $this->AdvancedSearchControl->AddSearchColumn($this->AdvancedSearchControl->CreateStringSearchInput('ivo-przunit', $this->RenderText('Prezzo unitario')));
             $this->AdvancedSearchControl->AddSearchColumn($this->AdvancedSearchControl->CreateStringSearchInput('ivo-flagart', $this->RenderText('Altro articolo')));
             $this->AdvancedSearchControl->AddSearchColumn($this->AdvancedSearchControl->CreateStringSearchInput('ivo-flagsmu', $this->RenderText('Prevede smusso')));
@@ -237,9 +227,9 @@
             $grid->AddViewColumn($column);
             
             //
-            // View column for ivo-codvoc field
+            // View column for voc-descriz field
             //
-            $column = new TextViewColumn('ivo-codvoc_ivo-codvoc', 'Codice Tipo Voce', $this->dataset);
+            $column = new TextViewColumn('ivo-codvoc_voc-descriz', 'Codice Tipo Voce', $this->dataset);
             $column->SetOrderable(true);
             $column->SetDescription($this->RenderText(''));
             $column->SetFixedWidth(null);
@@ -317,9 +307,9 @@
             $grid->AddSingleRecordViewColumn($column);
             
             //
-            // View column for ivo-codvoc field
+            // View column for voc-descriz field
             //
-            $column = new TextViewColumn('ivo-codvoc_ivo-codvoc', 'Codice Tipo Voce', $this->dataset);
+            $column = new TextViewColumn('ivo-codvoc_voc-descriz', 'Codice Tipo Voce', $this->dataset);
             $column->SetOrderable(true);
             $grid->AddSingleRecordViewColumn($column);
             
@@ -420,36 +410,30 @@
             $lookupDataset = new TableDataset(
                 new MyPDOConnectionFactory(),
                 GetConnectionOptions(),
-                '`listino_voci`');
+                '`voci_costo`');
             $field = new IntegerField('id', null, null, true);
             $field->SetIsNotNull(true);
             $lookupDataset->AddField($field, true);
-            $field = new StringField('ivo-codart');
+            $field = new IntegerField('voc-codvoce');
+            $field->SetIsNotNull(true);
             $lookupDataset->AddField($field, false);
-            $field = new IntegerField('ivo-codvoc');
+            $field = new StringField('voc-descriz');
+            $field->SetIsNotNull(true);
             $lookupDataset->AddField($field, false);
-            $field = new IntegerField('ivo-przunit');
+            $field = new IntegerField('voc-semanual');
             $lookupDataset->AddField($field, false);
-            $field = new StringField('ivo-flagart');
-            $lookupDataset->AddField($field, false);
-            $field = new StringField('ivo-flagsmu');
-            $lookupDataset->AddField($field, false);
-            $field = new StringField('ivo-tiposmu');
-            $lookupDataset->AddField($field, false);
-            $field = new DateTimeField('ivo-dataini');
-            $lookupDataset->AddField($field, false);
-            $field = new DateTimeField('ivo-datafin');
+            $field = new IntegerField('voc-formula');
             $lookupDataset->AddField($field, false);
             $field = new DateTimeField('datains');
             $lookupDataset->AddField($field, false);
             $field = new DateTimeField('datamod');
             $lookupDataset->AddField($field, false);
-            $lookupDataset->setOrderByField('ivo-codvoc', GetOrderTypeAsSQL(otAscending));
+            $lookupDataset->setOrderByField('voc-descriz', GetOrderTypeAsSQL(otAscending));
             $editColumn = new LookUpEditColumn(
                 'Codice Tipo Voce', 
                 'ivo-codvoc', 
                 $editor, 
-                $this->dataset, 'ivo-codvoc', 'ivo-codvoc', $lookupDataset);
+                $this->dataset, 'voc-codvoce', 'voc-descriz', $lookupDataset);
             $editColumn->SetAllowSetToNull(true);
             $this->ApplyCommonColumnEditProperties($editColumn);
             $grid->AddEditColumn($editColumn);
@@ -542,36 +526,30 @@
             $lookupDataset = new TableDataset(
                 new MyPDOConnectionFactory(),
                 GetConnectionOptions(),
-                '`listino_voci`');
+                '`voci_costo`');
             $field = new IntegerField('id', null, null, true);
             $field->SetIsNotNull(true);
             $lookupDataset->AddField($field, true);
-            $field = new StringField('ivo-codart');
+            $field = new IntegerField('voc-codvoce');
+            $field->SetIsNotNull(true);
             $lookupDataset->AddField($field, false);
-            $field = new IntegerField('ivo-codvoc');
+            $field = new StringField('voc-descriz');
+            $field->SetIsNotNull(true);
             $lookupDataset->AddField($field, false);
-            $field = new IntegerField('ivo-przunit');
+            $field = new IntegerField('voc-semanual');
             $lookupDataset->AddField($field, false);
-            $field = new StringField('ivo-flagart');
-            $lookupDataset->AddField($field, false);
-            $field = new StringField('ivo-flagsmu');
-            $lookupDataset->AddField($field, false);
-            $field = new StringField('ivo-tiposmu');
-            $lookupDataset->AddField($field, false);
-            $field = new DateTimeField('ivo-dataini');
-            $lookupDataset->AddField($field, false);
-            $field = new DateTimeField('ivo-datafin');
+            $field = new IntegerField('voc-formula');
             $lookupDataset->AddField($field, false);
             $field = new DateTimeField('datains');
             $lookupDataset->AddField($field, false);
             $field = new DateTimeField('datamod');
             $lookupDataset->AddField($field, false);
-            $lookupDataset->setOrderByField('ivo-codvoc', GetOrderTypeAsSQL(otAscending));
+            $lookupDataset->setOrderByField('voc-descriz', GetOrderTypeAsSQL(otAscending));
             $editColumn = new LookUpEditColumn(
                 'Codice Tipo Voce', 
                 'ivo-codvoc', 
                 $editor, 
-                $this->dataset, 'ivo-codvoc', 'ivo-codvoc', $lookupDataset);
+                $this->dataset, 'voc-codvoce', 'voc-descriz', $lookupDataset);
             $editColumn->SetAllowSetToNull(true);
             $this->ApplyCommonColumnEditProperties($editColumn);
             $grid->AddInsertColumn($editColumn);
@@ -660,9 +638,9 @@
             $grid->AddPrintColumn($column);
             
             //
-            // View column for ivo-codvoc field
+            // View column for voc-descriz field
             //
-            $column = new TextViewColumn('ivo-codvoc_ivo-codvoc', 'Codice Tipo Voce', $this->dataset);
+            $column = new TextViewColumn('ivo-codvoc_voc-descriz', 'Codice Tipo Voce', $this->dataset);
             $column->SetOrderable(true);
             $grid->AddPrintColumn($column);
             
@@ -733,9 +711,9 @@
             $grid->AddExportColumn($column);
             
             //
-            // View column for ivo-codvoc field
+            // View column for voc-descriz field
             //
-            $column = new TextViewColumn('ivo-codvoc_ivo-codvoc', 'Codice Tipo Voce', $this->dataset);
+            $column = new TextViewColumn('ivo-codvoc_voc-descriz', 'Codice Tipo Voce', $this->dataset);
             $column->SetOrderable(true);
             $grid->AddExportColumn($column);
             
@@ -877,7 +855,7 @@
             $this->SetAdvancedSearchAvailable(false);
             $this->SetFilterRowAvailable(false);
             $this->SetVisualEffectsEnabled(true);
-            $this->SetShowTopPageNavigator(true);
+            $this->SetShowTopPageNavigator(false);
             $this->SetShowBottomPageNavigator(false);
     
             //

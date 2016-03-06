@@ -70,7 +70,7 @@
             $result = new CompositePageNavigator($this);
             
             $partitionNavigator = new PageNavigator('pnav', $this, $this->dataset);
-            $partitionNavigator->SetRowsPerPage(20);
+            $partitionNavigator->SetRowsPerPage(25);
             $result->AddPageNavigator($partitionNavigator);
             
             return $result;
@@ -237,7 +237,7 @@
             //
             // View column for datains field
             //
-            $column = new DateTimeViewColumn('datains', 'Datains', $this->dataset);
+            $column = new DateTimeViewColumn('datains', 'Data inserimento', $this->dataset);
             $column->SetDateTimeFormat('d-m-Y H:i:s');
             $column->SetOrderable(true);
             $grid->AddSingleRecordViewColumn($column);
@@ -245,7 +245,7 @@
             //
             // View column for datamod field
             //
-            $column = new DateTimeViewColumn('datamod', 'Datamod', $this->dataset);
+            $column = new DateTimeViewColumn('datamod', 'Data modifica', $this->dataset);
             $column->SetDateTimeFormat('d-m-Y H:i:s');
             $column->SetOrderable(true);
             $grid->AddSingleRecordViewColumn($column);
@@ -430,7 +430,7 @@
             $this->SetFilterRowAvailable(false);
             $this->SetVisualEffectsEnabled(true);
             $this->SetShowTopPageNavigator(true);
-            $this->SetShowBottomPageNavigator(true);
+            $this->SetShowBottomPageNavigator(false);
     
             //
             // Http Handlers
