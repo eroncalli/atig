@@ -498,19 +498,30 @@ function loadDettaglioVoci(ofa_id, codart, readonly) {
           //- Gestisce il cambio valore di qta/lun/lar/spe/dur
           row.find('[field="ofv-quantita"]').keyup(function() {
             applyFormula(row); 
+						$( "#btn-voci-ricalcola" ).trigger( "click" );
           });
           row.find('[field="ofv-lunghezza"]').keyup(function() {
             applyFormula(row); 
+						$( "#btn-voci-ricalcola" ).trigger( "click" );
           });
           row.find('[field="ofv-larghezza"]').keyup(function() {
             applyFormula(row); 
+					  $( "#btn-voci-ricalcola" ).trigger( "click" );
           });
           row.find('[field="ofv-spessore"]').keyup(function() {
             applyFormula(row); 
+						$( "#btn-voci-ricalcola" ).trigger( "click" );
           });
           row.find('[field="ofv-durata"]').keyup(function() {
             applyFormula(row);
+						$( "#btn-voci-ricalcola" ).trigger( "click" );
           });
+					row.find('[field="ofv-valuni-cal"]').keyup(function() {
+						$( "#btn-voci-ricalcola" ).trigger( "click" );
+					});
+					row.find('[field="ofv-sconto"]').keyup(function() {
+						$( "#btn-voci-ricalcola" ).trigger( "click" );
+					});
 
           //- Cancella una voce
           row.find('[field="btn-voci-delete"]').click(function() {
@@ -525,6 +536,7 @@ function loadDettaglioVoci(ofa_id, codart, readonly) {
                 } else {
                   //- Rimuove la riga
                   row.remove();
+								  $( "#btn-voci-ricalcola" ).trigger( "click" );	
                 }
             })
             .fail(function(data) {
@@ -546,7 +558,7 @@ function loadDettaglioVoci(ofa_id, codart, readonly) {
           $("#dettaglio-voci .form-control").prop("disabled", false);
           $('#dettaglio-voci [field="btn-voci-delete"]').show();
           $("#btn-voci-new").show();
-          $("#btn-voci-ricalcola").show();
+          //$("#btn-voci-ricalcola").show();
 					$("#btn-voci-salva").show();
           $("#btn-voci-consolida").show();  
         }
@@ -879,7 +891,19 @@ function init() {
 		//- Verifica i dati
     var codcli = $( "#off-codcli" ).val();
 		if (_.isUndefined(codcli) || (codcli == "")) {
-      alert('Scegli un codice cliente.');
+			$( "#dialog-message span[msg]" ).text("Scegli un codice cliente.");
+			
+			$( "#dialog-message" ).dialog({
+				resizable: false,
+        title: "Info",
+        dialogClass: "no-close",
+				modal: true,
+				buttons: {
+					Ok: function() {
+						$( this ).dialog( "close" );
+					}
+				}
+			});
       return;
     }
     
@@ -931,7 +955,19 @@ function init() {
 		//- Verifica i dati
     var codcli = $( "#off-codcli" ).val();
 		if (_.isUndefined(codcli) || (codcli == "")) {
-      alert('Scegli un codice cliente.');
+			$( "#dialog-message span[msg]" ).text("Scegli un codice cliente.");
+			
+			$( "#dialog-message" ).dialog({
+				resizable: false,
+        title: "Info",
+        dialogClass: "no-close",
+				modal: true,
+				buttons: {
+					Ok: function() {
+						$( this ).dialog( "close" );
+					}
+				}
+			});
       return;
     }
     
@@ -1102,7 +1138,19 @@ function init() {
 		//- Verifica i dati
     var codart = $( "#ofa-codart" ).val();
 		if (_.isUndefined(codart) || (codart == "")) {
-      alert('Scegli un codice articolo.');
+			$( "#dialog-message span[msg]" ).text("Scegli un codice articolo.");
+			
+			$( "#dialog-message" ).dialog({
+				resizable: false,
+        title: "Info",
+        dialogClass: "no-close",
+				modal: true,
+				buttons: {
+					Ok: function() {
+						$( this ).dialog( "close" );
+					}
+				}
+			});
       return;
     }
 		
@@ -1144,7 +1192,7 @@ function init() {
 					$("#dettaglio-voci").show();
           $("#footer-voci").show();
 					$("#btn-voci-new").show();
-        	$("#btn-voci-ricalcola").show();
+        	//$("#btn-voci-ricalcola").show();
 					$("#btn-voci-salva").show();
         	$("#btn-voci-consolida").show();  
           
@@ -1293,6 +1341,21 @@ function init() {
 
         $( "tr[num_riga_voce='1']" ).find('[field="ofv-valuni-cal"]').autoNumeric('set', valuni);
         
+				//- Riapplica le formule 
+				var elencoVoci = $("#table-voci-body tr");
+
+				$.each( elencoVoci, function( i, row ) {
+					var $row = $(row);
+					
+					switch (""+$row.attr('voc-formula')) {
+						case "6": //-GIUNZIONE
+						case "7": //-GUIDA        
+						case "4": //-RIVESTIMENTO (primo e successivi)
+						  applyFormula($row);
+							break;
+					}
+				});
+			
         //- Ricalcola
         $( "#btn-voci-ricalcola" ).trigger( "click" );
 		})
@@ -1484,6 +1547,7 @@ function init() {
                             }			
 
                             applyFormula(row);
+														$( "#btn-voci-ricalcola" ).trigger( "click" );
                           }
                       })
                       .fail(function(data) {
@@ -1582,13 +1646,18 @@ function init() {
                                   row.find('[field="costo"]').html(strPrz + "<br>" + strSmusso + "<br>" + strSpessori);
                                 }
                               });
-                            }			
+                            }
+														
+														$( "#btn-voci-ricalcola" ).trigger( "click" );
                           }
                       })
                       .fail(function(data) {
                       });
                         
                       break;
+										default:
+											$( "#btn-voci-ricalcola" ).trigger( "click" );
+											break;
                     }	
 									}
 								});
@@ -1634,6 +1703,7 @@ function init() {
 											} else {
 												//- Rimuove la riga
 												row.remove();
+												$( "#btn-voci-ricalcola" ).trigger( "click" );
 											}
 									})
 									.fail(function(data) {

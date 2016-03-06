@@ -239,7 +239,7 @@
 				<button id='btn-voci-new' class="btn btn-default" >
 					<span class="glyphicon glyphicon-plus" aria-hidden="true"></span>
 				</button>
-				<button id='btn-voci-ricalcola' class="btn btn-success">Ricalcola</button>
+				<button id='btn-voci-ricalcola' class="btn btn-success" style="display:none">Ricalcola</button>
 			</h3>
 		</div>
 		<div id='dettaglio-voci' class="padleft20">
