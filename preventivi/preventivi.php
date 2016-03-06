@@ -97,7 +97,7 @@
 			</table>			
       <div id='pager-offerta'></div>    
     </div>
-		<div id='dettaglio-offerta' class="padleft20">
+		<div id='dettaglio-offerta' class="padleft20" off_id="">
 			<label>
 				<span>Codice Cliente</span>
 				<input id="off-codcli" type="text" class="form-control">
@@ -174,7 +174,7 @@
 				</tbody>
 			</table>
 		</div>		
-		<div id='dettaglio-articolo' class="padleft20">
+		<div id='dettaglio-articolo' class="padleft20" ofa_id="">
 			<label>
 				<span>Codice articolo</span>
 				<input id="ofa-codart" type="text" class="form-control">

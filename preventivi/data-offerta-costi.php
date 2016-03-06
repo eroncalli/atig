@@ -19,13 +19,13 @@ if (isset($_GET['insert'])) {
 	// INSERT COMMAND
 	$query = "
 			INSERT INTO `offerte_dettaglio_costi`
-			(`ofv-numoff`, `ofv-codart`, `ofv-num-riga-voce`, `datains`)	
+			(`ofv-ofaid`, `ofv-codart`, `ofv-num-riga-voce`, `datains`)	
       VALUES (?, ?, ?, CURRENT_TIMESTAMP)
 	";
 	$result = $mysqli->prepare($query);
 		
 	$result->bind_param('isd', 
-											$_GET['ofv_numoff'], 
+											$_GET['ofv_ofaid'], 
 											$_GET['ofv_codart'], 
                       $_GET['ofv_num_riga_voce']);
 	$res = $result->execute() or trigger_error($result->error, E_USER_ERROR);
@@ -43,13 +43,13 @@ elseif (isset($_GET['insertArticolo'])) {
   //===========================================
 	$query = "
 			INSERT INTO `offerte_dettaglio_costi`
-			(`ofv-numoff`, `ofv-codart`, `ofv-codvoce`, `ofv-num-riga-voce`, `datains`)	
+			(`ofv-ofaid`, `ofv-codart`, `ofv-codvoce`, `ofv-num-riga-voce`, `datains`)	
       VALUES (?, ?, 1, 1, CURRENT_TIMESTAMP)
 	";
 	$result = $mysqli->prepare($query);
 		
 	$result->bind_param('is', 
-											$_GET['ofv_numoff'], 
+											$_GET['ofv_ofaid'], 
 											$_GET['ofv_codart']);
 	$res = $result->execute() or trigger_error($result->error, E_USER_ERROR);
 	// printf ("New Record has id %d.\n", $mysqli->insert_id);
@@ -65,17 +65,15 @@ else if (isset($_POST['update'])) {
 			SET `ofa-totuni` = ?,
 			    `ofa-totunit-fin` = ?,
 			    `ofa-totgen` = ?
-		   WHERE `ofa-numoff` = ?
-			   AND `ofa-codart` = ?
+		   WHERE `id` = ?
 	";
 	$result = $mysqli->prepare($query);
 
-	$result->bind_param('dddis', 
+	$result->bind_param('dddi', 
 											$_POST['ofa_totuni'], 
 											$_POST['ofa_totunit_fin'], 
 											$_POST['ofa_totgen'], 
-											$_POST['ofv_numoff'], 
-											$_POST['ofv_codart']);
+											$_POST['ofv_ofaid']);
 	$res = $result->execute() or trigger_error($result->error, E_USER_ERROR);
 	echo $res;
 	
@@ -162,12 +160,11 @@ else {
          `ofv-critcalc`, `ofv-costo`, `ofv-dimsmusso`,
          `ofv-desc1`, `ofv-desc2`, `ofv-desc3`
     FROM `offerte_dettaglio_costi` 
-   WHERE `ofv-numoff` = ?
-     AND `ofv-codart` = ?
+   WHERE `ofv-ofaid` = ?
 ORDER BY `ofv-num-riga-voce`
   ";
 	$result = $mysqli->prepare($query);
-  $result->bind_param('is', $_GET['ofv_numoff'], $_GET['ofv_codart']);
+  $result->bind_param('i', $_GET['ofv_ofaid']);
 	$result->execute();
 	  
 	/* bind result variables */

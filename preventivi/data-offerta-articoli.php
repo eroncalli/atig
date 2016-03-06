@@ -19,7 +19,7 @@ if (isset($_GET['insert'])) {
 	// INSERT COMMAND
 	$query = "
 			INSERT INTO `offerte_dettaglio_articoli` 
-			(`ofa-numoff`, `ofa-codart`, `ofa-descart`, 
+			(`ofa-offid`, `ofa-codart`, `ofa-descart`, 
        `ofa-lungsmu`, `ofa-lunghezza`, 
        `ofa-moltipl`, `ofa-scarto`, `ofa-oneriacc`, 
        `ofa-larghezza`, `ofa-quantita`, `ofa-unimis`, 
@@ -29,7 +29,7 @@ if (isset($_GET['insert'])) {
 	$result = $mysqli->prepare($query);
 		
 	$result->bind_param('issddidddisdd', 
-                      $_GET['ofa_numoff'], 
+                      $_GET['ofa_offid'], 
                       $_GET['ofa_codart'], 
                       $_GET['ofa_descart'], 
                       $_GET['ofa_lungsmu'], 
@@ -45,22 +45,26 @@ if (isset($_GET['insert'])) {
 
   $res = $result->execute() or trigger_error($result->error, E_USER_ERROR);
 	// printf ("New Record has id %d.\n", $mysqli->insert_id);
-	echo $res;
+	$id = $mysqli->insert_id;
+	
+	// RETURN id	
+	echo json_encode(array('id' => $id));
 } 
 else if (isset($_GET['update'])) {
 	// UPDATE COMMAND
 	$query = "
 			UPDATE `offerte_dettaglio_articoli`
-			   SET `ofa-lunghezza` = ?, `ofa-larghezza` = ?, `ofa-lungsmu` = ?,
+			   SET `ofa-codart` = ?,
+				     `ofa-lunghezza` = ?, `ofa-larghezza` = ?, `ofa-lungsmu` = ?,
              `ofa-quantita` = ?, `ofa-unimis` = ?, 
              `ofa-przacq-net` = ?, `ofa-przacq-lor` = ?,
              `datamod` = CURRENT_TIMESTAMP
-			 WHERE `ofa-numoff` = ?
-		     AND `ofa-codart` = ?
+			 WHERE `id` = ?
 	";
 	$result = $mysqli->prepare($query);
 
-	$result->bind_param('dddisddis', 
+	$result->bind_param('sdddisddi', 
+											$_GET['ofa_codart'],
                       $_GET['ofa_lunghezza'],
                       $_GET['ofa_larghezza'], 
                       $_GET['ofa_lungsmu'], 
@@ -68,8 +72,7 @@ else if (isset($_GET['update'])) {
                       $_GET['ofa_unimis'],
                       $_GET['ofa_przacq_net'],
                       $_GET['ofa_przacq_lor'],
-                      $_GET['ofa_numoff'], 
-                      $_GET['ofa_codart']);
+                      $_GET['ofa_id']);
 
   $res = $result->execute() or trigger_error($result->error, E_USER_ERROR);
 	// printf ("Updated Record has id %d.\n", $_GET['EmployeeID']);
@@ -87,22 +90,24 @@ else if (isset($_GET['delete'])) {    //...TODO
 else if (isset($_GET['select_one'])) {
 	// SELECT COMMAND
 	$query = "
-      SELECT t1.`ofa-numoff`, t1.`ofa-codart`, t1.`ofa-descart`, t1.`ofa-lungsmu`, t3.`fam-descriz`, t1.`ofa-moltipl`, t1.`ofa-scarto`, t1.`ofa-oneriacc`, t1.`ofa-unimis`, t1.`ofa-przacq-net`, t1.`ofa-przacq-lor`, t1.`ofa-lunghezza`, t1.`ofa-larghezza`, t1.`ofa-quantita`
+      SELECT t1.`id`, t1.`ofa-numoff`, t1.`ofa-codart`, t1.`ofa-descart`, t1.`ofa-lungsmu`, t3.`fam-descriz`, t1.`ofa-moltipl`, t1.`ofa-scarto`, t1.`ofa-oneriacc`, t1.`ofa-unimis`, t1.`ofa-przacq-net`, t1.`ofa-przacq-lor`, t1.`ofa-lunghezza`, t1.`ofa-larghezza`, t1.`ofa-quantita`
         FROM offerte_dettaglio_articoli t1, articoli t2, famiglie t3
-       WHERE t1.`ofa-numoff` = ?
+       WHERE t1.`ofa-offid` = ?
          AND t1.`ofa-codart` = t2.`art-codart`
          AND t2.`art-codfam` = t3.`fam-codfam`
+		ORDER BY t1.`datains`
 	";
 	$result = $mysqli->prepare($query);
-  $result->bind_param('i', $_GET['ofa_numoff']);
+  $result->bind_param('i', $_GET['ofa_offid']);
 	$result->execute();
 	
 	/* bind result variables */
-	$result->bind_result($ofa_numoff, $ofa_codart, $ofa_descart, $ofa_lungsmu, $fam_descriz, $ofa_moltipl, $ofa_scarto, $ofa_oneriacc, $ofa_unimis, $ofa_przacq_net, $ofa_przacq_lor, $ofa_lunghezza, $ofa_larghezza, $ofa_quantita);
+	$result->bind_result($ofa_id, $ofa_numoff, $ofa_codart, $ofa_descart, $ofa_lungsmu, $fam_descriz, $ofa_moltipl, $ofa_scarto, $ofa_oneriacc, $ofa_unimis, $ofa_przacq_net, $ofa_przacq_lor, $ofa_lunghezza, $ofa_larghezza, $ofa_quantita);
 	
 	/* fetch values */
 	while ($result->fetch()) {
 		$elements[] = array(
+			'ofa_id'         => $ofa_id,
 			'ofa_numoff'     => $ofa_numoff,
       'ofa_codart'     => $ofa_codart,
       'ofa_descart'    => $ofa_descart,

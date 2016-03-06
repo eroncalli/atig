@@ -3,7 +3,7 @@
 function getRowElencoOfferte(stato) {
   if (stato == 0) {
     return ' \
-					<tr numoff="">\
+					<tr off_id="">\
 						<td></td>\
 						<td></td>\
 						<td></td>\
@@ -21,7 +21,7 @@ function getRowElencoOfferte(stato) {
   }
   else {
     return ' \
-					<tr numoff="">\
+					<tr off_id="">\
 						<td></td>\
 						<td></td>\
 						<td></td>\
@@ -42,7 +42,7 @@ function getRowElencoOfferte(stato) {
 
 function getRowHtml() {
 	return '	\
-					<tr ofv_id = "" brandnew  przunit="">\
+					<tr ofv_id="" brandnew  przunit="">\
 						<td>\
 							<select field="voc-codvoc" class="form-control">\
 								<option disabled selected>...</option>\
@@ -230,27 +230,20 @@ function loadElencoOfferte(stato, filtro) {
   });						
 }
 
-function loadDettaglioOfferta(numoff, readonly) {
+function loadDettaglioOfferta(off_id, readonly) {
   $("#header-offerta").show();
   $("#elenco-offerta").hide();
   $("#dettaglio-offerta").show();
 
-  //if (readonly) {
-    //- Disabilita i campi dell'offerta
-    $("#dettaglio-offerta :input").prop("disabled", true);
-    $( "#btn-offerta-crea" ).hide();
-    $( "#btn-offerta-aggiorna" ).hide();
-  //}
-  //else {
-  //  //- Abilita alcuni campi dell'offerta
-  //  $("#dettaglio-offerta :input").prop("disabled", false);
-  //  $("#off-numoff").prop("disabled", true);
-  //  $( "#btn-offerta-crea" ).hide();
-  //}
+	//- Disabilita i campi dell'offerta
+	$("#dettaglio-offerta").attr("off_id","");
+	$("#dettaglio-offerta :input").prop("disabled", true);
+	$( "#btn-offerta-crea" ).hide();
+	$( "#btn-offerta-aggiorna" ).hide();
   
   var getData = {};
-  getData.select_one  = true;
-  getData.off_numoff  = numoff;
+  getData.select_one = true;
+  getData.off_id     = off_id;
 
   $.getJSON("data-offerta.php", getData)
   .done(function(data) {
@@ -260,7 +253,8 @@ function loadDettaglioOfferta(numoff, readonly) {
       var d = "";
 
       //- Imposta i campi dell'offerta
-      $("#off-numoff").val(numoff);          
+			$("#dettaglio-offerta").attr("off_id", off_id);
+      $("#off-numoff").val(data[0].off_numoff);          
       $("#off-codcli").val(data[0].off_codcli);
       $("#off-ragsoc").val(data[0].cli_ragsoc);
 			$("#off-descriz").val(data[0].off_descriz);
@@ -285,13 +279,13 @@ function loadDettaglioOfferta(numoff, readonly) {
 			$( "#off-gg-termine-consegna" ).autoNumeric('set', data[0].off_gg);
     }
     
-    loadDettaglioArticolo(numoff, readonly);
+    loadDettaglioArticolo(off_id, readonly);
   })
   .fail(function(data) {
   });						
 }
 
-function loadDettaglioArticolo(numoff, readonly) {
+function loadDettaglioArticolo(off_id, readonly) {
   $("#header-articolo").show();
   $("#elenco-articolo").hide();
   $("#dettaglio-articolo").show();	
@@ -315,8 +309,8 @@ function loadDettaglioArticolo(numoff, readonly) {
   }
   
   var getData = {};
-  getData.select_one  = true;
-  getData.ofa_numoff  = numoff;
+  getData.select_one = true;
+  getData.ofa_offid  = off_id;
 
   $.getJSON("data-offerta-articoli.php", getData)
   .done(function(data) {
@@ -331,6 +325,7 @@ function loadDettaglioArticolo(numoff, readonly) {
       $( "#ofa-quantita" ).autoNumeric('init', getNumericOptions("qta"));
 
       //- Imposta i campi dell'articolo
+			$("#dettaglio-articolo").attr("ofa_id", data[0].ofa_id);
       $("#ofa-codart").prop("disabled", true);
 
       $( "#ofa-codart" ).val(data[0].ofa_codart);
@@ -355,14 +350,14 @@ function loadDettaglioArticolo(numoff, readonly) {
       $( "#ofa-lungsmu" ).autoNumeric('set', data[0].ofa_lungsmu);
       $( "#ofa-quantita" ).autoNumeric('set', data[0].ofa_quantita);
 
-      loadDettaglioVoci(numoff, data[0].ofa_codart, readonly)
+      loadDettaglioVoci(data[0].ofa_id, data[0].ofa_codart, readonly)
     }
   })
   .fail(function(data) {
   });						
 }
                             
-function loadDettaglioVoci(numoff, codart, readonly) {
+function loadDettaglioVoci(ofa_id, codart, readonly) {
   $("#header-voci").show();
   $("#dettaglio-voci").show();
   $("#footer-voci").show();
@@ -379,8 +374,7 @@ function loadDettaglioVoci(numoff, codart, readonly) {
   $( "tbody tr[num_riga_voce!='1']" ).remove();
 
   var getData = {};
-  getData.ofv_numoff = numoff;
-  getData.ofv_codart = codart;
+  getData.ofv_ofaid = ofa_id;
 
   $.getJSON("data-offerta-costi.php", getData)
   .done(function(data) {
@@ -581,6 +575,7 @@ function showElencoOfferte(start_i, end_i, data, stato, filtro) {
     $("#table-offerta tbody").append(getRowElencoOfferte(stato));
 
     row = $( "#table-offerta tbody tr:last-child" );
+		row.attr( "off_id", item.off_id );
     row.attr( "numoff", item.off_numoff );
 
     var d = new Date(item.off_datains.substring(0,10));
@@ -598,7 +593,7 @@ function showElencoOfferte(start_i, end_i, data, stato, filtro) {
     //- Gestisce pulsante Modifica
     //-
     row.find('[field="btn-offerta-modifica"]').click(function() {
-      loadDettaglioOfferta(item.off_numoff, false);
+      loadDettaglioOfferta(item.off_id, false);
       $( "#btn-offerta-aggiorna" ).hide();
 			
 			$( "#btn-offerta-elenco" ).removeClass( "btn-primary" );
@@ -611,7 +606,7 @@ function showElencoOfferte(start_i, end_i, data, stato, filtro) {
     //- Gestisce pulsante Visualizza
     //-
     row.find('[field="btn-offerta-visualizza"]').click(function() {
-      loadDettaglioOfferta(item.off_numoff, true);
+      loadDettaglioOfferta(item.off_id, true);
       $( "#btn-offerta-aggiorna" ).hide();
 			
 			$( "#btn-offerta-elenco" ).removeClass( "btn-primary" );
@@ -626,8 +621,8 @@ function showElencoOfferte(start_i, end_i, data, stato, filtro) {
     row.find('[field="btn-offerta-duplica"]').click(function() {
       //- Crea una nuova offerta
       var getData = {};
-      getData.clone       = true;
-      getData.off_numoff  = item.off_numoff;
+      getData.clone   = true;
+      getData.off_id  = item.off_id;
 		
 			$( "#btn-offerta-elenco" ).removeClass( "btn-primary" );
 			$( "#btn-offerta-elenco" ).addClass( "btn-default" );
@@ -640,7 +635,8 @@ function showElencoOfferte(start_i, end_i, data, stato, filtro) {
           alert(data.error);
         } else {
           //- Mostra i dettagli
-          loadDettaglioOfferta(data[0].off_numoff, false);
+					$("#dettaglio-offerta").attr("off_id", data[0].off_id)
+          loadDettaglioOfferta(data[0].off_id, false);
           $( "#btn-offerta-aggiorna" ).show();
           
           //- Abilita l'header offerta per l'eventuale cambio di cliente
@@ -658,7 +654,7 @@ function showElencoOfferte(start_i, end_i, data, stato, filtro) {
     //- Gestisce pulsante Cancella
     //-
     row.find('[field="btn-offerta-delete"]').click(function() {
-      $( "#dialog-confirm span[msg]" ).text("L'offerta " + item.off_numoff + " verra' cancellata. Confermi ?");
+      $( "#dialog-confirm span[msg]" ).text("L'offerta " + item.off_numoff + " del " + d.toLocaleDateString() + " verra' cancellata. Confermi ?");
       
       $( "#dialog-confirm" ).dialog({
         resizable: false,
@@ -673,7 +669,7 @@ function showElencoOfferte(start_i, end_i, data, stato, filtro) {
             //- Elimina l'offerta
             var getData = {};
             getData.delete_logic = true;
-            getData.off_numoff   = item.off_numoff;
+            getData.off_id       = item.off_id;
 
             $.getJSON("data-offerta.php", getData)
             .done(function(data) {
@@ -781,6 +777,7 @@ function init() {
     $("#footer-voci").hide();
 		
 		//- Abilita campi e pulisce
+		$("#dettaglio-offerta").attr("off_id", "");
 		$("#dettaglio-offerta :input").prop("disabled", false);
 		$("#dettaglio-offerta :input").val("");
 		$("#btn-offerta-crea").show();
@@ -908,7 +905,8 @@ function init() {
 			if (data.error) {
 				alert(data.error);
 			} else {
-				//- Assegna il numoff
+				//- Assegna l'id e il numoff
+				$("#dettaglio-offerta").attr("off_id", data[0].off_id);
 				$("#off-numoff").val(data[0].off_numoff);
 
 				//- Disabilita i campi dell'offerta
@@ -948,7 +946,7 @@ function init() {
 		//- Aggiorna l'offerta
 		var getData = {};
 		getData.update      = true;
-    getData.off_numoff  = $("#off-numoff").val();
+    getData.off_id      = $("#dettaglio-offerta").attr("off_id");
     getData.off_codcli  = $("#off-codcli").val();
     getData.off_datains = $("#off-datains").val();
 		getData.off_gg      = gg;
@@ -1111,7 +1109,7 @@ function init() {
 		//- Crea una nuova offerta
 		var getData = {};
 		getData.insert         = true;
-    getData.ofa_numoff     = $("#off-numoff").val();
+    getData.ofa_offid      = $("#dettaglio-offerta").attr("off_id");
     getData.ofa_codart     = $("#ofa-codart").val();
     getData.ofa_descart    = $("#ofa-descart").val();
     getData.ofa_unimis     = $("#ofa-unimis").val();
@@ -1132,6 +1130,10 @@ function init() {
 			if (data.error) {
 					alert(data.error);
 				} else {		
+					//- Assegna l'id all'articolo
+					var ofa_id = data.id;
+					$("#dettaglio-articolo").attr("ofa_id", ofa_id);
+					
 					//- Disabilita i campi dell'articolo
 					$("#ofa-codart").prop("disabled", true);
 					$("#btn-articolo-inserisci").hide();
@@ -1160,7 +1162,7 @@ function init() {
           //- Inserisce la voce associata all' ARTICOLO (num_riga_voce == 1) (cod-voce == 1)
           var getData = {};
           getData.insertArticolo = true;
-          getData.ofv_numoff     = $("#off-numoff").val();
+          getData.ofv_ofaid      = ofa_id;
           getData.ofv_codart     = $("#ofa-codart").val();
 
           $.getJSON("data-offerta-costi.php", getData)
@@ -1260,9 +1262,9 @@ function init() {
 		
 		//- Crea una nuova offerta
 		var getData = {};
-		getData.update        = true;
-    getData.ofa_numoff    = $("#off-numoff").val();
-    getData.ofa_codart    = $("#ofa-codart").val();
+		getData.update         = true;
+    getData.ofa_id         = $("#dettaglio-articolo").attr("ofa_id");
+    getData.ofa_codart     = $("#ofa-codart").val();
     getData.ofa_unimis     = $("#ofa-unimis").val();
     getData.ofa_przacq_net = $("#ofa-przacq-net").autoNumeric('get');
     getData.ofa_przacq_lor = $("#ofa-przacq-lor").autoNumeric('get');
@@ -1311,7 +1313,7 @@ function init() {
       var lastRow  = $( 'tr[num_riga_voce="' + maxNumRigaVoce + '"]');
       
       //- Non ha ancora selezionato un articolo
-      if (lastRow.find('[field="voc-codvoc"]').prop('disabled') == false) {
+      if (lastRow.find('[field="voc-codvoc"]').attr('empty') == "") {
         return;
       }     
     }
@@ -1321,7 +1323,7 @@ function init() {
 		//- Crea una nuova voce
 		var getData = {};
 		getData.insert            = true;
-    getData.ofv_numoff        = $("#off-numoff").val();
+    getData.ofv_ofaid         = $("#dettaglio-articolo").attr("ofa_id");
     getData.ofv_codart        = $("#ofa-codart").val();
     getData.ofv_num_riga_voce = newNumRigaVoce;
 		
@@ -1382,9 +1384,12 @@ function init() {
                 row.find('[field="ofv-valtot-fin"]').autoNumeric('init', getNumericOptions("currency"));
                 
 								//- Gestisce la selezione di una voce
+								row.find('[field="voc-codvoc"]').attr("empty", "");
 								row.find('[field="voc-codvoc"]').selectmenu({
   								change: function( event, ui ) {
                     
+										row.find('[field="voc-codvoc"]').removeAttr("empty");
+										
                     //- Disabilita la combo
                     row.find('[field="voc-codvoc"]')
 											.selectmenu( "close" )
@@ -1679,7 +1684,7 @@ function init() {
 		//- Update sul server
 		var getData = {};
 		getData.update          = true;
-    getData.ofv_numoff      = $("#off-numoff").val();
+    getData.ofv_ofaid       = $("#dettaglio-articolo").attr("ofa_id");
     
 		//- Dati dell'articolo
     getData.ofv_codart      = $("#ofa-codart").val();
@@ -1735,8 +1740,8 @@ function init() {
     
 		//- Cambia lo stato dell'offerta in completato
 		var getData = {};
-		getData.update_stato_salva  = true;
-    getData.off_numoff          = $("#off-numoff").val();
+		getData.update_stato_salva = true;
+    getData.off_id             = $("#dettaglio-offerta").attr("off_id");
     
 		$.getJSON("data-offerta.php", getData)
 		.done(function(data) {
@@ -1756,7 +1761,7 @@ function init() {
 		//- Cambia lo stato dell'offerta in completato
 		var getData = {};
 		getData.update_stato  = true;
-    getData.off_numoff    = $("#off-numoff").val();
+    getData.off_id        = $("#dettaglio-offerta").attr("off_id");
     
 		$.getJSON("data-offerta.php", getData)
 		.done(function(data) {
