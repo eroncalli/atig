@@ -9,6 +9,7 @@ error_reporting(0);
 include ('connect.php');
 
 $mysqli = new mysqli($hostname, $username, $password, $database);
+$mysqli->set_charset("utf8");
 
 if (mysqli_connect_errno()) {
 	echo json_encode(array('error' => 'Errore di connessione al database.'));
@@ -81,6 +82,8 @@ else if (isset($_POST['update'])) {
 	$query = "
 			UPDATE `offerte_dettaglio_costi`
 			SET `ofv-codvoce` = ?,
+					`ofv-desc-manuale` = ?,
+					`ofv-semanual` = ?,
 			    `ofv-quantita` = ?,
 					`ofv-lunghezza` = ?,
 					`ofv-larghezza` = ?,
@@ -108,9 +111,10 @@ else if (isset($_POST['update'])) {
 	
   $arrVoci = $_POST['voci'];
 	foreach ($arrVoci as $voce) {
-    
-		$result->bind_param('iidddiddddsdsissddsssi', 
-											$voce['ofv_codvoce'], 
+		$result->bind_param('isiidddiddddsdsissddsssi', 
+											$voce['ofv_codvoce'],
+											$voce['ofv_desc_manuale'], 
+											$voce['ofv_semanual'], 
 											$voce['ofv_quantita'], 
 											$voce['ofv_lunghezza'], 
 											$voce['ofv_larghezza'],
@@ -134,6 +138,8 @@ else if (isset($_POST['update'])) {
 											$voce['ofv_id']);
 		$res = $result->execute() or trigger_error($result->error, E_USER_ERROR);
 		echo $res;
+		echo "---";
+		echo $voce['ofv_desc_manuale'];
 	}
 } 
 else if (isset($_GET['delete'])) {    
@@ -151,14 +157,29 @@ else if (isset($_GET['delete'])) {
 else {
 	// SELECT COMMAND
 	$query = "
-  SELECT `id`, `ofv-num-riga-voce`, `ofv-codvoce`,
-         `ofv-quantita`, `ofv-lunghezza`, `ofv-larghezza`,
-         `ofv-spessore`, `ofv-durata`, `ofv-sconto`,
-         `ofv-valuni-cal`, `ofv-valuni-fin`, `ofv-valtot-fin`,
-         `ofv-codart-agg`, `ofv-codart-agg-prz-lor`,
-         `ofv-descriz`, `ofv-formula`, `ofv-desc-formula`,
-         `ofv-critcalc`, `ofv-costo`, `ofv-dimsmusso`,
-         `ofv-desc1`, `ofv-desc2`, `ofv-desc3`
+  SELECT `id`, `ofv-num-riga-voce`, `ofv-codvoce`, 
+			   `ofv-desc-manuale`,
+				 `ofv-semanual`,
+         `ofv-quantita`, 
+				 `ofv-lunghezza`, 
+				 `ofv-larghezza`,
+         `ofv-spessore`,
+				 `ofv-durata`,
+				 `ofv-sconto`,
+         `ofv-valuni-cal`,
+				 `ofv-valuni-fin`,
+				 `ofv-valtot-fin`,
+         `ofv-codart-agg`, 
+				 `ofv-codart-agg-prz-lor`,
+         `ofv-descriz`, 
+				 `ofv-formula`, 
+				 `ofv-desc-formula`,
+         `ofv-critcalc`, 
+				 `ofv-costo`, 
+				 IFNULL(`ofv-dimsmusso`,0) as `ofv-dimsmusso`,
+         IFNULL(`ofv-desc1`,'') as `ofv-desc1`,
+				 IFNULL(`ofv-desc2`, '') as `ofv-desc2`,
+				 IFNULL(`ofv-desc3`, '') as `ofv-desc3`
     FROM `offerte_dettaglio_costi` 
    WHERE `ofv-ofaid` = ?
 ORDER BY `ofv-num-riga-voce`
@@ -168,13 +189,15 @@ ORDER BY `ofv-num-riga-voce`
 	$result->execute();
 	  
 	/* bind result variables */
-	$result->bind_result($id, $ofv_num_riga_voce, $ofv_codvoce, $ofv_quantita, $ofv_lunghezza, $ofv_larghezza, $ofv_spessore, $ofv_durata, $ofv_sconto, $ofv_valuni_cal, $ofv_valuni_fin, $ofv_valtot_fin, $ofv_codart_agg, $ofv_codart_agg_prz_lor, $ofv_descriz, $ofv_formula, $ofv_desc_formula, $ofv_critcalc, $ofv_costo, $ofv_dimsmusso, $ofv_desc1, $ofv_desc2, $ofv_desc3);
+	$result->bind_result($id, $ofv_num_riga_voce, $ofv_codvoce, $ofv_desc_manuale, $ofv_semanual, $ofv_quantita, $ofv_lunghezza, $ofv_larghezza, $ofv_spessore, $ofv_durata, $ofv_sconto, $ofv_valuni_cal, $ofv_valuni_fin, $ofv_valtot_fin, $ofv_codart_agg, $ofv_codart_agg_prz_lor, $ofv_descriz, $ofv_formula, $ofv_desc_formula, $ofv_critcalc, $ofv_costo, $ofv_dimsmusso, $ofv_desc1, $ofv_desc2, $ofv_desc3);
 	/* fetch values */
 	while ($result->fetch()) {
 		$elements[] = array(
       'id'                     => $id, 
       'ofv_num_riga_voce'      => $ofv_num_riga_voce,
       'ofv_codvoce'            => $ofv_codvoce, 
+			'ofv_desc_manuale'       => $ofv_desc_manuale, 
+			'ofv_semanual' 		       => $ofv_semanual, 
       'ofv_quantita'           => $ofv_quantita,
       'ofv_lunghezza'          => $ofv_lunghezza,
       'ofv_larghezza'          => $ofv_larghezza,

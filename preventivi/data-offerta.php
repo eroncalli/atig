@@ -52,6 +52,7 @@ function cleanDB($mysqli) {
 include ('connect.php');
 
 $mysqli = new mysqli($hostname, $username, $password, $database);
+$mysqli->set_charset("utf8");
 
 if (mysqli_connect_errno()) {
 	echo json_encode(array('error' => 'Errore di connessione al database.'));
@@ -139,8 +140,8 @@ else if (isset($_GET['clone'])) {
 	
 	$query = "
 		INSERT INTO `offerte_dettaglio_costi` 
-					(`ofv-ofaid`, `ofv-codvoce`, `ofv-quantita`, `ofv-lunghezza`, `ofv-larghezza`, `ofv-spessore`, `ofv-tiposmu`, `ofv-lungsmu`, `ofv-przacq`, `ofv-sconto`, `ofv-valuni-cal`, `ofv-valuni-fin`, `datains`, `ofv-num-riga-voce`, `ofv-durata`, `ofv-codart`, `ofv-valtot-fin`, `ofv-codart-agg`, `ofv-codart-agg-prz-lor`, `ofv-descriz`, `ofv-formula`, `ofv-desc-formula`, `ofv-critcalc`, `ofv-costo`, `ofv-dimsmusso`, `ofv-desc1`, `ofv-desc2`, `ofv-desc3`)
-		SELECT ?,           `ofv-codvoce`, `ofv-quantita`, `ofv-lunghezza`, `ofv-larghezza`, `ofv-spessore`, `ofv-tiposmu`, `ofv-lungsmu`, `ofv-przacq`, `ofv-sconto`, `ofv-valuni-cal`, `ofv-valuni-fin`, CURRENT_TIMESTAMP, `ofv-num-riga-voce`, `ofv-durata`, `ofv-codart`, `ofv-valtot-fin`, `ofv-codart-agg`, `ofv-codart-agg-prz-lor`, `ofv-descriz`, `ofv-formula`, `ofv-desc-formula`, `ofv-critcalc`, `ofv-costo`, `ofv-dimsmusso`, `ofv-desc1`, `ofv-desc2`, `ofv-desc3`
+					(`ofv-ofaid`, `ofv-codvoce`, `ofv-desc-manuale`, `ofv-semanual`, `ofv-quantita`, `ofv-lunghezza`, `ofv-larghezza`, `ofv-spessore`, `ofv-tiposmu`, `ofv-lungsmu`, `ofv-przacq`, `ofv-sconto`, `ofv-valuni-cal`, `ofv-valuni-fin`, `datains`, `ofv-num-riga-voce`, `ofv-durata`, `ofv-codart`, `ofv-valtot-fin`, `ofv-codart-agg`, `ofv-codart-agg-prz-lor`, `ofv-descriz`, `ofv-formula`, `ofv-desc-formula`, `ofv-critcalc`, `ofv-costo`, `ofv-dimsmusso`, `ofv-desc1`, `ofv-desc2`, `ofv-desc3`)
+		SELECT ?,           `ofv-codvoce`, `ofv-desc-manuale`, `ofv-semanual`, `ofv-quantita`, `ofv-lunghezza`, `ofv-larghezza`, `ofv-spessore`, `ofv-tiposmu`, `ofv-lungsmu`, `ofv-przacq`, `ofv-sconto`, `ofv-valuni-cal`, `ofv-valuni-fin`, CURRENT_TIMESTAMP, `ofv-num-riga-voce`, `ofv-durata`, `ofv-codart`, `ofv-valtot-fin`, `ofv-codart-agg`, `ofv-codart-agg-prz-lor`, `ofv-descriz`, `ofv-formula`, `ofv-desc-formula`, `ofv-critcalc`, `ofv-costo`, `ofv-dimsmusso`, `ofv-desc1`, `ofv-desc2`, `ofv-desc3`
 		FROM `offerte_dettaglio_costi` 
 		WHERE `ofv-ofaid` = ?
 	";

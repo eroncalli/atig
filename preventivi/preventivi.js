@@ -60,6 +60,10 @@ function getRowHtml() {
 						</td>-->\
 						<td>\
 							<div class="input-group width200">\
+                <span qta field="label-descriz" class="input-group-addon">Descr</span>\
+                <input qta field="ofv-desc-manuale" type="text" class="form-control" placeholder="Descrizione">\
+              </div>\
+							<div class="input-group width200">\
                 <span qta field="label-quantita" class="input-group-addon">Qta</span>\
                 <input qta field="ofv-quantita" type="text" class="form-control" placeholder="Qta">\
               </div>\
@@ -448,6 +452,7 @@ function loadDettaglioVoci(ofa_id, codart, readonly) {
 
           row.attr('descriz', item.ofv_descriz);
           row.attr('critcalc', item.ofv_critcalc);
+					row.attr('manuale', item.ofv_semanual);
           row.attr('voc-formula', item.ofv_formula);
           row.find("td").first().tooltip();
           row.find("td").first().prop('title', item.ofv_desc_formula);
@@ -473,6 +478,12 @@ function loadDettaglioVoci(ofa_id, codart, readonly) {
               break;
           }
 
+					//- Mostra la descrizione (Se voce manuale)
+					if (item.ofv_semanual == "1") {
+						row.find('[field="ofv-desc-manuale"]').val(item.ofv_desc_manuale);
+						row.find('[field="ofv-desc-manuale"]').show();
+					}
+					
           //- Carica i dati aggiuntivi in base alla formula
           switch (""+item.ofv_formula) {
           case "3": //-MANODOPERA
@@ -496,6 +507,9 @@ function loadDettaglioVoci(ofa_id, codart, readonly) {
           }
 
           //- Gestisce il cambio valore di qta/lun/lar/spe/dur
+					row.find('[field="ofv-desc-manuale"]').keyup(function() { 
+						$( "#btn-voci-ricalcola" ).trigger( "click" );
+          });
           row.find('[field="ofv-quantita"]').keyup(function() {
             applyFormula(row); 
 						$( "#btn-voci-ricalcola" ).trigger( "click" );
@@ -1170,8 +1184,6 @@ function init() {
 		getData.ofa_larghezza  = $("#ofa-larghezza").autoNumeric('get');
     getData.ofa_lungsmu    = $("#ofa-lungsmu").autoNumeric('get');
     getData.ofa_quantita   = $("#ofa-quantita").autoNumeric('get');
-		
-    console.log(getData);
     
 		$.getJSON("data-offerta-articoli.php", getData)
 		.done(function(data) {
@@ -1465,12 +1477,14 @@ function init() {
 										});
                     
                     var descriz     = arr[0].voc_descriz;
+										var manuale     = arr[0].voc_semanual;
                     var formula     = arr[0].codice;
                     var descFormula = arr[0].formula;
                     var critcalc    = arr[0].critcalc;
 
                     //- Imposta i valori
                     row.attr('descriz', descriz);
+										row.attr('manuale', manuale);
                     row.attr('critcalc', critcalc);
                     row.attr('voc-formula', formula);
                     row.find("td").first().tooltip();
@@ -1502,6 +1516,11 @@ function init() {
 												break;
 										}
                     
+										//- Se voce manuale, mostra il campo descrizione
+										if (manuale == "1") {
+											row.find('[field="ofv-desc-manuale"]').show();
+										}
+										
                     //- Carica lo sconto in base alla voce
 										var getData = {};
 										getData.scontoPerVoce = true;
@@ -1663,6 +1682,9 @@ function init() {
 								});
 								
                 //- Gestisce il cambio valore di qta/lun/lar/spe/dur valore e sconto
+								row.find('[field="ofv-desc-manuale"]').keyup(function() {
+                  $( "#btn-voci-ricalcola" ).trigger( "click" );
+                });
                 row.find('[field="ofv-quantita"]').keyup(function() {
                   applyFormula(row); 
                   $( "#btn-voci-ricalcola" ).trigger( "click" );
@@ -1770,6 +1792,7 @@ function init() {
 			var objVoce = {};
 			objVoce.ofv_id         = $row.attr("ofv_id");
 			objVoce.ofv_codvoce    = $row.find('[field="voc-codvoc"]').val();
+			objVoce.ofv_desc_manuale = $row.find('[field="ofv-desc-manuale"]').val();
 			objVoce.ofv_quantita   = $row.find('[field="ofv-quantita"]').autoNumeric('get');
 			objVoce.ofv_lunghezza  = $row.find('[field="ofv-lunghezza"]').autoNumeric('get');
 			objVoce.ofv_larghezza  = $row.find('[field="ofv-larghezza"]').autoNumeric('get');
@@ -1785,6 +1808,7 @@ function init() {
       objVoce.ofv_descriz    = $row.attr('descriz');
 			objVoce.ofv_formula    = $row.attr('voc-formula');
 			objVoce.ofv_desc_formula = "";
+			objVoce.ofv_semanual   = $row.attr('manuale');
 			objVoce.ofv_critcalc   = $row.attr('critcalc');
 			objVoce.ofv_costo      = $row.attr('przunit');
 			objVoce.ofv_dimsmusso  = $row.find('[field="ofv-codart-agg"]').attr("smusso");
@@ -1798,6 +1822,7 @@ function init() {
 		$.post("data-offerta-costi.php", getData)
 		.done(function(data) {
 			//- TODO ... messaggio preventivo salvato
+			console.log(data);
 		})
 		.fail(function(data) {
 			console.log("fail");

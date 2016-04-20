@@ -9,6 +9,7 @@ error_reporting(0);
 include ('connect.php');
 
 $mysqli = new mysqli($hostname, $username, $password, $database);
+$mysqli->set_charset("utf8");
 
 if (mysqli_connect_errno()) {
 	echo json_encode(array('error' => 'Errore di connessione al database.'));
