@@ -59,8 +59,8 @@
             $field = new DateTimeField('datamod');
             $this->dataset->AddField($field, false);
             $this->dataset->AddLookupField('sco-codcli', 'clienti', new StringField('cli-codcli'), new StringField('cli-ragsoc', 'sco-codcli_cli-ragsoc', 'sco-codcli_cli-ragsoc_clienti'), 'sco-codcli_cli-ragsoc_clienti');
-            $this->dataset->AddLookupField('sco-codart', 'articoli', new StringField('art-codart'), new StringField('art-descart', 'sco-codart_art-descart', 'sco-codart_art-descart_articoli'), 'sco-codart_art-descart_articoli');
-            $this->dataset->AddLookupField('sco-codvoc', 'listino_voci', new IntegerField('ivo-codvoc'), new IntegerField('ivo-codvoc', 'sco-codvoc_ivo-codvoc', 'sco-codvoc_ivo-codvoc_listino_voci'), 'sco-codvoc_ivo-codvoc_listino_voci');
+            $this->dataset->AddLookupField('sco-codart', 'elenco_articoli_view', new StringField('art-codart'), new StringField('descrizione', 'sco-codart_descrizione', 'sco-codart_descrizione_elenco_articoli_view'), 'sco-codart_descrizione_elenco_articoli_view');
+            $this->dataset->AddLookupField('sco-codvoc', '(select `id`, concat(`voc-codvoce`, IF(`voc-descriz` <> \'\', concat(\' - \', `voc-descriz`),\'\')) as descvoce from voci_costo)', new IntegerField('id'), new StringField('descvoce', 'sco-codvoc_descvoce', 'sco-codvoc_descvoce_query_listino_voci'), 'sco-codvoc_descvoce_query_listino_voci');
         }
     
         protected function DoPrepare() {
@@ -83,6 +83,8 @@
                 $result->AddPage(new PageLink($this->RenderText('Articoli'), 'articoli.php', $this->RenderText('Articoli'), $currentPageCaption == $this->RenderText('Articoli'), false, $this->RenderText('Default')));
             if (GetCurrentUserGrantForDataSource('famiglie')->HasViewGrant())
                 $result->AddPage(new PageLink($this->RenderText('Famiglie'), 'famiglie.php', $this->RenderText('Famiglie'), $currentPageCaption == $this->RenderText('Famiglie'), false, $this->RenderText('Default')));
+            if (GetCurrentUserGrantForDataSource('offerte')->HasViewGrant())
+                $result->AddPage(new PageLink($this->RenderText('Offerte'), 'offerte.php', $this->RenderText('Offerte'), $currentPageCaption == $this->RenderText('Offerte'), false, $this->RenderText('Default')));
             if (GetCurrentUserGrantForDataSource('listino_voci')->HasViewGrant())
                 $result->AddPage(new PageLink($this->RenderText('Listino Voci'), 'listino_voci.php', $this->RenderText('Listino Voci'), $currentPageCaption == $this->RenderText('Listino Voci'), false, $this->RenderText('Default')));
             if (GetCurrentUserGrantForDataSource('listino_articoli')->HasViewGrant())
@@ -95,6 +97,8 @@
                 $result->AddPage(new PageLink($this->RenderText('Listini'), 'listini.php', $this->RenderText('Listini'), $currentPageCaption == $this->RenderText('Listini'), false, $this->RenderText('Default')));
             if (GetCurrentUserGrantForDataSource('scontistica_clienti')->HasViewGrant())
                 $result->AddPage(new PageLink($this->RenderText('Scontistica Clienti'), 'scontistica_clienti.php', $this->RenderText('Scontistica Clienti'), $currentPageCaption == $this->RenderText('Scontistica Clienti'), false, $this->RenderText('Default')));
+            if (GetCurrentUserGrantForDataSource('query_listino_voci')->HasViewGrant())
+                $result->AddPage(new PageLink($this->RenderText('Query Listino Voci'), 'query_listino_voci.php', $this->RenderText('Query Listino Voci'), $currentPageCaption == $this->RenderText('Query Listino Voci'), false, $this->RenderText('Default')));
             
             if ( HasAdminPage() && GetApplication()->HasAdminGrantForCurrentUser() ) {
               $result->AddGroup('Admin area');
@@ -158,65 +162,30 @@
             $lookupDataset = new TableDataset(
                 new MyPDOConnectionFactory(),
                 GetConnectionOptions(),
-                '`articoli`');
-            $field = new IntegerField('id', null, null, true);
-            $field->SetIsNotNull(true);
-            $lookupDataset->AddField($field, true);
+                '`elenco_articoli_view`');
             $field = new StringField('art-codart');
             $field->SetIsNotNull(true);
             $lookupDataset->AddField($field, false);
-            $field = new StringField('art-descart');
+            $field = new StringField('descrizione');
             $lookupDataset->AddField($field, false);
-            $field = new StringField('art-dessup');
-            $lookupDataset->AddField($field, false);
-            $field = new StringField('art-codprod');
-            $lookupDataset->AddField($field, false);
-            $field = new StringField('art-codfam');
-            $lookupDataset->AddField($field, false);
-            $field = new StringField('art-gruppo-merc');
-            $lookupDataset->AddField($field, false);
-            $field = new StringField('art-categoria-omogenea');
-            $lookupDataset->AddField($field, false);
-            $field = new IntegerField('art-lungsmu');
-            $lookupDataset->AddField($field, false);
-            $field = new DateTimeField('datains');
-            $lookupDataset->AddField($field, false);
-            $field = new DateTimeField('datamod');
-            $lookupDataset->AddField($field, false);
-            $lookupDataset->setOrderByField('art-descart', GetOrderTypeAsSQL(otAscending));
-            $this->AdvancedSearchControl->AddSearchColumn($this->AdvancedSearchControl->CreateLookupSearchInput('sco-codart', $this->RenderText('Codice articolo'), $lookupDataset, 'art-codart', 'art-descart', false, 8));
+            $lookupDataset->setOrderByField('descrizione', GetOrderTypeAsSQL(otAscending));
+            $this->AdvancedSearchControl->AddSearchColumn($this->AdvancedSearchControl->CreateLookupSearchInput('sco-codart', $this->RenderText('Codice articolo'), $lookupDataset, 'art-codart', 'descrizione', false, 8));
             
-            $lookupDataset = new TableDataset(
-                new MyPDOConnectionFactory(),
-                GetConnectionOptions(),
-                '`listino_voci`');
+            $selectQuery = 'select `id`, concat(`voc-codvoce`, IF(`voc-descriz` <> \'\', concat(\' - \', `voc-descriz`),\'\')) as descvoce from voci_costo';
+            $insertQuery = array();
+            $updateQuery = array();
+            $deleteQuery = array();
+            $lookupDataset = new QueryDataset(
+              new MyPDOConnectionFactory(), 
+              GetConnectionOptions(),
+              $selectQuery, $insertQuery, $updateQuery, $deleteQuery, 'query_listino_voci');
             $field = new IntegerField('id');
             $field->SetIsNotNull(true);
-            $lookupDataset->AddField($field, false);
-            $field = new StringField('ivo-codart');
-            $field->SetIsNotNull(true);
             $lookupDataset->AddField($field, true);
-            $field = new IntegerField('ivo-codvoc');
-            $field->SetIsNotNull(true);
-            $lookupDataset->AddField($field, true);
-            $field = new IntegerField('ivo-przunit');
+            $field = new StringField('descvoce');
             $lookupDataset->AddField($field, false);
-            $field = new StringField('ivo-flagart');
-            $lookupDataset->AddField($field, false);
-            $field = new StringField('ivo-flagsmu');
-            $lookupDataset->AddField($field, false);
-            $field = new StringField('ivo-tiposmu');
-            $lookupDataset->AddField($field, false);
-            $field = new DateTimeField('ivo-dataini');
-            $lookupDataset->AddField($field, false);
-            $field = new DateTimeField('ivo-datafin');
-            $lookupDataset->AddField($field, false);
-            $field = new DateTimeField('datains');
-            $lookupDataset->AddField($field, false);
-            $field = new DateTimeField('datamod');
-            $lookupDataset->AddField($field, false);
-            $lookupDataset->setOrderByField('ivo-codvoc', GetOrderTypeAsSQL(otAscending));
-            $this->AdvancedSearchControl->AddSearchColumn($this->AdvancedSearchControl->CreateLookupSearchInput('sco-codvoc', $this->RenderText('Codice tipo voce'), $lookupDataset, 'ivo-codvoc', 'ivo-codvoc', false, 8));
+            $lookupDataset->setOrderByField('descvoce', GetOrderTypeAsSQL(otAscending));
+            $this->AdvancedSearchControl->AddSearchColumn($this->AdvancedSearchControl->CreateLookupSearchInput('sco-codvoc', $this->RenderText('Codice tipo voce'), $lookupDataset, 'id', 'descvoce', false, 8));
             $this->AdvancedSearchControl->AddSearchColumn($this->AdvancedSearchControl->CreateStringSearchInput('sco-sconto', $this->RenderText('Sconto')));
         }
     
@@ -260,18 +229,18 @@
             $grid->AddViewColumn($column);
             
             //
-            // View column for art-descart field
+            // View column for descrizione field
             //
-            $column = new TextViewColumn('sco-codart_art-descart', 'Codice articolo', $this->dataset);
+            $column = new TextViewColumn('sco-codart_descrizione', 'Codice articolo', $this->dataset);
             $column->SetOrderable(true);
             $column->SetDescription($this->RenderText(''));
             $column->SetFixedWidth(null);
             $grid->AddViewColumn($column);
             
             //
-            // View column for ivo-codvoc field
+            // View column for descvoce field
             //
-            $column = new TextViewColumn('sco-codvoc_ivo-codvoc', 'Codice tipo voce', $this->dataset);
+            $column = new TextViewColumn('sco-codvoc_descvoce', 'Codice tipo voce', $this->dataset);
             $column->SetOrderable(true);
             $column->SetDescription($this->RenderText(''));
             $column->SetFixedWidth(null);
@@ -298,16 +267,16 @@
             $grid->AddSingleRecordViewColumn($column);
             
             //
-            // View column for art-descart field
+            // View column for descrizione field
             //
-            $column = new TextViewColumn('sco-codart_art-descart', 'Codice articolo', $this->dataset);
+            $column = new TextViewColumn('sco-codart_descrizione', 'Codice articolo', $this->dataset);
             $column->SetOrderable(true);
             $grid->AddSingleRecordViewColumn($column);
             
             //
-            // View column for ivo-codvoc field
+            // View column for descvoce field
             //
-            $column = new TextViewColumn('sco-codvoc_ivo-codvoc', 'Codice tipo voce', $this->dataset);
+            $column = new TextViewColumn('sco-codvoc_descvoce', 'Codice tipo voce', $this->dataset);
             $column->SetOrderable(true);
             $grid->AddSingleRecordViewColumn($column);
             
@@ -325,7 +294,10 @@
             //
             // Edit column for sco-codcli field
             //
-            $editor = new ComboBox('sco-codcli_edit', $this->GetLocalizerCaptions()->GetMessageString('PleaseSelect'));
+            $editor = new AutocomleteComboBox('sco-codcli_edit', $this->CreateLinkBuilder());
+            $editor->SetSize('250px');
+            $editor->setAllowClear(true);
+            $editor->setMinimumInputLength(0);
             $lookupDataset = new TableDataset(
                 new MyPDOConnectionFactory(),
                 GetConnectionOptions(),
@@ -346,54 +318,32 @@
             $field = new DateTimeField('datamod');
             $lookupDataset->AddField($field, false);
             $lookupDataset->setOrderByField('cli-ragsoc', GetOrderTypeAsSQL(otAscending));
-            $editColumn = new LookUpEditColumn(
-                'Codice cliente', 
-                'sco-codcli', 
-                $editor, 
-                $this->dataset, 'cli-codcli', 'cli-ragsoc', $lookupDataset);
-            $editColumn->SetAllowSetToNull(true);
+            $editColumn = new DynamicLookupEditColumn('Codice cliente', 'sco-codcli', 'sco-codcli_cli-ragsoc', 'edit_sco-codcli_cli-ragsoc_search', $editor, $this->dataset, $lookupDataset, 'cli-codcli', 'cli-ragsoc', '');
+            $validator = new RequiredValidator(StringUtils::Format($this->GetLocalizerCaptions()->GetMessageString('RequiredValidationMessage'), $this->RenderText($editColumn->GetCaption())));
+            $editor->GetValidatorCollection()->AddValidator($validator);
             $this->ApplyCommonColumnEditProperties($editColumn);
             $grid->AddEditColumn($editColumn);
             
             //
             // Edit column for sco-codart field
             //
-            $editor = new ComboBox('sco-codart_edit', $this->GetLocalizerCaptions()->GetMessageString('PleaseSelect'));
+            $editor = new AutocomleteComboBox('sco-codart_edit', $this->CreateLinkBuilder());
+            $editor->SetSize('250px');
+            $editor->setAllowClear(true);
+            $editor->setMinimumInputLength(0);
             $lookupDataset = new TableDataset(
                 new MyPDOConnectionFactory(),
                 GetConnectionOptions(),
-                '`articoli`');
-            $field = new IntegerField('id', null, null, true);
-            $field->SetIsNotNull(true);
-            $lookupDataset->AddField($field, true);
+                '`elenco_articoli_view`');
             $field = new StringField('art-codart');
             $field->SetIsNotNull(true);
             $lookupDataset->AddField($field, false);
-            $field = new StringField('art-descart');
+            $field = new StringField('descrizione');
             $lookupDataset->AddField($field, false);
-            $field = new StringField('art-dessup');
-            $lookupDataset->AddField($field, false);
-            $field = new StringField('art-codprod');
-            $lookupDataset->AddField($field, false);
-            $field = new StringField('art-codfam');
-            $lookupDataset->AddField($field, false);
-            $field = new StringField('art-gruppo-merc');
-            $lookupDataset->AddField($field, false);
-            $field = new StringField('art-categoria-omogenea');
-            $lookupDataset->AddField($field, false);
-            $field = new IntegerField('art-lungsmu');
-            $lookupDataset->AddField($field, false);
-            $field = new DateTimeField('datains');
-            $lookupDataset->AddField($field, false);
-            $field = new DateTimeField('datamod');
-            $lookupDataset->AddField($field, false);
-            $lookupDataset->setOrderByField('art-descart', GetOrderTypeAsSQL(otAscending));
-            $editColumn = new LookUpEditColumn(
-                'Codice articolo', 
-                'sco-codart', 
-                $editor, 
-                $this->dataset, 'art-codart', 'art-descart', $lookupDataset);
-            $editColumn->SetAllowSetToNull(true);
+            $lookupDataset->setOrderByField('descrizione', GetOrderTypeAsSQL(otAscending));
+            $editColumn = new DynamicLookupEditColumn('Codice articolo', 'sco-codart', 'sco-codart_descrizione', 'edit_sco-codart_descrizione_search', $editor, $this->dataset, $lookupDataset, 'art-codart', 'descrizione', '');
+            $validator = new RequiredValidator(StringUtils::Format($this->GetLocalizerCaptions()->GetMessageString('RequiredValidationMessage'), $this->RenderText($editColumn->GetCaption())));
+            $editor->GetValidatorCollection()->AddValidator($validator);
             $this->ApplyCommonColumnEditProperties($editColumn);
             $grid->AddEditColumn($editColumn);
             
@@ -401,42 +351,27 @@
             // Edit column for sco-codvoc field
             //
             $editor = new ComboBox('sco-codvoc_edit', $this->GetLocalizerCaptions()->GetMessageString('PleaseSelect'));
-            $lookupDataset = new TableDataset(
-                new MyPDOConnectionFactory(),
-                GetConnectionOptions(),
-                '`listino_voci`');
+            $selectQuery = 'select `id`, concat(`voc-codvoce`, IF(`voc-descriz` <> \'\', concat(\' - \', `voc-descriz`),\'\')) as descvoce from voci_costo';
+            $insertQuery = array();
+            $updateQuery = array();
+            $deleteQuery = array();
+            $lookupDataset = new QueryDataset(
+              new MyPDOConnectionFactory(), 
+              GetConnectionOptions(),
+              $selectQuery, $insertQuery, $updateQuery, $deleteQuery, 'query_listino_voci');
             $field = new IntegerField('id');
             $field->SetIsNotNull(true);
-            $lookupDataset->AddField($field, false);
-            $field = new StringField('ivo-codart');
-            $field->SetIsNotNull(true);
             $lookupDataset->AddField($field, true);
-            $field = new IntegerField('ivo-codvoc');
-            $field->SetIsNotNull(true);
-            $lookupDataset->AddField($field, true);
-            $field = new IntegerField('ivo-przunit');
+            $field = new StringField('descvoce');
             $lookupDataset->AddField($field, false);
-            $field = new StringField('ivo-flagart');
-            $lookupDataset->AddField($field, false);
-            $field = new StringField('ivo-flagsmu');
-            $lookupDataset->AddField($field, false);
-            $field = new StringField('ivo-tiposmu');
-            $lookupDataset->AddField($field, false);
-            $field = new DateTimeField('ivo-dataini');
-            $lookupDataset->AddField($field, false);
-            $field = new DateTimeField('ivo-datafin');
-            $lookupDataset->AddField($field, false);
-            $field = new DateTimeField('datains');
-            $lookupDataset->AddField($field, false);
-            $field = new DateTimeField('datamod');
-            $lookupDataset->AddField($field, false);
-            $lookupDataset->setOrderByField('ivo-codvoc', GetOrderTypeAsSQL(otAscending));
+            $lookupDataset->setOrderByField('descvoce', GetOrderTypeAsSQL(otAscending));
             $editColumn = new LookUpEditColumn(
                 'Codice tipo voce', 
                 'sco-codvoc', 
                 $editor, 
-                $this->dataset, 'ivo-codvoc', 'ivo-codvoc', $lookupDataset);
-            $editColumn->SetAllowSetToNull(true);
+                $this->dataset, 'id', 'descvoce', $lookupDataset);
+            $validator = new RequiredValidator(StringUtils::Format($this->GetLocalizerCaptions()->GetMessageString('RequiredValidationMessage'), $this->RenderText($editColumn->GetCaption())));
+            $editor->GetValidatorCollection()->AddValidator($validator);
             $this->ApplyCommonColumnEditProperties($editColumn);
             $grid->AddEditColumn($editColumn);
             
@@ -445,7 +380,8 @@
             //
             $editor = new TextEdit('sco-sconto_edit');
             $editColumn = new CustomEditColumn('Sconto', 'sco-sconto', $editor, $this->dataset);
-            $editColumn->SetAllowSetToNull(true);
+            $validator = new RequiredValidator(StringUtils::Format($this->GetLocalizerCaptions()->GetMessageString('RequiredValidationMessage'), $this->RenderText($editColumn->GetCaption())));
+            $editor->GetValidatorCollection()->AddValidator($validator);
             $validator = new NumberValidator(StringUtils::Format($this->GetLocalizerCaptions()->GetMessageString('NumberValidationMessage'), $this->RenderText($editColumn->GetCaption())));
             $editor->GetValidatorCollection()->AddValidator($validator);
             $this->ApplyCommonColumnEditProperties($editColumn);
@@ -457,7 +393,10 @@
             //
             // Edit column for sco-codcli field
             //
-            $editor = new ComboBox('sco-codcli_edit', $this->GetLocalizerCaptions()->GetMessageString('PleaseSelect'));
+            $editor = new AutocomleteComboBox('sco-codcli_edit', $this->CreateLinkBuilder());
+            $editor->SetSize('250px');
+            $editor->setAllowClear(true);
+            $editor->setMinimumInputLength(0);
             $lookupDataset = new TableDataset(
                 new MyPDOConnectionFactory(),
                 GetConnectionOptions(),
@@ -478,54 +417,32 @@
             $field = new DateTimeField('datamod');
             $lookupDataset->AddField($field, false);
             $lookupDataset->setOrderByField('cli-ragsoc', GetOrderTypeAsSQL(otAscending));
-            $editColumn = new LookUpEditColumn(
-                'Codice cliente', 
-                'sco-codcli', 
-                $editor, 
-                $this->dataset, 'cli-codcli', 'cli-ragsoc', $lookupDataset);
-            $editColumn->SetAllowSetToNull(true);
+            $editColumn = new DynamicLookupEditColumn('Codice cliente', 'sco-codcli', 'sco-codcli_cli-ragsoc', 'insert_sco-codcli_cli-ragsoc_search', $editor, $this->dataset, $lookupDataset, 'cli-codcli', 'cli-ragsoc', '');
+            $validator = new RequiredValidator(StringUtils::Format($this->GetLocalizerCaptions()->GetMessageString('RequiredValidationMessage'), $this->RenderText($editColumn->GetCaption())));
+            $editor->GetValidatorCollection()->AddValidator($validator);
             $this->ApplyCommonColumnEditProperties($editColumn);
             $grid->AddInsertColumn($editColumn);
             
             //
             // Edit column for sco-codart field
             //
-            $editor = new ComboBox('sco-codart_edit', $this->GetLocalizerCaptions()->GetMessageString('PleaseSelect'));
+            $editor = new AutocomleteComboBox('sco-codart_edit', $this->CreateLinkBuilder());
+            $editor->SetSize('250px');
+            $editor->setAllowClear(true);
+            $editor->setMinimumInputLength(0);
             $lookupDataset = new TableDataset(
                 new MyPDOConnectionFactory(),
                 GetConnectionOptions(),
-                '`articoli`');
-            $field = new IntegerField('id', null, null, true);
-            $field->SetIsNotNull(true);
-            $lookupDataset->AddField($field, true);
+                '`elenco_articoli_view`');
             $field = new StringField('art-codart');
             $field->SetIsNotNull(true);
             $lookupDataset->AddField($field, false);
-            $field = new StringField('art-descart');
+            $field = new StringField('descrizione');
             $lookupDataset->AddField($field, false);
-            $field = new StringField('art-dessup');
-            $lookupDataset->AddField($field, false);
-            $field = new StringField('art-codprod');
-            $lookupDataset->AddField($field, false);
-            $field = new StringField('art-codfam');
-            $lookupDataset->AddField($field, false);
-            $field = new StringField('art-gruppo-merc');
-            $lookupDataset->AddField($field, false);
-            $field = new StringField('art-categoria-omogenea');
-            $lookupDataset->AddField($field, false);
-            $field = new IntegerField('art-lungsmu');
-            $lookupDataset->AddField($field, false);
-            $field = new DateTimeField('datains');
-            $lookupDataset->AddField($field, false);
-            $field = new DateTimeField('datamod');
-            $lookupDataset->AddField($field, false);
-            $lookupDataset->setOrderByField('art-descart', GetOrderTypeAsSQL(otAscending));
-            $editColumn = new LookUpEditColumn(
-                'Codice articolo', 
-                'sco-codart', 
-                $editor, 
-                $this->dataset, 'art-codart', 'art-descart', $lookupDataset);
-            $editColumn->SetAllowSetToNull(true);
+            $lookupDataset->setOrderByField('descrizione', GetOrderTypeAsSQL(otAscending));
+            $editColumn = new DynamicLookupEditColumn('Codice articolo', 'sco-codart', 'sco-codart_descrizione', 'insert_sco-codart_descrizione_search', $editor, $this->dataset, $lookupDataset, 'art-codart', 'descrizione', '');
+            $validator = new RequiredValidator(StringUtils::Format($this->GetLocalizerCaptions()->GetMessageString('RequiredValidationMessage'), $this->RenderText($editColumn->GetCaption())));
+            $editor->GetValidatorCollection()->AddValidator($validator);
             $this->ApplyCommonColumnEditProperties($editColumn);
             $grid->AddInsertColumn($editColumn);
             
@@ -533,42 +450,27 @@
             // Edit column for sco-codvoc field
             //
             $editor = new ComboBox('sco-codvoc_edit', $this->GetLocalizerCaptions()->GetMessageString('PleaseSelect'));
-            $lookupDataset = new TableDataset(
-                new MyPDOConnectionFactory(),
-                GetConnectionOptions(),
-                '`listino_voci`');
+            $selectQuery = 'select `id`, concat(`voc-codvoce`, IF(`voc-descriz` <> \'\', concat(\' - \', `voc-descriz`),\'\')) as descvoce from voci_costo';
+            $insertQuery = array();
+            $updateQuery = array();
+            $deleteQuery = array();
+            $lookupDataset = new QueryDataset(
+              new MyPDOConnectionFactory(), 
+              GetConnectionOptions(),
+              $selectQuery, $insertQuery, $updateQuery, $deleteQuery, 'query_listino_voci');
             $field = new IntegerField('id');
             $field->SetIsNotNull(true);
-            $lookupDataset->AddField($field, false);
-            $field = new StringField('ivo-codart');
-            $field->SetIsNotNull(true);
             $lookupDataset->AddField($field, true);
-            $field = new IntegerField('ivo-codvoc');
-            $field->SetIsNotNull(true);
-            $lookupDataset->AddField($field, true);
-            $field = new IntegerField('ivo-przunit');
+            $field = new StringField('descvoce');
             $lookupDataset->AddField($field, false);
-            $field = new StringField('ivo-flagart');
-            $lookupDataset->AddField($field, false);
-            $field = new StringField('ivo-flagsmu');
-            $lookupDataset->AddField($field, false);
-            $field = new StringField('ivo-tiposmu');
-            $lookupDataset->AddField($field, false);
-            $field = new DateTimeField('ivo-dataini');
-            $lookupDataset->AddField($field, false);
-            $field = new DateTimeField('ivo-datafin');
-            $lookupDataset->AddField($field, false);
-            $field = new DateTimeField('datains');
-            $lookupDataset->AddField($field, false);
-            $field = new DateTimeField('datamod');
-            $lookupDataset->AddField($field, false);
-            $lookupDataset->setOrderByField('ivo-codvoc', GetOrderTypeAsSQL(otAscending));
+            $lookupDataset->setOrderByField('descvoce', GetOrderTypeAsSQL(otAscending));
             $editColumn = new LookUpEditColumn(
                 'Codice tipo voce', 
                 'sco-codvoc', 
                 $editor, 
-                $this->dataset, 'ivo-codvoc', 'ivo-codvoc', $lookupDataset);
-            $editColumn->SetAllowSetToNull(true);
+                $this->dataset, 'id', 'descvoce', $lookupDataset);
+            $validator = new RequiredValidator(StringUtils::Format($this->GetLocalizerCaptions()->GetMessageString('RequiredValidationMessage'), $this->RenderText($editColumn->GetCaption())));
+            $editor->GetValidatorCollection()->AddValidator($validator);
             $this->ApplyCommonColumnEditProperties($editColumn);
             $grid->AddInsertColumn($editColumn);
             
@@ -577,7 +479,9 @@
             //
             $editor = new TextEdit('sco-sconto_edit');
             $editColumn = new CustomEditColumn('Sconto', 'sco-sconto', $editor, $this->dataset);
-            $editColumn->SetAllowSetToNull(true);
+            $editColumn->SetInsertDefaultValue($this->RenderText('0'));
+            $validator = new RequiredValidator(StringUtils::Format($this->GetLocalizerCaptions()->GetMessageString('RequiredValidationMessage'), $this->RenderText($editColumn->GetCaption())));
+            $editor->GetValidatorCollection()->AddValidator($validator);
             $validator = new NumberValidator(StringUtils::Format($this->GetLocalizerCaptions()->GetMessageString('NumberValidationMessage'), $this->RenderText($editColumn->GetCaption())));
             $editor->GetValidatorCollection()->AddValidator($validator);
             $this->ApplyCommonColumnEditProperties($editColumn);
@@ -604,16 +508,16 @@
             $grid->AddPrintColumn($column);
             
             //
-            // View column for art-descart field
+            // View column for descrizione field
             //
-            $column = new TextViewColumn('sco-codart_art-descart', 'Codice articolo', $this->dataset);
+            $column = new TextViewColumn('sco-codart_descrizione', 'Codice articolo', $this->dataset);
             $column->SetOrderable(true);
             $grid->AddPrintColumn($column);
             
             //
-            // View column for ivo-codvoc field
+            // View column for descvoce field
             //
-            $column = new TextViewColumn('sco-codvoc_ivo-codvoc', 'Codice tipo voce', $this->dataset);
+            $column = new TextViewColumn('sco-codvoc_descvoce', 'Codice tipo voce', $this->dataset);
             $column->SetOrderable(true);
             $grid->AddPrintColumn($column);
             
@@ -636,16 +540,16 @@
             $grid->AddExportColumn($column);
             
             //
-            // View column for art-descart field
+            // View column for descrizione field
             //
-            $column = new TextViewColumn('sco-codart_art-descart', 'Codice articolo', $this->dataset);
+            $column = new TextViewColumn('sco-codart_descrizione', 'Codice articolo', $this->dataset);
             $column->SetOrderable(true);
             $grid->AddExportColumn($column);
             
             //
-            // View column for ivo-codvoc field
+            // View column for descvoce field
             //
-            $column = new TextViewColumn('sco-codvoc_ivo-codvoc', 'Codice tipo voce', $this->dataset);
+            $column = new TextViewColumn('sco-codvoc_descvoce', 'Codice tipo voce', $this->dataset);
             $column->SetOrderable(true);
             $grid->AddExportColumn($column);
             
@@ -752,7 +656,78 @@
             //
             // Http Handlers
             //
-    
+            $lookupDataset = new TableDataset(
+                new MyPDOConnectionFactory(),
+                GetConnectionOptions(),
+                '`clienti`');
+            $field = new IntegerField('id', null, null, true);
+            $field->SetIsNotNull(true);
+            $lookupDataset->AddField($field, true);
+            $field = new StringField('cli-codcli');
+            $field->SetIsNotNull(true);
+            $lookupDataset->AddField($field, false);
+            $field = new StringField('cli-ragsoc');
+            $field->SetIsNotNull(true);
+            $lookupDataset->AddField($field, false);
+            $field = new StringField('cli-codlis');
+            $lookupDataset->AddField($field, false);
+            $field = new DateTimeField('datains');
+            $lookupDataset->AddField($field, false);
+            $field = new DateTimeField('datamod');
+            $lookupDataset->AddField($field, false);
+            $lookupDataset->setOrderByField('cli-ragsoc', GetOrderTypeAsSQL(otAscending));
+            $lookupDataset->AddCustomCondition(EnvVariablesUtils::EvaluateVariableTemplate($this->GetColumnVariableContainer(), ''));
+            $handler = new DynamicSearchHandler($lookupDataset, $this, 'edit_sco-codcli_cli-ragsoc_search', 'cli-codcli', 'cli-ragsoc', null);
+            GetApplication()->RegisterHTTPHandler($handler);
+            $lookupDataset = new TableDataset(
+                new MyPDOConnectionFactory(),
+                GetConnectionOptions(),
+                '`elenco_articoli_view`');
+            $field = new StringField('art-codart');
+            $field->SetIsNotNull(true);
+            $lookupDataset->AddField($field, false);
+            $field = new StringField('descrizione');
+            $lookupDataset->AddField($field, false);
+            $lookupDataset->setOrderByField('descrizione', GetOrderTypeAsSQL(otAscending));
+            $lookupDataset->AddCustomCondition(EnvVariablesUtils::EvaluateVariableTemplate($this->GetColumnVariableContainer(), ''));
+            $handler = new DynamicSearchHandler($lookupDataset, $this, 'edit_sco-codart_descrizione_search', 'art-codart', 'descrizione', null);
+            GetApplication()->RegisterHTTPHandler($handler);
+            $lookupDataset = new TableDataset(
+                new MyPDOConnectionFactory(),
+                GetConnectionOptions(),
+                '`clienti`');
+            $field = new IntegerField('id', null, null, true);
+            $field->SetIsNotNull(true);
+            $lookupDataset->AddField($field, true);
+            $field = new StringField('cli-codcli');
+            $field->SetIsNotNull(true);
+            $lookupDataset->AddField($field, false);
+            $field = new StringField('cli-ragsoc');
+            $field->SetIsNotNull(true);
+            $lookupDataset->AddField($field, false);
+            $field = new StringField('cli-codlis');
+            $lookupDataset->AddField($field, false);
+            $field = new DateTimeField('datains');
+            $lookupDataset->AddField($field, false);
+            $field = new DateTimeField('datamod');
+            $lookupDataset->AddField($field, false);
+            $lookupDataset->setOrderByField('cli-ragsoc', GetOrderTypeAsSQL(otAscending));
+            $lookupDataset->AddCustomCondition(EnvVariablesUtils::EvaluateVariableTemplate($this->GetColumnVariableContainer(), ''));
+            $handler = new DynamicSearchHandler($lookupDataset, $this, 'insert_sco-codcli_cli-ragsoc_search', 'cli-codcli', 'cli-ragsoc', null);
+            GetApplication()->RegisterHTTPHandler($handler);
+            $lookupDataset = new TableDataset(
+                new MyPDOConnectionFactory(),
+                GetConnectionOptions(),
+                '`elenco_articoli_view`');
+            $field = new StringField('art-codart');
+            $field->SetIsNotNull(true);
+            $lookupDataset->AddField($field, false);
+            $field = new StringField('descrizione');
+            $lookupDataset->AddField($field, false);
+            $lookupDataset->setOrderByField('descrizione', GetOrderTypeAsSQL(otAscending));
+            $lookupDataset->AddCustomCondition(EnvVariablesUtils::EvaluateVariableTemplate($this->GetColumnVariableContainer(), ''));
+            $handler = new DynamicSearchHandler($lookupDataset, $this, 'insert_sco-codart_descrizione_search', 'art-codart', 'descrizione', null);
+            GetApplication()->RegisterHTTPHandler($handler);
             return $result;
         }
         

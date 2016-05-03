@@ -69,13 +69,7 @@
     
         protected function CreatePageNavigator()
         {
-            $result = new CompositePageNavigator($this);
-            
-            $partitionNavigator = new PageNavigator('pnav', $this, $this->dataset);
-            $partitionNavigator->SetRowsPerPage(25);
-            $result->AddPageNavigator($partitionNavigator);
-            
-            return $result;
+            return null;
         }
     
         public function GetPageList()
@@ -89,6 +83,8 @@
                 $result->AddPage(new PageLink($this->RenderText('Articoli'), 'articoli.php', $this->RenderText('Articoli'), $currentPageCaption == $this->RenderText('Articoli'), false, $this->RenderText('Default')));
             if (GetCurrentUserGrantForDataSource('famiglie')->HasViewGrant())
                 $result->AddPage(new PageLink($this->RenderText('Famiglie'), 'famiglie.php', $this->RenderText('Famiglie'), $currentPageCaption == $this->RenderText('Famiglie'), false, $this->RenderText('Default')));
+            if (GetCurrentUserGrantForDataSource('offerte')->HasViewGrant())
+                $result->AddPage(new PageLink($this->RenderText('Offerte'), 'offerte.php', $this->RenderText('Offerte'), $currentPageCaption == $this->RenderText('Offerte'), false, $this->RenderText('Default')));
             if (GetCurrentUserGrantForDataSource('listino_voci')->HasViewGrant())
                 $result->AddPage(new PageLink($this->RenderText('Listino Voci'), 'listino_voci.php', $this->RenderText('Listino Voci'), $currentPageCaption == $this->RenderText('Listino Voci'), false, $this->RenderText('Default')));
             if (GetCurrentUserGrantForDataSource('listino_articoli')->HasViewGrant())
@@ -101,6 +97,8 @@
                 $result->AddPage(new PageLink($this->RenderText('Listini'), 'listini.php', $this->RenderText('Listini'), $currentPageCaption == $this->RenderText('Listini'), false, $this->RenderText('Default')));
             if (GetCurrentUserGrantForDataSource('scontistica_clienti')->HasViewGrant())
                 $result->AddPage(new PageLink($this->RenderText('Scontistica Clienti'), 'scontistica_clienti.php', $this->RenderText('Scontistica Clienti'), $currentPageCaption == $this->RenderText('Scontistica Clienti'), false, $this->RenderText('Default')));
+            if (GetCurrentUserGrantForDataSource('query_listino_voci')->HasViewGrant())
+                $result->AddPage(new PageLink($this->RenderText('Query Listino Voci'), 'query_listino_voci.php', $this->RenderText('Query Listino Voci'), $currentPageCaption == $this->RenderText('Query Listino Voci'), false, $this->RenderText('Default')));
             
             if ( HasAdminPage() && GetApplication()->HasAdminGrantForCurrentUser() ) {
               $result->AddGroup('Admin area');
@@ -254,6 +252,8 @@
             //
             $column = new TextViewColumn('voc-formula_formula', 'Formula di calcolo', $this->dataset);
             $column->SetOrderable(true);
+            $column->SetMaxLength(150);
+            $column->SetFullTextWindowHandlerName('voci_costoGrid_formula_handler_view');
             $grid->AddSingleRecordViewColumn($column);
             
             //
@@ -450,6 +450,8 @@
             //
             $column = new TextViewColumn('voc-formula_formula', 'Formula di calcolo', $this->dataset);
             $column->SetOrderable(true);
+            $column->SetMaxLength(150);
+            $column->SetFullTextWindowHandlerName('voci_costoGrid_formula_handler_print');
             $grid->AddPrintColumn($column);
         }
     
@@ -483,6 +485,8 @@
             //
             $column = new TextViewColumn('voc-formula_formula', 'Formula di calcolo', $this->dataset);
             $column->SetOrderable(true);
+            $column->SetMaxLength(150);
+            $column->SetFullTextWindowHandlerName('voci_costoGrid_formula_handler_export');
             $grid->AddExportColumn($column);
         }
     
@@ -574,13 +578,26 @@
             $this->SetAdvancedSearchAvailable(false);
             $this->SetFilterRowAvailable(false);
             $this->SetVisualEffectsEnabled(true);
-            $this->SetShowTopPageNavigator(true);
+            $this->SetShowTopPageNavigator(false);
             $this->SetShowBottomPageNavigator(false);
     
             //
             // Http Handlers
             //
-    
+            //
+            // View column for formula field
+            //
+            $column = new TextViewColumn('voc-formula_formula', 'Formula di calcolo', $this->dataset);
+            $column->SetOrderable(true);
+            $handler = new ShowTextBlobHandler($this->dataset, $this, 'voci_costoGrid_formula_handler_view', $column);
+            GetApplication()->RegisterHTTPHandler($handler);
+            //
+            // View column for formula field
+            //
+            $column = new TextViewColumn('voc-formula_formula', 'Formula di calcolo', $this->dataset);
+            $column->SetOrderable(true);
+            $handler = new ShowTextBlobHandler($this->dataset, $this, 'voci_costoGrid_formula_handler_print', $column);
+            GetApplication()->RegisterHTTPHandler($handler);
             return $result;
         }
         

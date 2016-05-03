@@ -52,6 +52,8 @@
             $this->dataset->AddField($field, false);
             $field = new StringField('critcalc');
             $this->dataset->AddField($field, false);
+            $field = new StringField('descrizione');
+            $this->dataset->AddField($field, false);
             $field = new DateTimeField('datains');
             $this->dataset->AddField($field, false);
             $field = new DateTimeField('datamod');
@@ -64,13 +66,7 @@
     
         protected function CreatePageNavigator()
         {
-            $result = new CompositePageNavigator($this);
-            
-            $partitionNavigator = new PageNavigator('pnav', $this, $this->dataset);
-            $partitionNavigator->SetRowsPerPage(25);
-            $result->AddPageNavigator($partitionNavigator);
-            
-            return $result;
+            return null;
         }
     
         public function GetPageList()
@@ -84,6 +80,8 @@
                 $result->AddPage(new PageLink($this->RenderText('Articoli'), 'articoli.php', $this->RenderText('Articoli'), $currentPageCaption == $this->RenderText('Articoli'), false, $this->RenderText('Default')));
             if (GetCurrentUserGrantForDataSource('famiglie')->HasViewGrant())
                 $result->AddPage(new PageLink($this->RenderText('Famiglie'), 'famiglie.php', $this->RenderText('Famiglie'), $currentPageCaption == $this->RenderText('Famiglie'), false, $this->RenderText('Default')));
+            if (GetCurrentUserGrantForDataSource('offerte')->HasViewGrant())
+                $result->AddPage(new PageLink($this->RenderText('Offerte'), 'offerte.php', $this->RenderText('Offerte'), $currentPageCaption == $this->RenderText('Offerte'), false, $this->RenderText('Default')));
             if (GetCurrentUserGrantForDataSource('listino_voci')->HasViewGrant())
                 $result->AddPage(new PageLink($this->RenderText('Listino Voci'), 'listino_voci.php', $this->RenderText('Listino Voci'), $currentPageCaption == $this->RenderText('Listino Voci'), false, $this->RenderText('Default')));
             if (GetCurrentUserGrantForDataSource('listino_articoli')->HasViewGrant())
@@ -96,6 +94,8 @@
                 $result->AddPage(new PageLink($this->RenderText('Listini'), 'listini.php', $this->RenderText('Listini'), $currentPageCaption == $this->RenderText('Listini'), false, $this->RenderText('Default')));
             if (GetCurrentUserGrantForDataSource('scontistica_clienti')->HasViewGrant())
                 $result->AddPage(new PageLink($this->RenderText('Scontistica Clienti'), 'scontistica_clienti.php', $this->RenderText('Scontistica Clienti'), $currentPageCaption == $this->RenderText('Scontistica Clienti'), false, $this->RenderText('Default')));
+            if (GetCurrentUserGrantForDataSource('query_listino_voci')->HasViewGrant())
+                $result->AddPage(new PageLink($this->RenderText('Query Listino Voci'), 'query_listino_voci.php', $this->RenderText('Query Listino Voci'), $currentPageCaption == $this->RenderText('Query Listino Voci'), false, $this->RenderText('Default')));
             
             if ( HasAdminPage() && GetApplication()->HasAdminGrantForCurrentUser() ) {
               $result->AddGroup('Admin area');
@@ -187,6 +187,17 @@
             $column->SetDescription($this->RenderText(''));
             $column->SetFixedWidth(null);
             $grid->AddViewColumn($column);
+            
+            //
+            // View column for descrizione field
+            //
+            $column = new TextViewColumn('descrizione', 'Descrizione', $this->dataset);
+            $column->SetOrderable(true);
+            $column->SetMaxLength(75);
+            $column->SetFullTextWindowHandlerName('formule_calcoloGrid_descrizione_handler_list');
+            $column->SetDescription($this->RenderText(''));
+            $column->SetFixedWidth(null);
+            $grid->AddViewColumn($column);
         }
     
         protected function AddSingleRecordViewColumns(Grid $grid)
@@ -222,6 +233,15 @@
             $column->SetDateTimeFormat('d-m-Y H:i:s');
             $column->SetOrderable(true);
             $grid->AddSingleRecordViewColumn($column);
+            
+            //
+            // View column for descrizione field
+            //
+            $column = new TextViewColumn('descrizione', 'Descrizione', $this->dataset);
+            $column->SetOrderable(true);
+            $column->SetMaxLength(75);
+            $column->SetFullTextWindowHandlerName('formule_calcoloGrid_descrizione_handler_view');
+            $grid->AddSingleRecordViewColumn($column);
         }
     
         protected function AddEditColumns(Grid $grid)
@@ -245,6 +265,15 @@
             $editColumn->SetAllowSetToNull(true);
             $this->ApplyCommonColumnEditProperties($editColumn);
             $grid->AddEditColumn($editColumn);
+            
+            //
+            // Edit column for descrizione field
+            //
+            $editor = new TextAreaEdit('descrizione_edit', 50, 8);
+            $editColumn = new CustomEditColumn('Descrizione', 'descrizione', $editor, $this->dataset);
+            $editColumn->SetAllowSetToNull(true);
+            $this->ApplyCommonColumnEditProperties($editColumn);
+            $grid->AddEditColumn($editColumn);
         }
     
         protected function AddInsertColumns(Grid $grid)
@@ -265,6 +294,15 @@
             $editor->SetSize(100);
             $editor->SetMaxLength(100);
             $editColumn = new CustomEditColumn('Formula', 'formula', $editor, $this->dataset);
+            $editColumn->SetAllowSetToNull(true);
+            $this->ApplyCommonColumnEditProperties($editColumn);
+            $grid->AddInsertColumn($editColumn);
+            
+            //
+            // Edit column for descrizione field
+            //
+            $editor = new TextAreaEdit('descrizione_edit', 50, 8);
+            $editColumn = new CustomEditColumn('Descrizione', 'descrizione', $editor, $this->dataset);
             $editColumn->SetAllowSetToNull(true);
             $this->ApplyCommonColumnEditProperties($editColumn);
             $grid->AddInsertColumn($editColumn);
@@ -402,7 +440,7 @@
             $this->SetAdvancedSearchAvailable(false);
             $this->SetFilterRowAvailable(false);
             $this->SetVisualEffectsEnabled(true);
-            $this->SetShowTopPageNavigator(true);
+            $this->SetShowTopPageNavigator(false);
             $this->SetShowBottomPageNavigator(false);
     
             //
@@ -414,12 +452,26 @@
             $column = new TextViewColumn('formula', 'Formula', $this->dataset);
             $column->SetOrderable(true);
             $handler = new ShowTextBlobHandler($this->dataset, $this, 'formule_calcoloGrid_formula_handler_list', $column);
+            GetApplication()->RegisterHTTPHandler($handler);
+            //
+            // View column for descrizione field
+            //
+            $column = new TextViewColumn('descrizione', 'Descrizione', $this->dataset);
+            $column->SetOrderable(true);
+            $handler = new ShowTextBlobHandler($this->dataset, $this, 'formule_calcoloGrid_descrizione_handler_list', $column);
             GetApplication()->RegisterHTTPHandler($handler);//
             // View column for formula field
             //
             $column = new TextViewColumn('formula', 'Formula', $this->dataset);
             $column->SetOrderable(true);
             $handler = new ShowTextBlobHandler($this->dataset, $this, 'formule_calcoloGrid_formula_handler_view', $column);
+            GetApplication()->RegisterHTTPHandler($handler);
+            //
+            // View column for descrizione field
+            //
+            $column = new TextViewColumn('descrizione', 'Descrizione', $this->dataset);
+            $column->SetOrderable(true);
+            $handler = new ShowTextBlobHandler($this->dataset, $this, 'formule_calcoloGrid_descrizione_handler_view', $column);
             GetApplication()->RegisterHTTPHandler($handler);
             return $result;
         }

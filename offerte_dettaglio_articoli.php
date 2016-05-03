@@ -46,6 +46,9 @@
             $field = new IntegerField('id', null, null, true);
             $field->SetIsNotNull(true);
             $this->dataset->AddField($field, true);
+            $field = new IntegerField('ofa-offid');
+            $field->SetIsNotNull(true);
+            $this->dataset->AddField($field, false);
             $field = new IntegerField('ofa-numoff');
             $this->dataset->AddField($field, false);
             $field = new StringField('ofa-codart');
@@ -115,6 +118,8 @@
                 $result->AddPage(new PageLink($this->RenderText('Articoli'), 'articoli.php', $this->RenderText('Articoli'), $currentPageCaption == $this->RenderText('Articoli'), false, $this->RenderText('Default')));
             if (GetCurrentUserGrantForDataSource('famiglie')->HasViewGrant())
                 $result->AddPage(new PageLink($this->RenderText('Famiglie'), 'famiglie.php', $this->RenderText('Famiglie'), $currentPageCaption == $this->RenderText('Famiglie'), false, $this->RenderText('Default')));
+            if (GetCurrentUserGrantForDataSource('offerte')->HasViewGrant())
+                $result->AddPage(new PageLink($this->RenderText('Offerte'), 'offerte.php', $this->RenderText('Offerte'), $currentPageCaption == $this->RenderText('Offerte'), false, $this->RenderText('Default')));
             if (GetCurrentUserGrantForDataSource('listino_voci')->HasViewGrant())
                 $result->AddPage(new PageLink($this->RenderText('Listino Voci'), 'listino_voci.php', $this->RenderText('Listino Voci'), $currentPageCaption == $this->RenderText('Listino Voci'), false, $this->RenderText('Default')));
             if (GetCurrentUserGrantForDataSource('listino_articoli')->HasViewGrant())
@@ -127,6 +132,8 @@
                 $result->AddPage(new PageLink($this->RenderText('Listini'), 'listini.php', $this->RenderText('Listini'), $currentPageCaption == $this->RenderText('Listini'), false, $this->RenderText('Default')));
             if (GetCurrentUserGrantForDataSource('scontistica_clienti')->HasViewGrant())
                 $result->AddPage(new PageLink($this->RenderText('Scontistica Clienti'), 'scontistica_clienti.php', $this->RenderText('Scontistica Clienti'), $currentPageCaption == $this->RenderText('Scontistica Clienti'), false, $this->RenderText('Default')));
+            if (GetCurrentUserGrantForDataSource('query_listino_voci')->HasViewGrant())
+                $result->AddPage(new PageLink($this->RenderText('Query Listino Voci'), 'query_listino_voci.php', $this->RenderText('Query Listino Voci'), $currentPageCaption == $this->RenderText('Query Listino Voci'), false, $this->RenderText('Default')));
             
             if ( HasAdminPage() && GetApplication()->HasAdminGrantForCurrentUser() ) {
               $result->AddGroup('Admin area');
@@ -185,6 +192,8 @@
             $field = new StringField('art-codprod');
             $lookupDataset->AddField($field, false);
             $field = new StringField('art-codfam');
+            $lookupDataset->AddField($field, false);
+            $field = new StringField('unita_misura');
             $lookupDataset->AddField($field, false);
             $field = new StringField('art-gruppo-merc');
             $lookupDataset->AddField($field, false);
@@ -558,6 +567,8 @@
             $lookupDataset->AddField($field, false);
             $field = new StringField('art-codfam');
             $lookupDataset->AddField($field, false);
+            $field = new StringField('unita_misura');
+            $lookupDataset->AddField($field, false);
             $field = new StringField('art-gruppo-merc');
             $lookupDataset->AddField($field, false);
             $field = new StringField('art-categoria-omogenea');
@@ -730,6 +741,8 @@
             $field = new StringField('art-codprod');
             $lookupDataset->AddField($field, false);
             $field = new StringField('art-codfam');
+            $lookupDataset->AddField($field, false);
+            $field = new StringField('unita_misura');
             $lookupDataset->AddField($field, false);
             $field = new StringField('art-gruppo-merc');
             $lookupDataset->AddField($field, false);
