@@ -201,10 +201,10 @@
 			</label>				
 			<label>
 				<span>Tipo prezzo</span>
-        <select class="form-control" id="ofa-unimis">
-          <option value='M'>Metro</option>
-          <option value='P'>Pezzo</option>
-        </select>
+			        <select class="form-control" id="ofa-unimis">
+			          <option value='M'>Metro</option>
+			          <option value='P'>Pezzo</option>
+			        </select>
 			</label>	
 			<label>
 				<span>Prz acq. Netto</span>
@@ -278,12 +278,12 @@
 						<!--<td></td>
 						<td></td>-->
 						<td>
-              <input qta field="ofv-quantita" type="text" class="form-control" placeholder="Qta">
+              				<input qta field="ofv-quantita" type="text" class="form-control" placeholder="Qta">
 							<input qta field="ofv-durata" type="text" class="form-control" placeholder="Minuti">
 							<input qta field="ofv-lunghezza" type="text" class="form-control" placeholder="Lunghezza">
 							<input qta field="ofv-larghezza" type="text" class="form-control" placeholder="Larghezza">
-              <input qta field="ofv-spessore" type="text" class="form-control" placeholder="Spessore">
-            </td>
+              				<input qta field="ofv-spessore" type="text" class="form-control" placeholder="Spessore">
+            			</td>
 						<td>
 							<input field="ofv-valuni-cal" type="text" class="form-control text-right pull-right">
 						</td>
