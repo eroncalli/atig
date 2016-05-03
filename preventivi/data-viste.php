@@ -20,10 +20,12 @@ $vistaClienti = "
 		SELECT `cli-codcli`, `cli-ragsoc` FROM clienti
 ";
 
+// 20160503 - erik - tolta famiglia come chiave nella where 
+//  	   --AND a.`art-codfam` = f.`fam-codfam`
 $vistaArticoliDelCliente = "
 		SELECT a.`art-codart`, 
 					 a.`art-descart`, 
-           a.`art-lungsmu`, 
+           			 a.`art-lungsmu`, 
 					 f.`fam-descriz`, 
 					 l.`lis-moltipl`, 
 					 l.`lis-scarto`, 
@@ -33,7 +35,6 @@ $vistaArticoliDelCliente = "
 		FROM articoli a, famiglie f, clienti c, listino_articoli l
    WHERE c.`cli-codcli` = ?
 	   AND l.`lis-codart` = a.`art-codart`
-	   AND a.`art-codfam` = f.`fam-codfam`
 	   AND now() BETWEEN l.`lis-dataini` AND l.`lis-datafin`
 ";
 
@@ -58,6 +59,8 @@ $vistaScontoPerVoce = "
        AND `sco-codvoc` = ?
 ";
 
+// 20160503 - erik - tolta famiglia come chiave nella where
+//  	   --AND a.`art-codfam` = f.`fam-codfam` 
 $vistaArticoliPerVoce = "
 		SELECT lv.`ivo-przunit`,
            lv.`ivo-flagart`,
@@ -75,7 +78,6 @@ $vistaArticoliPerVoce = "
      WHERE lv.`ivo-codvoc` = ?
 	     AND lv.`ivo-codart` = a.`art-codart`		 
 	     AND l.`lis-codart` = a.`art-codart`
-	     AND a.`art-codfam` = f.`fam-codfam` 
        AND now() BETWEEN lv.`ivo-dataini` AND lv.`ivo-datafin`
 ";
 
@@ -118,7 +120,7 @@ else if (isset($_GET['articoliDelCliente'])) {
 	$result->bind_result(
 			$art_codart, 
 			$art_descart, 
-      $art_lungsmu,
+      		$art_lungsmu,
 			$fam_descriz,
 			$lis_moltipl, 
 			$lis_scarto, 
@@ -134,7 +136,7 @@ else if (isset($_GET['articoliDelCliente'])) {
 		$elements[] = array(
 			'art_codart'    => $art_codart, 
 			'art_descart'   => $art_descart, 
-      'art_lungsmu'   => $art_lungsmu, 
+      		'art_lungsmu'   => $art_lungsmu, 
 			'fam_descriz'   => $fam_descriz,
 			'lis_moltipl'   => $lis_moltipl, 
 			'lis_scarto'    => $lis_scarto, 
@@ -208,10 +210,10 @@ else if (isset($_GET['articoliPerVoce'])) {
 	
 	/* bind result variables */
 	$result->bind_result(
-		  $ivo_przunit,
-      $ivo_flagart,
-      $ivo_flagsmu,
-      $ivo_tiposmu,
+			$ivo_przunit,
+			$ivo_flagart,
+			$ivo_flagsmu,
+			$ivo_tiposmu,
 			$art_codart, 
 			$art_descart, 
 			$fam_descriz, 
@@ -227,18 +229,18 @@ else if (isset($_GET['articoliPerVoce'])) {
 	/* fetch values */
 	while ($result->fetch()) {
 		$elements[] = array(
-      'ivo_przunit'   => $ivo_przunit,
-      'ivo_flagart'   => $ivo_flagart,
-      'ivo_flagsmu'   => $ivo_flagsmu,
-      'ivo_tiposmu'   => $ivo_tiposmu,
-      'art_codart'    => $art_codart, 
-      'art_descart'   => $art_descart, 
-      'fam_descriz'   => $fam_descriz, 
-      'lis_moltipl'   => $lis_moltipl, 
-      'lis_scarto'    => $lis_scarto, 
-      'lis_oneriacc'  => $lis_oneriacc, 
-      'lis_unimis'    => $lis_unimis, 
-      'lis_przacq'    => $lis_przacq
+	      'ivo_przunit'   => $ivo_przunit,
+	      'ivo_flagart'   => $ivo_flagart,
+	      'ivo_flagsmu'   => $ivo_flagsmu,
+	      'ivo_tiposmu'   => $ivo_tiposmu,
+	      'art_codart'    => $art_codart, 
+	      'art_descart'   => $art_descart, 
+	      'fam_descriz'   => $fam_descriz, 
+	      'lis_moltipl'   => $lis_moltipl, 
+	      'lis_scarto'    => $lis_scarto, 
+	      'lis_oneriacc'  => $lis_oneriacc, 
+	      'lis_unimis'    => $lis_unimis, 
+	      'lis_przacq'    => $lis_przacq
 		);
 	}
   
