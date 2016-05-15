@@ -25,6 +25,20 @@
   </script>
 </head>
 <body>
+  <nav class="navbar navbar-inverse navbar-fixed-top">
+    <div class="navbar-header" style="width:300px">
+      <div class="row">
+        <div class="col-md-4"><img src="atig.png" alt="A.T.I.G." height="48" ></div>
+        <div class="col-md-8 navbar-brand">Gestione Offerte</div>
+      </div>
+    </div>
+    <ul class="nav navbar-nav navbar-inverse">
+      <li id='btn-offerta-new'><a href="#">Nuova Offerta</a></li>
+      <li id='btn-offerta-elenco'><a href="#">Offerte in lavorazione</a></li>
+      <li id='btn-offerta-completate'><a href="#">Offerte consolidate</a></li> 
+    </ul>
+  </nav>
+  <div style="height:50px"></div>
 	<div class="container">
 		<div id="alert-success" class="alert alert-success" style="display:none">
 			<a href="#" class="close" data-dismiss="alert" aria-label="close">&times;</a>
@@ -48,7 +62,8 @@
     </p>
   </div>
   <div id='page-preventivi'>
-  	<div id='header-offerta' class="padleft20">
+  	<!--
+    <div id='header-offerta' class="padleft20">
 			<h1>
 				<span>Offerta</span>
 				<button id='btn-offerta-new' class="btn btn-default" >
@@ -58,13 +73,24 @@
         <button id='btn-offerta-completate' class="btn btn-default" >Consolidate</button>
 			</h1>
 		</div>
+    -->
 		<div id='elenco-offerta' class="padleft20" stato="empty">
-			<div>
-				<input id="filtro" type="text" class="form-control">
-				<button id='btn-filtro' class="btn-default" >
-					<span class="glyphicon glyphicon-search" aria-hidden="true" style="position: inherit;"></span>
-				</button>
-			</div>
+      <table>
+        <tr>
+          <td>
+            <h1>
+              <span>Ricerca offerte</span>
+            </h1>
+          </td>
+          <td style="padding: 20px 0px 10px 20px">
+            <input id="filtro" type="text" class="form-control">
+            <button id='btn-filtro' class="btn-default" >
+              <span class="glyphicon glyphicon-search" aria-hidden="true" style="position: inherit;"></span>
+            </button>
+          </td>
+        </tr>
+      </table>
+      <br>
 			<table id='table-offerta' class="table table-striped table-condensed">
   			<thead>
 					<tr>
@@ -98,6 +124,9 @@
       <div id='pager-offerta'></div>    
     </div>
 		<div id='dettaglio-offerta' class="padleft20" off_id="">
+      <h1>
+        <span>Offerta</span>
+      </h1>
 			<label>
 				<span>Codice Cliente</span>
 				<input id="off-codcli" type="text" class="form-control">

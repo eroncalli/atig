@@ -799,11 +799,16 @@ function init() {
   //---------------------------------------
 	
 	$( "#btn-offerta-new" ).click(function() {
+    //- NavBar
+    $( "#btn-offerta-new" ).addClass("active");
+    $( "#btn-offerta-elenco" ).removeClass("active");
+    $( "#btn-offerta-completate" ).removeClass("active");
+    
 		//- Mostra il dettaglio 
-		$( "#btn-offerta-elenco" ).removeClass( "btn-primary" );
-		$( "#btn-offerta-elenco" ).addClass( "btn-default" );
-		$( "#btn-offerta-completate" ).removeClass( "btn-primary" );		
-		$( "#btn-offerta-completate" ).addClass( "btn-default" );		
+		//$( "#btn-offerta-elenco" ).removeClass( "btn-primary" );
+		//$( "#btn-offerta-elenco" ).addClass( "btn-default" );
+		//$( "#btn-offerta-completate" ).removeClass( "btn-primary" );		
+		//$( "#btn-offerta-completate" ).addClass( "btn-default" );		
 		$("#elenco-offerta").hide();
     $("#pager-offerta").hide();
 		$("#dettaglio-offerta").show();
@@ -836,18 +841,23 @@ function init() {
 	});
 	
   $( "#btn-offerta-elenco" ).click(function() {
-		if ($("#elenco-offerta").is(":visible") && $("#elenco-offerta").attr("stato")==0) {
-      $("#elenco-offerta").hide();
-      $("#pager-offerta").hide();  
+    //- NavBar
+    $( "#btn-offerta-new" ).removeClass("active");
+    $( "#btn-offerta-elenco" ).addClass("active");
+    $( "#btn-offerta-completate" ).removeClass("active");
+    
+		//if ($("#elenco-offerta").is(":visible") && $("#elenco-offerta").attr("stato")==0) {
+    //  $("#elenco-offerta").hide();
+    //  $("#pager-offerta").hide();  
 			
-			$( "#btn-offerta-elenco" ).removeClass( "btn-primary" );
-			$( "#btn-offerta-elenco" ).addClass( "btn-default" );
-    }
-    else {
-			$( "#btn-offerta-completate" ).removeClass( "btn-primary" );
-			$( "#btn-offerta-completate" ).addClass( "btn-default" );			
-			$( "#btn-offerta-elenco" ).removeClass( "btn-default" );
-			$( "#btn-offerta-elenco" ).addClass( "btn-primary" );
+		//	$( "#btn-offerta-elenco" ).removeClass( "btn-primary" );
+		//	$( "#btn-offerta-elenco" ).addClass( "btn-default" );
+    //}
+    //else {
+			//$( "#btn-offerta-completate" ).removeClass( "btn-primary" );
+			//$( "#btn-offerta-completate" ).addClass( "btn-default" );			
+			//$( "#btn-offerta-elenco" ).removeClass( "btn-default" );
+			//$( "#btn-offerta-elenco" ).addClass( "btn-primary" );
 			
       $("#elenco-offerta").show();
       $("#pager-offerta").show();  
@@ -867,22 +877,27 @@ function init() {
 			var filtro = $("#filtro").val();
 			$("#elenco-offerta").attr("stato", 0);
 			loadElencoOfferte(0, filtro);  
-    }
+    //}
 	});
 
   $( "#btn-offerta-completate" ).click(function() {
-		if ($("#elenco-offerta").is(":visible") && $("#elenco-offerta").attr("stato")==1) {
-      $("#elenco-offerta").hide();
-      $("#pager-offerta").hide();  
+    //- NavBar
+    $( "#btn-offerta-new" ).removeClass("active");
+    $( "#btn-offerta-elenco" ).removeClass("active");
+    $( "#btn-offerta-completate" ).addClass("active");
+    
+		//if ($("#elenco-offerta").is(":visible") && $("#elenco-offerta").attr("stato")==1) {
+    //  $("#elenco-offerta").hide();
+    //  $("#pager-offerta").hide();  
 			
-			$( "#btn-offerta-completate" ).removeClass( "btn-primary" );
-			$( "#btn-offerta-completate" ).addClass( "btn-default" );
-    }
-    else {
-			$( "#btn-offerta-elenco" ).removeClass( "btn-primary" );
-			$( "#btn-offerta-elenco" ).addClass( "btn-default" );			
-			$( "#btn-offerta-completate" ).removeClass( "btn-default" );
-			$( "#btn-offerta-completate" ).addClass( "btn-primary" );
+		//	$( "#btn-offerta-completate" ).removeClass( "btn-primary" );
+		//	$( "#btn-offerta-completate" ).addClass( "btn-default" );
+    //}
+    //else {
+		//	$( "#btn-offerta-elenco" ).removeClass( "btn-primary" );
+			//$( "#btn-offerta-elenco" ).addClass( "btn-default" );			
+			//$( "#btn-offerta-completate" ).removeClass( "btn-default" );
+			//$( "#btn-offerta-completate" ).addClass( "btn-primary" );
 			
       $("#elenco-offerta").show();
       $("#pager-offerta").show();  
@@ -902,7 +917,7 @@ function init() {
 			var filtro = $("#filtro").val();
 			$("#elenco-offerta").attr("stato", 1);
 			loadElencoOfferte(1, filtro);  
-    } 
+    //} 
 	});
 	
   $( "#btn-filtro" ).click(function() {
