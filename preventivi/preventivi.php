@@ -227,6 +227,14 @@
 				<input id="ofa-lungsmu" type="text" class="form-control t-right">
 			</label>
 			<label>
+				<span>Tipo smusso</span>
+			        <select class="form-control" id="ofa-tiposmu">
+			          <option value='0' selected>0 - No smusso</option>
+			          <option value='1'>1 - Smusso dritto</option>
+								<option value='2'>2 - Smusso diagonale</option>
+			        </select>
+			</label>				
+			<label>
 				<span>Pezzi</span>
 				<input id="ofa-quantita" type="text" class="form-control t-right">
 			</label>

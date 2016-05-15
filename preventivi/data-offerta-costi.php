@@ -100,10 +100,8 @@ else if (isset($_POST['update'])) {
           `ofv-desc-formula` = ?,
           `ofv-critcalc` = ?,
           `ofv-costo` = ?,
-          `ofv-dimsmusso` = ?,
           `ofv-desc1` = ?,
           `ofv-desc2` = ?,
-          `ofv-desc3` = ?,
           `datamod` = CURRENT_TIMESTAMP
       WHERE `id` = ?
 	";
@@ -111,7 +109,7 @@ else if (isset($_POST['update'])) {
 	
   $arrVoci = $_POST['voci'];
 	foreach ($arrVoci as $voce) {
-		$result->bind_param('isiidddiddddsdsissddsssi', 
+		$result->bind_param('isiidddiddddsdsissdssi', 
 											$voce['ofv_codvoce'],
 											$voce['ofv_desc_manuale'], 
 											$voce['ofv_semanual'], 
@@ -131,10 +129,8 @@ else if (isset($_POST['update'])) {
 											$voce['ofv_desc_formula'],
 											$voce['ofv_critcalc'],
 											$voce['ofv_costo'],
-											$voce['ofv_dimsmusso'],
 											$voce['ofv_desc1'],
 											$voce['ofv_desc2'],
-											$voce['ofv_desc3'],
 											$voce['ofv_id']);
 		$res = $result->execute() or trigger_error($result->error, E_USER_ERROR);
 		echo $res;
@@ -176,10 +172,8 @@ else {
 				 `ofv-desc-formula`,
          `ofv-critcalc`, 
 				 `ofv-costo`, 
-				 IFNULL(`ofv-dimsmusso`,0) as `ofv-dimsmusso`,
          IFNULL(`ofv-desc1`,'') as `ofv-desc1`,
-				 IFNULL(`ofv-desc2`, '') as `ofv-desc2`,
-				 IFNULL(`ofv-desc3`, '') as `ofv-desc3`
+				 IFNULL(`ofv-desc2`, '') as `ofv-desc2`
     FROM `offerte_dettaglio_costi` 
    WHERE `ofv-ofaid` = ?
 ORDER BY `ofv-num-riga-voce`
@@ -189,7 +183,7 @@ ORDER BY `ofv-num-riga-voce`
 	$result->execute();
 	  
 	/* bind result variables */
-	$result->bind_result($id, $ofv_num_riga_voce, $ofv_codvoce, $ofv_desc_manuale, $ofv_semanual, $ofv_quantita, $ofv_lunghezza, $ofv_larghezza, $ofv_spessore, $ofv_durata, $ofv_sconto, $ofv_valuni_cal, $ofv_valuni_fin, $ofv_valtot_fin, $ofv_codart_agg, $ofv_codart_agg_prz_lor, $ofv_descriz, $ofv_formula, $ofv_desc_formula, $ofv_critcalc, $ofv_costo, $ofv_dimsmusso, $ofv_desc1, $ofv_desc2, $ofv_desc3);
+	$result->bind_result($id, $ofv_num_riga_voce, $ofv_codvoce, $ofv_desc_manuale, $ofv_semanual, $ofv_quantita, $ofv_lunghezza, $ofv_larghezza, $ofv_spessore, $ofv_durata, $ofv_sconto, $ofv_valuni_cal, $ofv_valuni_fin, $ofv_valtot_fin, $ofv_codart_agg, $ofv_codart_agg_prz_lor, $ofv_descriz, $ofv_formula, $ofv_desc_formula, $ofv_critcalc, $ofv_costo, $ofv_desc1, $ofv_desc2);
 	/* fetch values */
 	while ($result->fetch()) {
 		$elements[] = array(
@@ -214,10 +208,8 @@ ORDER BY `ofv-num-riga-voce`
       'ofv_desc_formula'       => $ofv_desc_formula,
       'ofv_critcalc'           => $ofv_critcalc,
       'ofv_costo'              => $ofv_costo,
-      'ofv_dimsmusso'          => $ofv_dimsmusso,
       'ofv_desc1'              => $ofv_desc1,
-      'ofv_desc2'              => $ofv_desc2,
-      'ofv_desc3'              => $ofv_desc3
+      'ofv_desc2'              => $ofv_desc2
 		);
 	}
 	echo json_encode($elements);

@@ -21,19 +21,20 @@ if (isset($_GET['insert'])) {
 	$query = "
 			INSERT INTO `offerte_dettaglio_articoli` 
 			(`ofa-offid`, `ofa-codart`, `ofa-descart`, 
-       `ofa-lungsmu`, `ofa-lunghezza`, 
+       `ofa-lungsmu`, `ofa-tiposmu`, `ofa-lunghezza`, 
        `ofa-moltipl`, `ofa-scarto`, `ofa-oneriacc`, 
        `ofa-larghezza`, `ofa-quantita`, `ofa-unimis`, 
        `ofa-przacq-net`, `ofa-przacq-lor`, `datains`) 
-			VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, CURRENT_TIMESTAMP)
+			VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, CURRENT_TIMESTAMP)
 	";
 	$result = $mysqli->prepare($query);
 		
-	$result->bind_param('issddidddisdd', 
+	$result->bind_param('issdddidddisdd', 
                       $_GET['ofa_offid'], 
                       $_GET['ofa_codart'], 
                       $_GET['ofa_descart'], 
                       $_GET['ofa_lungsmu'], 
+											$_GET['ofa_tiposmu'], 
                       $_GET['ofa_lunghezza'], 
                       $_GET['ofa_moltipl'], 
                       $_GET['ofa_scarto'], 
@@ -56,7 +57,8 @@ else if (isset($_GET['update'])) {
 	$query = "
 			UPDATE `offerte_dettaglio_articoli`
 			   SET `ofa-codart` = ?,
-				     `ofa-lunghezza` = ?, `ofa-larghezza` = ?, `ofa-lungsmu` = ?,
+				     `ofa-lunghezza` = ?, `ofa-larghezza` = ?, 
+						 `ofa-lungsmu` = ?, `ofa-tiposmu` = ?,
              `ofa-quantita` = ?, `ofa-unimis` = ?, 
              `ofa-przacq-net` = ?, `ofa-przacq-lor` = ?,
              `datamod` = CURRENT_TIMESTAMP
@@ -64,11 +66,12 @@ else if (isset($_GET['update'])) {
 	";
 	$result = $mysqli->prepare($query);
 
-	$result->bind_param('sdddisddi', 
+	$result->bind_param('sddddisddi', 
 											$_GET['ofa_codart'],
                       $_GET['ofa_lunghezza'],
                       $_GET['ofa_larghezza'], 
                       $_GET['ofa_lungsmu'], 
+											$_GET['ofa_tiposmu'], 
                       $_GET['ofa_quantita'],
                       $_GET['ofa_unimis'],
                       $_GET['ofa_przacq_net'],
@@ -91,7 +94,7 @@ else if (isset($_GET['delete'])) {    //...TODO
 else if (isset($_GET['select_one'])) {
 	// SELECT COMMAND
 	$query = "
-      SELECT t1.`id`, t1.`ofa-numoff`, t1.`ofa-codart`, t1.`ofa-descart`, t1.`ofa-lungsmu`, t3.`fam-descriz`, t1.`ofa-moltipl`, t1.`ofa-scarto`, t1.`ofa-oneriacc`, t1.`ofa-unimis`, t1.`ofa-przacq-net`, t1.`ofa-przacq-lor`, t1.`ofa-lunghezza`, t1.`ofa-larghezza`, t1.`ofa-quantita`
+      SELECT t1.`id`, t1.`ofa-numoff`, t1.`ofa-codart`, t1.`ofa-descart`, t1.`ofa-lungsmu`, t1.`ofa-tiposmu`, t3.`fam-descriz`, t1.`ofa-moltipl`, t1.`ofa-scarto`, t1.`ofa-oneriacc`, t1.`ofa-unimis`, t1.`ofa-przacq-net`, t1.`ofa-przacq-lor`, t1.`ofa-lunghezza`, t1.`ofa-larghezza`, t1.`ofa-quantita`
         FROM offerte_dettaglio_articoli t1, articoli t2, famiglie t3
        WHERE t1.`ofa-offid` = ?
          AND t1.`ofa-codart` = t2.`art-codart`
@@ -103,7 +106,7 @@ else if (isset($_GET['select_one'])) {
 	$result->execute();
 	
 	/* bind result variables */
-	$result->bind_result($ofa_id, $ofa_numoff, $ofa_codart, $ofa_descart, $ofa_lungsmu, $fam_descriz, $ofa_moltipl, $ofa_scarto, $ofa_oneriacc, $ofa_unimis, $ofa_przacq_net, $ofa_przacq_lor, $ofa_lunghezza, $ofa_larghezza, $ofa_quantita);
+	$result->bind_result($ofa_id, $ofa_numoff, $ofa_codart, $ofa_descart, $ofa_lungsmu,  $ofa_tiposmu, $fam_descriz, $ofa_moltipl, $ofa_scarto, $ofa_oneriacc, $ofa_unimis, $ofa_przacq_net, $ofa_przacq_lor, $ofa_lunghezza, $ofa_larghezza, $ofa_quantita);
 	
 	/* fetch values */
 	while ($result->fetch()) {
@@ -113,6 +116,7 @@ else if (isset($_GET['select_one'])) {
       'ofa_codart'     => $ofa_codart,
       'ofa_descart'    => $ofa_descart,
       'ofa_lungsmu'    => $ofa_lungsmu,
+      'ofa_tiposmu'    => $ofa_tiposmu,
 			'fam_descriz'    => $fam_descriz,
       'ofa_moltipl'    => $ofa_moltipl,
       'ofa_scarto'     => $ofa_scarto,

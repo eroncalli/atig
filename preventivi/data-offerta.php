@@ -131,8 +131,8 @@ else if (isset($_GET['clone'])) {
 	
 	$query = "
 		INSERT INTO `offerte_dettaglio_articoli` 
-					(`ofa-offid`, `ofa-codart`, `ofa-descart`, `ofa-lungsmu`, `ofa-moltipl`, `ofa-oneriacc`, `ofa-scarto`, `ofa-lunghezza`, `ofa-larghezza`, `ofa-spessore`, `ofa-quantita`, `ofa-unimis`, `ofa-przacq-net`, `ofa-przacq-lor`, `ofa-totuni`, `ofa-totunit-fin`, `ofa-totgen`, `ofa-przven`, `datains`)
-		SELECT ?, `ofa-codart`, `ofa-descart`, `ofa-lungsmu`, `ofa-moltipl`, `ofa-oneriacc`, `ofa-scarto`, `ofa-lunghezza`, `ofa-larghezza`, `ofa-spessore`, `ofa-quantita`, `ofa-unimis`, `ofa-przacq-net`, `ofa-przacq-lor`, `ofa-totuni`, `ofa-totunit-fin`, `ofa-totgen`, `ofa-przven`, CURRENT_TIMESTAMP
+					(`ofa-offid`, `ofa-codart`, `ofa-descart`, `ofa-lungsmu`, `ofa-tiposmu`, `ofa-moltipl`, `ofa-oneriacc`, `ofa-scarto`, `ofa-lunghezza`, `ofa-larghezza`, `ofa-spessore`, `ofa-quantita`, `ofa-unimis`, `ofa-przacq-net`, `ofa-przacq-lor`, `ofa-totuni`, `ofa-totunit-fin`, `ofa-totgen`, `ofa-przven`, `datains`)
+		SELECT ?,           `ofa-codart`, `ofa-descart`, `ofa-lungsmu`, `ofa-tiposmu`, `ofa-moltipl`, `ofa-oneriacc`, `ofa-scarto`, `ofa-lunghezza`, `ofa-larghezza`, `ofa-spessore`, `ofa-quantita`, `ofa-unimis`, `ofa-przacq-net`, `ofa-przacq-lor`, `ofa-totuni`, `ofa-totunit-fin`, `ofa-totgen`, `ofa-przven`, CURRENT_TIMESTAMP
 		FROM `offerte_dettaglio_articoli` 
 		WHERE `id` = ?
 	";
@@ -140,8 +140,8 @@ else if (isset($_GET['clone'])) {
 	
 	$query = "
 		INSERT INTO `offerte_dettaglio_costi` 
-					(`ofv-ofaid`, `ofv-codvoce`, `ofv-desc-manuale`, `ofv-semanual`, `ofv-quantita`, `ofv-lunghezza`, `ofv-larghezza`, `ofv-spessore`, `ofv-tiposmu`, `ofv-lungsmu`, `ofv-przacq`, `ofv-sconto`, `ofv-valuni-cal`, `ofv-valuni-fin`, `datains`, `ofv-num-riga-voce`, `ofv-durata`, `ofv-codart`, `ofv-valtot-fin`, `ofv-codart-agg`, `ofv-codart-agg-prz-lor`, `ofv-descriz`, `ofv-formula`, `ofv-desc-formula`, `ofv-critcalc`, `ofv-costo`, `ofv-dimsmusso`, `ofv-desc1`, `ofv-desc2`, `ofv-desc3`)
-		SELECT ?,           `ofv-codvoce`, `ofv-desc-manuale`, `ofv-semanual`, `ofv-quantita`, `ofv-lunghezza`, `ofv-larghezza`, `ofv-spessore`, `ofv-tiposmu`, `ofv-lungsmu`, `ofv-przacq`, `ofv-sconto`, `ofv-valuni-cal`, `ofv-valuni-fin`, CURRENT_TIMESTAMP, `ofv-num-riga-voce`, `ofv-durata`, `ofv-codart`, `ofv-valtot-fin`, `ofv-codart-agg`, `ofv-codart-agg-prz-lor`, `ofv-descriz`, `ofv-formula`, `ofv-desc-formula`, `ofv-critcalc`, `ofv-costo`, `ofv-dimsmusso`, `ofv-desc1`, `ofv-desc2`, `ofv-desc3`
+					(`ofv-ofaid`, `ofv-codvoce`, `ofv-desc-manuale`, `ofv-semanual`, `ofv-quantita`, `ofv-lunghezza`, `ofv-larghezza`, `ofv-spessore`, `ofv-przacq`, `ofv-sconto`, `ofv-valuni-cal`, `ofv-valuni-fin`, `ofv-num-riga-voce`, `ofv-durata`, `ofv-codart`, `ofv-valtot-fin`, `ofv-codart-agg`, `ofv-codart-agg-prz-lor`, `ofv-descriz`, `ofv-formula`, `ofv-desc-formula`, `ofv-critcalc`, `ofv-costo`, `ofv-desc1`, `ofv-desc2`, `datains`)
+		SELECT ?,           `ofv-codvoce`, `ofv-desc-manuale`, `ofv-semanual`, `ofv-quantita`, `ofv-lunghezza`, `ofv-larghezza`, `ofv-spessore`, `ofv-przacq`, `ofv-sconto`, `ofv-valuni-cal`, `ofv-valuni-fin`, `ofv-num-riga-voce`, `ofv-durata`, `ofv-codart`, `ofv-valtot-fin`, `ofv-codart-agg`, `ofv-codart-agg-prz-lor`, `ofv-descriz`, `ofv-formula`, `ofv-desc-formula`, `ofv-critcalc`, `ofv-costo`, `ofv-desc1`, `ofv-desc2`, CURRENT_TIMESTAMP
 		FROM `offerte_dettaglio_costi` 
 		WHERE `ofv-ofaid` = ?
 	";

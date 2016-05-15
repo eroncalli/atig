@@ -81,7 +81,7 @@ input[field='ofv-valuni-cal']{
 	font-weight: bold;
 }
 
-#ofa-unimis {
+#ofa-unimis, #ofa-tiposmu {
   padding-bottom: 0px;
   padding-top: 0px;
   display: inherit;

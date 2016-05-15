@@ -50,7 +50,6 @@ function getRowHtml() {
 						</td>\
 						<td>\
 							<input field="ofv-codart-agg" type="text" class="form-control" przLordo="">\
-							<span field="lvo-tiposmu"></span>\
 						</td>\
 						<!--<td>\
 							<span field="voc-critcalc"></span>\
@@ -172,8 +171,20 @@ function applyFormula(row) {
   var dur = row.find('[field="ofv-durata"]').autoNumeric('get');
 
   var spe = row.find('[field="ofv-spessore"]').autoNumeric('get');
-  var smusso = row.find('[field="ofv-codart-agg"]').attr("smusso");
   var przRivest = row.find('[field="ofv-codart-agg"]').attr("przLordo");
+
+	//- Calcola lo smusso
+	var smusso = 0;
+	var tiposmu = $("#ofa-tiposmu").val();
+
+	switch (tiposmu) {
+		case "1":
+			smusso = $( "#ofa-lungsmu" ).autoNumeric('get');
+			break;
+		case "2":
+			smusso = (0.6 * $("#ofa-larghezza").autoNumeric('get')) + $( "#ofa-lungsmu" ).autoNumeric('get');
+			break;
+	}
 
   switch (formula) {
   case "1": //-ARTICOLO (non usato)
@@ -338,15 +349,18 @@ function loadDettaglioArticolo(off_id, readonly) {
       $( "#ofa-moltiplicatore" ).val(data[0].ofa_moltipl);
       $( "#ofa-scarto" ).val(data[0].ofa_scarto);
       $( "#ofa-oneri" ).val(data[0].ofa_oneriacc);
-
+/*
       $( "#ofa-unimis option" ).each(function(i, item) {
         $(this).attr("selected","false");
 
         if ($(this).val() == data[0].ofa_unimis) {
           $(this).attr("selected","selected");              
         }
-      });                        
+      });*/                        
 
+			$("#ofa-unimis").val(data[0].ofa_unimis);
+			$("#ofa-tiposmu").val(data[0].ofa_tiposmu);
+			
       $( "#ofa-przacq-net" ).autoNumeric('set', data[0].ofa_przacq_net);
       $( "#ofa-przacq-lor" ).autoNumeric('set', data[0].ofa_przacq_lor);
       $( "#ofa-lunghezza" ).autoNumeric('set', data[0].ofa_lunghezza);
@@ -497,12 +511,10 @@ function loadDettaglioVoci(ofa_id, codart, readonly) {
             row.find('[field="ofv-codart-agg"]').prop("disabled", true);
             row.find('[field="ofv-codart-agg"]').val(item.ofv_codart_agg);
             row.find('[field="ofv-codart-agg"]').attr("przLordo", item.ofv_codart_agg_prz_lor);
-            row.find('[field="ofv-codart-agg"]').attr("smusso", item.ofv_dimSmusso);
 
             row.find('[field="ofv-codart-agg"]').attr("desc1", item.ofv_desc1);
             row.find('[field="ofv-codart-agg"]').attr("desc2", item.ofv_desc2);
-            row.find('[field="ofv-codart-agg"]').attr("desc3", item.ofv_desc3);
-            row.find('[field="costo"]').html(item.ofv_desc1 + "<br>" + item.ofv_desc2 + "<br>" + item.ofv_desc3);
+            row.find('[field="costo"]').html(item.ofv_desc1 + "<br>" + item.ofv_desc2);
             break;
           }
 
@@ -1076,6 +1088,7 @@ function init() {
                 $( "#ofa-larghezza" ).autoNumeric('set', "");         
                 $( "#ofa-lungsmu" ).autoNumeric('set', "");    
                 $( "#ofa-quantita" ).autoNumeric('set', 1);
+								$("#ofa-tiposmu").val("0");  
               }
             },
 
@@ -1093,13 +1106,15 @@ function init() {
 							$( "#ofa-scarto" ).val(arr[0].lis_scarto);
 							$( "#ofa-oneri" ).val(arr[0].lis_oneriacc);
 
+							$("#ofa-unimis").val(arr[0].lis_unimis);
+							/*
               $( "#ofa-unimis option" ).each(function(i, item) {
                 $(this).attr("selected","false");
                 
                 if ($(this).val() == arr[0].lis_unimis) {
                   $(this).attr("selected","selected");              
                 }
-              });                        
+              });*/                        
               
               $( "#ofa-przacq-net" ).autoNumeric('set', arr[0].lis_przacq);
               
@@ -1117,6 +1132,8 @@ function init() {
               $( "#ofa-larghezza" ).autoNumeric('set', "");         
               $( "#ofa-lungsmu" ).autoNumeric('set', "");    
               $( "#ofa-quantita" ).autoNumeric('set', 1);
+							
+							$("#ofa-tiposmu").val("0");
 						}
     			});
 
@@ -1183,6 +1200,7 @@ function init() {
 		getData.ofa_lunghezza  = $("#ofa-lunghezza").autoNumeric('get');
 		getData.ofa_larghezza  = $("#ofa-larghezza").autoNumeric('get');
     getData.ofa_lungsmu    = $("#ofa-lungsmu").autoNumeric('get');
+		getData.ofa_tiposmu    = $("#ofa-tiposmu").val();
     getData.ofa_quantita   = $("#ofa-quantita").autoNumeric('get');
     
 		$.getJSON("data-offerta-articoli.php", getData)
@@ -1331,6 +1349,7 @@ function init() {
 		getData.ofa_lunghezza  = $("#ofa-lunghezza").autoNumeric('get');
 		getData.ofa_larghezza  = $("#ofa-larghezza").autoNumeric('get');
     getData.ofa_lungsmu    = $("#ofa-lungsmu").autoNumeric('get');
+		getData.ofa_tiposmu    = $("#ofa-tiposmu").val();
     getData.ofa_quantita   = $("#ofa-quantita").autoNumeric('get');
     
 		$.getJSON("data-offerta-articoli.php", getData)
@@ -1578,7 +1597,7 @@ function init() {
                       //- Carica gli articoli aggiuntivi per il rivestimento
                       var getData = {};
                       getData.articoliPerVoce = true;
-                      getData.codvoce         = selected_codvoce;
+                      //getData.codvoce         = selected_codvoce;
 
                       $.getJSON("data-viste.php", getData)
                       .done(function(data) {
@@ -1632,37 +1651,14 @@ function init() {
 
                                   row.find('[field="ofv-codart-agg"]').attr("przLordo", przLordo);
                                   
-                                  //- Inserisce lo smusso
-                                  var tiposmu = 0;
-                                  var strSmusso = "No smusso";
-                                  var dimSmusso = 0;
-                                  
-                                  if (arr[0].ivo_flagsmu == 's') {
-                                    tiposmu = arr[0].ivo_tiposmu;
-                                  }
-                                  
-                                  switch (tiposmu) {
-                                    case "1":
-                                      dimSmusso = $( "#ofa-lungsmu" ).autoNumeric('get');
-                                      strSmusso = "Smusso diritto (" + dimSmusso + ")";
-                                      break;
-                                    case "2":
-                                      dimSmusso = (0.6 * $("#ofa-larghezza").autoNumeric('get')) + $( "#ofa-lungsmu" ).autoNumeric('get');
-                                      strSmusso = "Smusso diagonale (" + dimSmusso + ")";
-                                      break;
-                                  }
-                                  
-                                  row.find('[field="ofv-codart-agg"]').attr("smusso", dimSmusso);
-                                  
                                   //- Mostra il messaggio
                                   var strPrz = "Prezzo: " + Number(przLordo).toFixed(5);
                                   var strSpessori = "Spessori prec.: " + getSpessoriPrecedenti(row);
 
                                   row.find('[field="ofv-codart-agg"]').attr("desc1", strPrz);
-                                  row.find('[field="ofv-codart-agg"]').attr("desc2", strSmusso);
-                                  row.find('[field="ofv-codart-agg"]').attr("desc3", strSpessori);
+                                  row.find('[field="ofv-codart-agg"]').attr("desc2", strSpessori);
                                   
-                                  row.find('[field="costo"]').html(strPrz + "<br>" + strSmusso + "<br>" + strSpessori);
+                                  row.find('[field="costo"]').html(strPrz + "<br>" + strSpessori);
                                 }
                               });
                             }
@@ -1811,10 +1807,8 @@ function init() {
 			objVoce.ofv_semanual   = $row.attr('manuale');
 			objVoce.ofv_critcalc   = $row.attr('critcalc');
 			objVoce.ofv_costo      = $row.attr('przunit');
-			objVoce.ofv_dimsmusso  = $row.find('[field="ofv-codart-agg"]').attr("smusso");
 			objVoce.ofv_desc1      = $row.find('[field="ofv-codart-agg"]').attr("desc1");
 			objVoce.ofv_desc2      = $row.find('[field="ofv-codart-agg"]').attr("desc2");
-			objVoce.ofv_desc3      = $row.find('[field="ofv-codart-agg"]').attr("desc3");
       
 			getData.voci.push(objVoce);
 		});

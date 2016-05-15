@@ -20,12 +20,10 @@ $vistaClienti = "
 		SELECT `cli-codcli`, `cli-ragsoc` FROM clienti
 ";
 
-// 20160503 - erik - tolta famiglia come chiave nella where 
-//  	   --AND a.`art-codfam` = f.`fam-codfam`
 $vistaArticoliDelCliente = "
 		SELECT a.`art-codart`, 
 					 a.`art-descart`, 
-           			 a.`art-lungsmu`, 
+           a.`art-lungsmu`, 
 					 f.`fam-descriz`, 
 					 l.`lis-moltipl`, 
 					 l.`lis-scarto`, 
@@ -34,7 +32,7 @@ $vistaArticoliDelCliente = "
 					 l.`lis-przacq`
 		FROM articoli a, famiglie f, clienti c, listino_articoli l
    WHERE c.`cli-codcli` = ?
-		AND a.`art-codfam` = f.`fam-codfam`
+		 AND a.`art-codfam` = f.`fam-codfam`
 	   AND l.`lis-codart` = a.`art-codart`
 	   AND now() BETWEEN l.`lis-dataini` AND l.`lis-datafin`
 ";
@@ -60,24 +58,18 @@ $vistaScontoPerVoce = "
        AND `sco-codvoc` = ?
 ";
 
-// 20160503 - erik - tolta famiglia come chiave nella where
-//  	   --AND a.`art-codfam` = f.`fam-codfam` 
+// 20160515 - Gli articoli aggiuntivi per il rivestimento possono essere tutti
 $vistaArticoliPerVoce = "
-		SELECT lv.`ivo-przunit`,
-           lv.`ivo-flagart`,
-           lv.`ivo-flagsmu`,
-					 a.`art-codart`, 
+		SELECT a.`art-codart`, 
 					 a.`art-descart`,
 					 l.`lis-moltipl`, 
 					 l.`lis-scarto`, 
 					 l.`lis-oneriacc`, 
 					 l.`lis-unimis`, 
 					 l.`lis-przacq`					 
-      FROM listino_voci lv, articoli a, listino_articoli l
-     WHERE lv.`ivo-codvoc` = ?
-	     AND lv.`ivo-codart` = a.`art-codart`		 
-	     AND l.`lis-codart` = a.`art-codart`
-       AND now() BETWEEN lv.`ivo-dataini` AND lv.`ivo-datafin`
+      FROM articoli a, listino_articoli l
+     WHERE l.`lis-codart` = a.`art-codart`
+       AND now() BETWEEN l.`lis-dataini` AND l.`lis-datafin`
 ";
 
 $vistaCostoPerVoce = "
@@ -119,7 +111,7 @@ else if (isset($_GET['articoliDelCliente'])) {
 	$result->bind_result(
 			$art_codart, 
 			$art_descart, 
-      		$art_lungsmu,
+      $art_lungsmu,
 			$fam_descriz,
 			$lis_moltipl, 
 			$lis_scarto, 
@@ -135,7 +127,7 @@ else if (isset($_GET['articoliDelCliente'])) {
 		$elements[] = array(
 			'art_codart'    => $art_codart, 
 			'art_descart'   => $art_descart, 
-      		'art_lungsmu'   => $art_lungsmu, 
+      'art_lungsmu'   => $art_lungsmu, 
 			'fam_descriz'   => $fam_descriz,
 			'lis_moltipl'   => $lis_moltipl, 
 			'lis_scarto'    => $lis_scarto, 
@@ -204,17 +196,12 @@ else if (isset($_GET['scontoPerVoce'])) {
 }
 else if (isset($_GET['articoliPerVoce'])) {
 	$result = $mysqli->prepare($vistaArticoliPerVoce);
-	$result->bind_param('i', $_GET['codvoce']);
 	$result->execute();
 	
 	/* bind result variables */
 	$result->bind_result(
-			$ivo_przunit,
-			$ivo_flagart,
-			$ivo_flagsmu,
 			$art_codart, 
 			$art_descart, 
-			$fam_descriz, 
 			$lis_moltipl, 
 			$lis_scarto, 
 			$lis_oneriacc, 
@@ -227,12 +214,8 @@ else if (isset($_GET['articoliPerVoce'])) {
 	/* fetch values */
 	while ($result->fetch()) {
 		$elements[] = array(
-	      'ivo_przunit'   => $ivo_przunit,
-	      'ivo_flagart'   => $ivo_flagart,
-	      'ivo_flagsmu'   => $ivo_flagsmu,
 	      'art_codart'    => $art_codart, 
 	      'art_descart'   => $art_descart, 
-	      'fam_descriz'   => $fam_descriz, 
 	      'lis_moltipl'   => $lis_moltipl, 
 	      'lis_scarto'    => $lis_scarto, 
 	      'lis_oneriacc'  => $lis_oneriacc, 
