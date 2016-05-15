@@ -47,7 +47,7 @@ function cleanDB($mysqli) {
 }
 
 //- Turn off all error reporting
-//error_reporting(0);
+error_reporting(0);
 
 include ('connect.php');
 
@@ -301,7 +301,7 @@ else {
       SELECT t1.`id`, t1.`off-numoff`,  t1.`off-descriz`, t1.`off-datains`, t1.`off-codcli`, t2.`cli-ragsoc`, sum(t3.`ofa-totgen`) totgen
         FROM (offerte t1 INNER JOIN clienti t2 ON t1.`off-codcli` = t2.`cli-codcli`) INNER JOIN offerte_dettaglio_articoli t3 ON t1.`id` = t3.`ofa-offid`
        WHERE t1.`off-stato` = ?
-			   AND CONCAT(t1.`off-numoff`, ' ', t1.`off-descriz`, ' ', t1.`off-datains`, ' ', t1.`off-codcli`, ' ',  t2.`cli-ragsoc`) LIKE CONCAT('%',?,'%')
+			   AND UPPER(CONCAT(t1.`off-numoff`, ' ', t1.`off-descriz`, ' ', t1.`off-datains`, ' ', t1.`off-codcli`, ' ',  t2.`cli-ragsoc`)) LIKE CONCAT('%',UPPER(?),'%')
     GROUP BY t1.`off-numoff`,  t1.`off-datains`, t1.`off-codcli`, t2.`cli-ragsoc`
     ORDER BY t1.`off-datains` DESC, t1.`off-numoff` DESC
 	";
