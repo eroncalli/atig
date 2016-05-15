@@ -65,16 +65,14 @@ $vistaArticoliPerVoce = "
 		SELECT lv.`ivo-przunit`,
            lv.`ivo-flagart`,
            lv.`ivo-flagsmu`,
-           lv.`ivo-tiposmu`,
 					 a.`art-codart`, 
-					 a.`art-descart`, 
-					 f.`fam-descriz`, 
+					 a.`art-descart`,
 					 l.`lis-moltipl`, 
 					 l.`lis-scarto`, 
 					 l.`lis-oneriacc`, 
 					 l.`lis-unimis`, 
 					 l.`lis-przacq`					 
-      FROM listino_voci lv, articoli a, famiglie f, listino_articoli l
+      FROM listino_voci lv, articoli a, listino_articoli l
      WHERE lv.`ivo-codvoc` = ?
 	     AND lv.`ivo-codart` = a.`art-codart`		 
 	     AND l.`lis-codart` = a.`art-codart`
@@ -213,7 +211,6 @@ else if (isset($_GET['articoliPerVoce'])) {
 			$ivo_przunit,
 			$ivo_flagart,
 			$ivo_flagsmu,
-			$ivo_tiposmu,
 			$art_codart, 
 			$art_descart, 
 			$fam_descriz, 
@@ -232,7 +229,6 @@ else if (isset($_GET['articoliPerVoce'])) {
 	      'ivo_przunit'   => $ivo_przunit,
 	      'ivo_flagart'   => $ivo_flagart,
 	      'ivo_flagsmu'   => $ivo_flagsmu,
-	      'ivo_tiposmu'   => $ivo_tiposmu,
 	      'art_codart'    => $art_codart, 
 	      'art_descart'   => $art_descart, 
 	      'fam_descriz'   => $fam_descriz, 
