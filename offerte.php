@@ -1526,13 +1526,7 @@
     
         protected function CreatePageNavigator()
         {
-            $result = new CompositePageNavigator($this);
-            
-            $partitionNavigator = new PageNavigator('pnav', $this, $this->dataset);
-            $partitionNavigator->SetRowsPerPage(25);
-            $result->AddPageNavigator($partitionNavigator);
-            
-            return $result;
+            return null;
         }
     
         public function GetPageList()
@@ -1548,8 +1542,6 @@
                 $result->AddPage(new PageLink($this->RenderText('Famiglie'), 'famiglie.php', $this->RenderText('Famiglie'), $currentPageCaption == $this->RenderText('Famiglie'), false, $this->RenderText('Default')));
             if (GetCurrentUserGrantForDataSource('offerte')->HasViewGrant())
                 $result->AddPage(new PageLink($this->RenderText('Offerte'), 'offerte.php', $this->RenderText('Offerte'), $currentPageCaption == $this->RenderText('Offerte'), false, $this->RenderText('Default')));
-            if (GetCurrentUserGrantForDataSource('listino_voci')->HasViewGrant())
-                $result->AddPage(new PageLink($this->RenderText('Listino Voci'), 'listino_voci.php', $this->RenderText('Listino Voci'), $currentPageCaption == $this->RenderText('Listino Voci'), false, $this->RenderText('Default')));
             if (GetCurrentUserGrantForDataSource('listino_articoli')->HasViewGrant())
                 $result->AddPage(new PageLink($this->RenderText('Listino Articoli'), 'listino_articoli.php', $this->RenderText('Listino Articoli'), $currentPageCaption == $this->RenderText('Listino Articoli'), false, $this->RenderText('Default')));
             if (GetCurrentUserGrantForDataSource('voci_costo')->HasViewGrant())
@@ -1560,8 +1552,6 @@
                 $result->AddPage(new PageLink($this->RenderText('Listini'), 'listini.php', $this->RenderText('Listini'), $currentPageCaption == $this->RenderText('Listini'), false, $this->RenderText('Default')));
             if (GetCurrentUserGrantForDataSource('scontistica_clienti')->HasViewGrant())
                 $result->AddPage(new PageLink($this->RenderText('Scontistica Clienti'), 'scontistica_clienti.php', $this->RenderText('Scontistica Clienti'), $currentPageCaption == $this->RenderText('Scontistica Clienti'), false, $this->RenderText('Default')));
-            if (GetCurrentUserGrantForDataSource('query_listino_voci')->HasViewGrant())
-                $result->AddPage(new PageLink($this->RenderText('Query Listino Voci'), 'query_listino_voci.php', $this->RenderText('Query Listino Voci'), $currentPageCaption == $this->RenderText('Query Listino Voci'), false, $this->RenderText('Default')));
             
             if ( HasAdminPage() && GetApplication()->HasAdminGrantForCurrentUser() ) {
               $result->AddGroup('Admin area');
@@ -1656,7 +1646,7 @@
               //
             // View column for offerte_dettaglio_articoliDetailView0offerte detail
             //
-            $column = new DetailColumn(array('off-numoff'), 'detail0offerte', 'offerte_dettaglio_articoliDetailEdit0offerte_handler', 'offerte_dettaglio_articoliDetailView0offerte_handler', $this->dataset, 'Offerte Dettaglio Articoli', $this->RenderText('Offerte Dettaglio Articoli'));
+            $column = new DetailColumn(array('id'), 'detail0offerte', 'offerte_dettaglio_articoliDetailEdit0offerte_handler', 'offerte_dettaglio_articoliDetailView0offerte_handler', $this->dataset, 'Offerte Dettaglio Articoli', $this->RenderText('Offerte Dettaglio Articoli'));
               $grid->AddViewColumn($column);
             }
             
@@ -2310,18 +2300,18 @@
             $this->SetAdvancedSearchAvailable(false);
             $this->SetFilterRowAvailable(false);
             $this->SetVisualEffectsEnabled(true);
-            $this->SetShowTopPageNavigator(true);
+            $this->SetShowTopPageNavigator(false);
             $this->SetShowBottomPageNavigator(false);
     
             //
             // Http Handlers
             //
-            $pageView = new offerte_dettaglio_articoliDetailView0offertePage($this, 'Offerte Dettaglio Articoli', 'Offerte Dettaglio Articoli', array('ofa-numoff'), GetCurrentUserGrantForDataSource('offerte.offerte_dettaglio_articoli'), 'UTF-8', 20, 'offerte_dettaglio_articoliDetailEdit0offerte_handler');
+            $pageView = new offerte_dettaglio_articoliDetailView0offertePage($this, 'Offerte Dettaglio Articoli', 'Offerte Dettaglio Articoli', array('ofa-offid'), GetCurrentUserGrantForDataSource('offerte.offerte_dettaglio_articoli'), 'UTF-8', 20, 'offerte_dettaglio_articoliDetailEdit0offerte_handler');
             
             $pageView->SetRecordPermission(GetCurrentUserRecordPermissionsForDataSource('offerte.offerte_dettaglio_articoli'));
             $handler = new PageHTTPHandler('offerte_dettaglio_articoliDetailView0offerte_handler', $pageView);
             GetApplication()->RegisterHTTPHandler($handler);
-            $pageEdit = new offerte_dettaglio_articoliDetailEdit0offertePage($this, array('ofa-numoff'), array('off-numoff'), $this->GetForeingKeyFields(), $this->CreateMasterDetailRecordGridForofferte_dettaglio_articoliDetailEdit0offerteGrid(), $this->dataset, GetCurrentUserGrantForDataSource('offerte.offerte_dettaglio_articoli'), 'UTF-8');
+            $pageEdit = new offerte_dettaglio_articoliDetailEdit0offertePage($this, array('ofa-offid'), array('id'), $this->GetForeingKeyFields(), $this->CreateMasterDetailRecordGridForofferte_dettaglio_articoliDetailEdit0offerteGrid(), $this->dataset, GetCurrentUserGrantForDataSource('offerte.offerte_dettaglio_articoli'), 'UTF-8');
             
             $pageEdit->SetRecordPermission(GetCurrentUserRecordPermissionsForDataSource('offerte.offerte_dettaglio_articoli'));
             $pageEdit->SetShortCaption('Offerte Dettaglio Articoli');

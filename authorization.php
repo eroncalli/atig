@@ -22,6 +22,7 @@ $tableCaptions = array('clienti' => 'Clienti',
 'famiglie' => 'Famiglie',
 'famiglie.articoli' => 'Famiglie.Articoli',
 'offerte' => 'Offerte',
+'offerte.offerte_dettaglio_articoli' => 'Offerte.Offerte Dettaglio Articoli',
 'offerte_dettaglio_costi' => 'Offerte Dettaglio Costi',
 'offerte_dettaglio_articoli' => 'Offerte Dettaglio Articoli',
 'listino_voci' => 'Listino Voci',
@@ -30,13 +31,13 @@ $tableCaptions = array('clienti' => 'Clienti',
 'formule_calcolo' => 'Formule Calcolo',
 'listini' => 'Listini',
 'listini.listino_articoli' => 'Listini.Articoli',
-'listini.clienti' => 'Listini.Clienti',
 'atig_users' => 'Atig Users',
 'tipo_lavorazioni' => 'Tipo Lavorazioni',
 'spese_aggiuntive' => 'Spese Aggiuntive',
 'scontistica_clienti' => 'Scontistica Clienti',
 'atig_user_perms' => 'Atig User Perms',
-'elenco_articoli_view' => 'Elenco Articoli View');
+'elenco_articoli_view' => 'Elenco Articoli View',
+'query_listino_voci' => 'Query Listino Voci');
 
 function CreateTableBasedGrantsManager()
 {

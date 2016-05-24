@@ -60,7 +60,6 @@
             $this->dataset->AddField($field, false);
             $this->dataset->AddLookupField('sco-codcli', 'clienti', new StringField('cli-codcli'), new StringField('cli-ragsoc', 'sco-codcli_cli-ragsoc', 'sco-codcli_cli-ragsoc_clienti'), 'sco-codcli_cli-ragsoc_clienti');
             $this->dataset->AddLookupField('sco-codart', 'elenco_articoli_view', new StringField('art-codart'), new StringField('descrizione', 'sco-codart_descrizione', 'sco-codart_descrizione_elenco_articoli_view'), 'sco-codart_descrizione_elenco_articoli_view');
-            $this->dataset->AddLookupField('sco-codvoc', '(select `id`, concat(`voc-codvoce`, IF(`voc-descriz` <> \'\', concat(\' - \', `voc-descriz`),\'\')) as descvoce from voci_costo)', new IntegerField('id'), new StringField('descvoce', 'sco-codvoc_descvoce', 'sco-codvoc_descvoce_query_listino_voci'), 'sco-codvoc_descvoce_query_listino_voci');
         }
     
         protected function DoPrepare() {
@@ -85,8 +84,6 @@
                 $result->AddPage(new PageLink($this->RenderText('Famiglie'), 'famiglie.php', $this->RenderText('Famiglie'), $currentPageCaption == $this->RenderText('Famiglie'), false, $this->RenderText('Default')));
             if (GetCurrentUserGrantForDataSource('offerte')->HasViewGrant())
                 $result->AddPage(new PageLink($this->RenderText('Offerte'), 'offerte.php', $this->RenderText('Offerte'), $currentPageCaption == $this->RenderText('Offerte'), false, $this->RenderText('Default')));
-            if (GetCurrentUserGrantForDataSource('listino_voci')->HasViewGrant())
-                $result->AddPage(new PageLink($this->RenderText('Listino Voci'), 'listino_voci.php', $this->RenderText('Listino Voci'), $currentPageCaption == $this->RenderText('Listino Voci'), false, $this->RenderText('Default')));
             if (GetCurrentUserGrantForDataSource('listino_articoli')->HasViewGrant())
                 $result->AddPage(new PageLink($this->RenderText('Listino Articoli'), 'listino_articoli.php', $this->RenderText('Listino Articoli'), $currentPageCaption == $this->RenderText('Listino Articoli'), false, $this->RenderText('Default')));
             if (GetCurrentUserGrantForDataSource('voci_costo')->HasViewGrant())
@@ -97,8 +94,6 @@
                 $result->AddPage(new PageLink($this->RenderText('Listini'), 'listini.php', $this->RenderText('Listini'), $currentPageCaption == $this->RenderText('Listini'), false, $this->RenderText('Default')));
             if (GetCurrentUserGrantForDataSource('scontistica_clienti')->HasViewGrant())
                 $result->AddPage(new PageLink($this->RenderText('Scontistica Clienti'), 'scontistica_clienti.php', $this->RenderText('Scontistica Clienti'), $currentPageCaption == $this->RenderText('Scontistica Clienti'), false, $this->RenderText('Default')));
-            if (GetCurrentUserGrantForDataSource('query_listino_voci')->HasViewGrant())
-                $result->AddPage(new PageLink($this->RenderText('Query Listino Voci'), 'query_listino_voci.php', $this->RenderText('Query Listino Voci'), $currentPageCaption == $this->RenderText('Query Listino Voci'), false, $this->RenderText('Default')));
             
             if ( HasAdminPage() && GetApplication()->HasAdminGrantForCurrentUser() ) {
               $result->AddGroup('Admin area');
@@ -170,22 +165,7 @@
             $lookupDataset->AddField($field, false);
             $lookupDataset->setOrderByField('descrizione', GetOrderTypeAsSQL(otAscending));
             $this->AdvancedSearchControl->AddSearchColumn($this->AdvancedSearchControl->CreateLookupSearchInput('sco-codart', $this->RenderText('Codice articolo'), $lookupDataset, 'art-codart', 'descrizione', false, 8));
-            
-            $selectQuery = 'select `id`, concat(`voc-codvoce`, IF(`voc-descriz` <> \'\', concat(\' - \', `voc-descriz`),\'\')) as descvoce from voci_costo';
-            $insertQuery = array();
-            $updateQuery = array();
-            $deleteQuery = array();
-            $lookupDataset = new QueryDataset(
-              new MyPDOConnectionFactory(), 
-              GetConnectionOptions(),
-              $selectQuery, $insertQuery, $updateQuery, $deleteQuery, 'query_listino_voci');
-            $field = new IntegerField('id');
-            $field->SetIsNotNull(true);
-            $lookupDataset->AddField($field, true);
-            $field = new StringField('descvoce');
-            $lookupDataset->AddField($field, false);
-            $lookupDataset->setOrderByField('descvoce', GetOrderTypeAsSQL(otAscending));
-            $this->AdvancedSearchControl->AddSearchColumn($this->AdvancedSearchControl->CreateLookupSearchInput('sco-codvoc', $this->RenderText('Codice tipo voce'), $lookupDataset, 'id', 'descvoce', false, 8));
+            $this->AdvancedSearchControl->AddSearchColumn($this->AdvancedSearchControl->CreateStringSearchInput('sco-codvoc', $this->RenderText('Codice tipo voce')));
             $this->AdvancedSearchControl->AddSearchColumn($this->AdvancedSearchControl->CreateStringSearchInput('sco-sconto', $this->RenderText('Sconto')));
         }
     
@@ -238,9 +218,9 @@
             $grid->AddViewColumn($column);
             
             //
-            // View column for descvoce field
+            // View column for sco-codvoc field
             //
-            $column = new TextViewColumn('sco-codvoc_descvoce', 'Codice tipo voce', $this->dataset);
+            $column = new TextViewColumn('sco-codvoc', 'Codice tipo voce', $this->dataset);
             $column->SetOrderable(true);
             $column->SetDescription($this->RenderText(''));
             $column->SetFixedWidth(null);
@@ -274,9 +254,9 @@
             $grid->AddSingleRecordViewColumn($column);
             
             //
-            // View column for descvoce field
+            // View column for sco-codvoc field
             //
-            $column = new TextViewColumn('sco-codvoc_descvoce', 'Codice tipo voce', $this->dataset);
+            $column = new TextViewColumn('sco-codvoc', 'Codice tipo voce', $this->dataset);
             $column->SetOrderable(true);
             $grid->AddSingleRecordViewColumn($column);
             
@@ -351,25 +331,7 @@
             // Edit column for sco-codvoc field
             //
             $editor = new ComboBox('sco-codvoc_edit', $this->GetLocalizerCaptions()->GetMessageString('PleaseSelect'));
-            $selectQuery = 'select `id`, concat(`voc-codvoce`, IF(`voc-descriz` <> \'\', concat(\' - \', `voc-descriz`),\'\')) as descvoce from voci_costo';
-            $insertQuery = array();
-            $updateQuery = array();
-            $deleteQuery = array();
-            $lookupDataset = new QueryDataset(
-              new MyPDOConnectionFactory(), 
-              GetConnectionOptions(),
-              $selectQuery, $insertQuery, $updateQuery, $deleteQuery, 'query_listino_voci');
-            $field = new IntegerField('id');
-            $field->SetIsNotNull(true);
-            $lookupDataset->AddField($field, true);
-            $field = new StringField('descvoce');
-            $lookupDataset->AddField($field, false);
-            $lookupDataset->setOrderByField('descvoce', GetOrderTypeAsSQL(otAscending));
-            $editColumn = new LookUpEditColumn(
-                'Codice tipo voce', 
-                'sco-codvoc', 
-                $editor, 
-                $this->dataset, 'id', 'descvoce', $lookupDataset);
+            $editColumn = new CustomEditColumn('Codice tipo voce', 'sco-codvoc', $editor, $this->dataset);
             $validator = new RequiredValidator(StringUtils::Format($this->GetLocalizerCaptions()->GetMessageString('RequiredValidationMessage'), $this->RenderText($editColumn->GetCaption())));
             $editor->GetValidatorCollection()->AddValidator($validator);
             $this->ApplyCommonColumnEditProperties($editColumn);
@@ -450,25 +412,7 @@
             // Edit column for sco-codvoc field
             //
             $editor = new ComboBox('sco-codvoc_edit', $this->GetLocalizerCaptions()->GetMessageString('PleaseSelect'));
-            $selectQuery = 'select `id`, concat(`voc-codvoce`, IF(`voc-descriz` <> \'\', concat(\' - \', `voc-descriz`),\'\')) as descvoce from voci_costo';
-            $insertQuery = array();
-            $updateQuery = array();
-            $deleteQuery = array();
-            $lookupDataset = new QueryDataset(
-              new MyPDOConnectionFactory(), 
-              GetConnectionOptions(),
-              $selectQuery, $insertQuery, $updateQuery, $deleteQuery, 'query_listino_voci');
-            $field = new IntegerField('id');
-            $field->SetIsNotNull(true);
-            $lookupDataset->AddField($field, true);
-            $field = new StringField('descvoce');
-            $lookupDataset->AddField($field, false);
-            $lookupDataset->setOrderByField('descvoce', GetOrderTypeAsSQL(otAscending));
-            $editColumn = new LookUpEditColumn(
-                'Codice tipo voce', 
-                'sco-codvoc', 
-                $editor, 
-                $this->dataset, 'id', 'descvoce', $lookupDataset);
+            $editColumn = new CustomEditColumn('Codice tipo voce', 'sco-codvoc', $editor, $this->dataset);
             $validator = new RequiredValidator(StringUtils::Format($this->GetLocalizerCaptions()->GetMessageString('RequiredValidationMessage'), $this->RenderText($editColumn->GetCaption())));
             $editor->GetValidatorCollection()->AddValidator($validator);
             $this->ApplyCommonColumnEditProperties($editColumn);
@@ -515,9 +459,9 @@
             $grid->AddPrintColumn($column);
             
             //
-            // View column for descvoce field
+            // View column for sco-codvoc field
             //
-            $column = new TextViewColumn('sco-codvoc_descvoce', 'Codice tipo voce', $this->dataset);
+            $column = new TextViewColumn('sco-codvoc', 'Codice tipo voce', $this->dataset);
             $column->SetOrderable(true);
             $grid->AddPrintColumn($column);
             
@@ -547,9 +491,9 @@
             $grid->AddExportColumn($column);
             
             //
-            // View column for descvoce field
+            // View column for sco-codvoc field
             //
-            $column = new TextViewColumn('sco-codvoc_descvoce', 'Codice tipo voce', $this->dataset);
+            $column = new TextViewColumn('sco-codvoc', 'Codice tipo voce', $this->dataset);
             $column->SetOrderable(true);
             $grid->AddExportColumn($column);
             
