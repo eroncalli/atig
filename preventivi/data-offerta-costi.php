@@ -20,13 +20,14 @@ if (isset($_GET['insert'])) {
 	// INSERT COMMAND
 	$query = "
 			INSERT INTO `offerte_dettaglio_costi`
-			(`ofv-ofaid`, `ofv-codart`, `ofv-num-riga-voce`, `datains`)	
-      VALUES (?, ?, ?, CURRENT_TIMESTAMP)
+			(`ofv-ofaid`, `ofv-numoff`, `ofv-codart`, `ofv-num-riga-voce`, `datains`)	
+      VALUES (?, ?, ?, ?, CURRENT_TIMESTAMP)
 	";
 	$result = $mysqli->prepare($query);
 		
-	$result->bind_param('isd', 
+	$result->bind_param('iisd', 
 											$_GET['ofv_ofaid'], 
+                      $_GET['ofv_numoff'], 
 											$_GET['ofv_codart'], 
                       $_GET['ofv_num_riga_voce']);
 	$res = $result->execute() or trigger_error($result->error, E_USER_ERROR);
@@ -44,13 +45,14 @@ elseif (isset($_GET['insertArticolo'])) {
   //===========================================
 	$query = "
 			INSERT INTO `offerte_dettaglio_costi`
-			(`ofv-ofaid`, `ofv-codart`, `ofv-codvoce`, `ofv-num-riga-voce`, `datains`)	
-      VALUES (?, ?, 1, 1, CURRENT_TIMESTAMP)
+			(`ofv-ofaid`, `ofv-numoff`, `ofv-codart`, `ofv-codvoce`, `ofv-num-riga-voce`, `datains`)	
+      VALUES (?, ?, ?, 1, 1, CURRENT_TIMESTAMP)
 	";
 	$result = $mysqli->prepare($query);
 		
-	$result->bind_param('is', 
+	$result->bind_param('iis', 
 											$_GET['ofv_ofaid'], 
+                      $_GET['ofv_numoff'], 
 											$_GET['ofv_codart']);
 	$res = $result->execute() or trigger_error($result->error, E_USER_ERROR);
 	// printf ("New Record has id %d.\n", $mysqli->insert_id);

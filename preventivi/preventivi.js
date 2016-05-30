@@ -634,10 +634,14 @@ function showElencoOfferte(start_i, end_i, data, stato, filtro) {
       loadDettaglioOfferta(item.off_id, false);
       $( "#btn-offerta-aggiorna" ).hide();
 			
-			$( "#btn-offerta-elenco" ).removeClass( "btn-primary" );
-			$( "#btn-offerta-elenco" ).addClass( "btn-default" );
-			$( "#btn-offerta-completate" ).removeClass( "btn-primary" );		
-			$( "#btn-offerta-completate" ).addClass( "btn-default" );		
+      $( "#btn-offerta-new" ).addClass("active");
+      $( "#btn-offerta-elenco" ).removeClass("active");
+      $( "#btn-offerta-completate" ).removeClass("active");
+
+			//$( "#btn-offerta-elenco" ).removeClass( "btn-primary" );
+			//$( "#btn-offerta-elenco" ).addClass( "btn-default" );
+			//$( "#btn-offerta-completate" ).removeClass( "btn-primary" );		
+			//$( "#btn-offerta-completate" ).addClass( "btn-default" );		
     });
 
     //-
@@ -647,10 +651,14 @@ function showElencoOfferte(start_i, end_i, data, stato, filtro) {
       loadDettaglioOfferta(item.off_id, true);
       $( "#btn-offerta-aggiorna" ).hide();
 			
-			$( "#btn-offerta-elenco" ).removeClass( "btn-primary" );
-			$( "#btn-offerta-elenco" ).addClass( "btn-default" );
-			$( "#btn-offerta-completate" ).removeClass( "btn-primary" );		
-			$( "#btn-offerta-completate" ).addClass( "btn-default" );				
+      $( "#btn-offerta-new" ).addClass("active");
+      $( "#btn-offerta-elenco" ).removeClass("active");
+      $( "#btn-offerta-completate" ).removeClass("active");
+
+			//$( "#btn-offerta-elenco" ).removeClass( "btn-primary" );
+			//$( "#btn-offerta-elenco" ).addClass( "btn-default" );
+			//$( "#btn-offerta-completate" ).removeClass( "btn-primary" );		
+			//$( "#btn-offerta-completate" ).addClass( "btn-default" );				
     });
 
     //-
@@ -662,10 +670,14 @@ function showElencoOfferte(start_i, end_i, data, stato, filtro) {
       getData.clone   = true;
       getData.off_id  = item.off_id;
 		
-			$( "#btn-offerta-elenco" ).removeClass( "btn-primary" );
-			$( "#btn-offerta-elenco" ).addClass( "btn-default" );
-			$( "#btn-offerta-completate" ).removeClass( "btn-primary" );		
-			$( "#btn-offerta-completate" ).addClass( "btn-default" );		
+      $( "#btn-offerta-new" ).addClass("active");
+      $( "#btn-offerta-elenco" ).removeClass("active");
+      $( "#btn-offerta-completate" ).removeClass("active");
+
+			//$( "#btn-offerta-elenco" ).removeClass( "btn-primary" );
+			//$( "#btn-offerta-elenco" ).addClass( "btn-default" );
+			//$( "#btn-offerta-completate" ).removeClass( "btn-primary" );		
+			//$( "#btn-offerta-completate" ).addClass( "btn-default" );		
 			
       $.getJSON("data-offerta.php", getData)
       .done(function(data) {
@@ -788,8 +800,8 @@ function init() {
 	$("#dettaglio-voci").hide();	
   $("#footer-voci").hide();
 	
-  $("#btn-offerta-elenco").show();	
-  $("#btn-offerta-completate").show();	
+  //$("#btn-offerta-elenco").show();	
+  //$("#btn-offerta-completate").show();	
   
   $("#btn-articolo-new").hide();	
 	$("#btn-articolo-elenco").hide();	
@@ -1204,6 +1216,7 @@ function init() {
 		var getData = {};
 		getData.insert         = true;
     getData.ofa_offid      = $("#dettaglio-offerta").attr("off_id");
+    getData.ofa_numoff     = $("#off-numoff").val();
     getData.ofa_codart     = $("#ofa-codart").val();
     getData.ofa_descart    = $("#ofa-descart").val();
     getData.ofa_unimis     = $("#ofa-unimis").val();
@@ -1256,6 +1269,7 @@ function init() {
           var getData = {};
           getData.insertArticolo = true;
           getData.ofv_ofaid      = ofa_id;
+          getData.ofv_numoff     = $("#off-numoff").val();
           getData.ofv_codart     = $("#ofa-codart").val();
 
           $.getJSON("data-offerta-costi.php", getData)
@@ -1433,6 +1447,7 @@ function init() {
 		var getData = {};
 		getData.insert            = true;
     getData.ofv_ofaid         = $("#dettaglio-articolo").attr("ofa_id");
+    getData.ofv_numoff        = $("#off-numoff").val();
     getData.ofv_codart        = $("#ofa-codart").val();
     getData.ofv_num_riga_voce = newNumRigaVoce;
 		

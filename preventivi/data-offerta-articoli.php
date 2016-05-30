@@ -4,7 +4,7 @@
  **/
 
 //- Turn off all error reporting
-error_reporting(0);
+//error_reporting(0);
 
 include ('connect.php');
 
@@ -20,17 +20,18 @@ if (isset($_GET['insert'])) {
 	// INSERT COMMAND
 	$query = "
 			INSERT INTO `offerte_dettaglio_articoli` 
-			(`ofa-offid`, `ofa-codart`, `ofa-descart`, 
+			(`ofa-offid`, `ofa-numoff`, `ofa-codart`, `ofa-descart`, 
        `ofa-lungsmu`, `ofa-tiposmu`, `ofa-lunghezza`, 
        `ofa-moltipl`, `ofa-scarto`, `ofa-oneriacc`, 
        `ofa-larghezza`, `ofa-quantita`, `ofa-unimis`, 
        `ofa-przacq-net`, `ofa-przacq-lor`, `datains`) 
-			VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, CURRENT_TIMESTAMP)
+			VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, CURRENT_TIMESTAMP)
 	";
 	$result = $mysqli->prepare($query);
 		
-	$result->bind_param('issdddidddisdd', 
+	$result->bind_param('iissdddidddisdd', 
                       $_GET['ofa_offid'], 
+                      $_GET['ofa_numoff'], 
                       $_GET['ofa_codart'], 
                       $_GET['ofa_descart'], 
                       $_GET['ofa_lungsmu'], 
