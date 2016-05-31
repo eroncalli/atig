@@ -251,18 +251,18 @@
 				<span>Larghezza (altezza)</span>
 				<input id="ofa-larghezza" type="text" class="form-control t-right">
 			</label>
-			<label>
+			<label style="display:none">
 				<span>Lunghezza smusso</span>
 				<input id="ofa-lungsmu" type="text" class="form-control t-right">
 			</label>
-			<label>
+			<label style="display:none">
 				<span>Tipo smusso</span>
 			        <select class="form-control" id="ofa-tiposmu">
 			          <option value='0' selected>0 - No smusso</option>
 			          <option value='1'>1 - Smusso dritto</option>
 								<option value='2'>2 - Smusso diagonale</option>
 			        </select>
-			</label>				
+      </label>
 			<label>
 				<span>Pezzi</span>
 				<input id="ofa-quantita" type="text" class="form-control t-right">
@@ -316,10 +316,11 @@
 						<td></td>-->
 						<td>
               				<input qta field="ofv-quantita" type="text" class="form-control" placeholder="Qta">
-							<input qta field="ofv-durata" type="text" class="form-control" placeholder="Minuti">
-							<input qta field="ofv-lunghezza" type="text" class="form-control" placeholder="Lunghezza">
-							<input qta field="ofv-larghezza" type="text" class="form-control" placeholder="Larghezza">
-              				<input qta field="ofv-spessore" type="text" class="form-control" placeholder="Spessore">
+                      <input qta field="ofv-durata" type="text" class="form-control" placeholder="Minuti">
+                      <input qta field="ofv-lunghezza" type="text" class="form-control" placeholder="Lunghezza">
+                      <input qta field="ofv-larghezza" type="text" class="form-control" placeholder="Larghezza">
+                      <input qta field="ofv-spessore" type="text" class="form-control" placeholder="Spessore">
+                      <input qta field="ofv-lungsmu" type="text" class="form-control" placeholder="Lunghezza">
             			</td>
 						<td>
 							<input field="ofv-valuni-cal" type="text" class="form-control text-right pull-right">

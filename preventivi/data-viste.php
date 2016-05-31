@@ -41,6 +41,7 @@ $vistaVoci = "
 		SELECT v.`voc-codvoce`,
            v.`voc-descriz`,
            v.`voc-semanual`,
+           v.`voc-flagart`,
            f.`codice`,
            f.`formula`,
            f.`critcalc`
@@ -148,6 +149,7 @@ else if (isset($_GET['voci'])) {
 		  $voc_codvoce,
       $voc_descriz,
       $voc_semanual,
+      $voc_flagart,
       $codice,
       $formula,
       $critcalc
@@ -161,6 +163,7 @@ else if (isset($_GET['voci'])) {
 			'voc_codvoce'  => $voc_codvoce,
       'voc_descriz'  => $voc_descriz,
       'voc_semanual' => $voc_semanual,
+      'voc_flagart'  => $voc_flagart,
       'codice'       => $codice,
       'formula'      => $formula,
       'critcalc'     => $critcalc

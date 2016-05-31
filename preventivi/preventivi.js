@@ -82,6 +82,10 @@ function getRowHtml() {
                 <span qta field="label-spessore" class="input-group-addon">Spessore</span>\
                 <input qta field="ofv-spessore" type="text" class="form-control" placeholder="Spessore">\
               </div>\
+              <div class="input-group width200">\
+                <span qta field="label-lungsmu" class="input-group-addon">Lunghezza</span>\
+                <input qta field="ofv-lungsmu" type="text" class="form-control" placeholder="Smusso">\
+              </div>\
               <span field="costo"></span>\
             </td>\
 						<td style="width: 160px;">\
@@ -163,16 +167,18 @@ function applyFormula(row) {
   var formula = row.attr('voc-formula');
   var valuni = 0;
   
-  var costo = row.attr("przunit");
-  var przlordo = $( "#ofa-przacq-lor" ).autoNumeric('get');
-  var lun = $( "#ofa-lunghezza" ).autoNumeric('get');
-  var lar = $( "#ofa-larghezza" ).autoNumeric('get');
-  var qta = row.find('[field="ofv-quantita"]').autoNumeric('get');      
-  var dur = row.find('[field="ofv-durata"]').autoNumeric('get');
+  var costo = row.attr("przunit") || 0;
+  var przlordo = $( "#ofa-przacq-lor" ).autoNumeric('get') || 0;
+  var lun = $( "#ofa-lunghezza" ).autoNumeric('get') || 0;
+  var lar = $( "#ofa-larghezza" ).autoNumeric('get') || 0;
+  var qta = row.find('[field="ofv-quantita"]').autoNumeric('get') || 0;
+  var dur = row.find('[field="ofv-durata"]').autoNumeric('get') || 0;
 
-  var spe = row.find('[field="ofv-spessore"]').autoNumeric('get');
-  var przRivest = row.find('[field="ofv-codart-agg"]').attr("przLordo");
+  var spe = row.find('[field="ofv-spessore"]').autoNumeric('get') || 0;
+  var lungsmu = row.find('[field="ofv-lungsmu"]').autoNumeric('get') || 0;
+  var przRivest = row.find('[field="ofv-codart-agg"]').attr("przLordo") || 0;
 
+  /*
 	//- Calcola lo smusso
 	var smusso = 0;
 	var tiposmu = $("#ofa-tiposmu").val();
@@ -185,6 +191,7 @@ function applyFormula(row) {
 			smusso = (0.6 * $("#ofa-larghezza").autoNumeric('get')) + $( "#ofa-lungsmu" ).autoNumeric('get');
 			break;
 	}
+  */
 
   switch (formula) {
   case "1": //-ARTICOLO (non usato)
@@ -198,7 +205,7 @@ function applyFormula(row) {
     break;
   case "4": //-RIVESTIMENTO (primo e successivi)
     var spePrec = getSpessoriPrecedenti(row);
-    valuni = ((lun / 3.14) + (2 * spePrec) + (spe * 3.14) + (1 * smusso)) * przRivest;
+    valuni = ((lun / 3.14) + (2 * spePrec) + (spe * 3.14)) * przRivest;
     break;
   case "5": //-RIVESTIMENTO SUCCESSIVO (non usato)
     break;
@@ -207,6 +214,14 @@ function applyFormula(row) {
     break;
   case "7": //-GUIDA
     valuni = costo * lun;  
+    break;
+  case "11": //-SMUSSO DRITTO
+    var smusso = lungsmu;
+    valuni = smusso * przRivest;  
+    break;
+  case "12": //-SMUSSO DIAGONALE
+    var smusso = lungsmu + (0.6 * lar);
+    valuni = smusso * przRivest;  
     break;
   }
 
@@ -389,7 +404,7 @@ function loadDettaglioVoci(ofa_id, codart, readonly) {
   $("#valtot-fin").autoNumeric('set', "");
 
   //- Rimuove tutte le righe diversa dalla prima
-  $( "tbody tr[num_riga_voce!='1']" ).remove();
+  $( "#table-voci-body tr[num_riga_voce!='1']" ).remove();
 
   var getData = {};
   getData.ofv_ofaid = ofa_id;
@@ -448,6 +463,7 @@ function loadDettaglioVoci(ofa_id, codart, readonly) {
           row.find('[field="ofv-lunghezza"]').autoNumeric('init', getNumericOptions("decimal"));
           row.find('[field="ofv-larghezza"]').autoNumeric('init', getNumericOptions("decimal"));
           row.find('[field="ofv-spessore"]').autoNumeric('init', getNumericOptions("decimal"));
+          row.find('[field="ofv-lungsmu"]').autoNumeric('init', getNumericOptions("decimal"));
           row.find('[field="ofv-valuni-cal"]').autoNumeric('init', getNumericOptions("currency"));
           row.find('[field="ofv-sconto"]').autoNumeric('init', getNumericOptions("sconto"));              
           row.find('[field="ofv-valuni-fin"]').autoNumeric('init', getNumericOptions("currency"));        
@@ -459,6 +475,7 @@ function loadDettaglioVoci(ofa_id, codart, readonly) {
           row.find('[field="ofv-lunghezza"]').autoNumeric('set', item.ofv_lunghezza);
           row.find('[field="ofv-larghezza"]').autoNumeric('set', item.ofv_larghezza);
           row.find('[field="ofv-spessore"]').autoNumeric('set', item.ofv_spessore);
+          row.find('[field="ofv-lungsmu"]').autoNumeric('set', item.ofv_lungsmu);
           row.find('[field="ofv-valuni-cal"]').autoNumeric('set', item.ofv_valuni_cal);
           row.find('[field="ofv-sconto"]').autoNumeric('set', item.ofv_sconto);
           row.find('[field="ofv-valuni-fin"]').autoNumeric('set', item.ofv_valuni_fin);
@@ -467,6 +484,7 @@ function loadDettaglioVoci(ofa_id, codart, readonly) {
           row.attr('descriz', item.ofv_descriz);
           row.attr('critcalc', item.ofv_critcalc);
 					row.attr('manuale', item.ofv_semanual);
+          row.attr('flagart', item.ofv_flagart);
           row.attr('voc-formula', item.ofv_formula);
           row.find("td").first().tooltip();
           row.find("td").first().prop('title', item.ofv_desc_formula);
@@ -491,22 +509,23 @@ function loadDettaglioVoci(ofa_id, codart, readonly) {
               row.find('[field="label-spessore"]').show();
               break;
           }
-
+          
+          switch (""+item.ofv_formula) {
+            case "11": //-SMUSSO DRITTO
+            case "12": //-SMUSSO DIAGONALE
+              row.find('[field="ofv-lungsmu"]').show();
+              row.find('[field="label-lungsmu"]').show();
+              break;
+          }
+          
 					//- Mostra la descrizione (Se voce manuale)
 					if (item.ofv_semanual == "1") {
 						row.find('[field="ofv-desc-manuale"]').val(item.ofv_desc_manuale);
 						row.find('[field="ofv-desc-manuale"]').show();
 					}
-					
-          //- Carica i dati aggiuntivi in base alla formula
-          switch (""+item.ofv_formula) {
-          case "3": //-MANODOPERA
-          case "6": //-GIUNZIONE
-          case "7": //-GUIDA 
-            row.attr('przunit', item.ofv_costo);
-            row.find('[field="costo"]').text("Costo: "+item.ofv_costo);
-            break;
-          case "4": //-RIVESTIMENTO (primo e successivi)
+          
+          //- Mostra articoli aggiuntivi (Se flagart)
+          if (item.ofv_flagart == "S") {
             row.find('[field="ofv-codart-agg"]').show();
             row.find('[field="ofv-codart-agg"]').prop("disabled", true);
             row.find('[field="ofv-codart-agg"]').val(item.ofv_codart_agg);
@@ -514,8 +533,26 @@ function loadDettaglioVoci(ofa_id, codart, readonly) {
 
             row.find('[field="ofv-codart-agg"]').attr("desc1", item.ofv_desc1);
             row.find('[field="ofv-codart-agg"]').attr("desc2", item.ofv_desc2);
-            row.find('[field="costo"]').html(item.ofv_desc1 + "<br>" + item.ofv_desc2);
-            break;
+            
+            switch (""+item.ofv_formula) {
+              case "4":  //-RIVESTIMENTO
+                row.find('[field="costo"]').html(item.ofv_desc1 + "<br>" + item.ofv_desc2);
+                break;
+              case "11": //-SMUSSO DRITTO
+              case "12": //-SMUSSO DIAGONALE
+                row.find('[field="costo"]').html(item.ofv_desc1);
+                break;
+            }            
+          }
+          
+          //- Carica i dati aggiuntivi in base alla formula
+          switch (""+item.ofv_formula) {
+            case "3": //-MANODOPERA
+            case "6": //-GIUNZIONE
+            case "7": //-GUIDA 
+              row.attr('przunit', item.ofv_costo);
+              row.find('[field="costo"]').text("Costo: "+item.ofv_costo);
+              break;
           }
 
           //- Gestisce il cambio valore di qta/lun/lar/spe/dur
@@ -535,6 +572,10 @@ function loadDettaglioVoci(ofa_id, codart, readonly) {
 					  $( "#btn-voci-ricalcola" ).trigger( "click" );
           });
           row.find('[field="ofv-spessore"]').keyup(function() {
+            applyFormula(row); 
+						$( "#btn-voci-ricalcola" ).trigger( "click" );
+          });
+          row.find('[field="ofv-lungsmu"]').keyup(function() {
             applyFormula(row); 
 						$( "#btn-voci-ricalcola" ).trigger( "click" );
           });
@@ -1263,7 +1304,7 @@ function init() {
           $("#valtot-fin").autoNumeric('set', "");
           
           //- Rimuove tutte le righe diversa dalla prima
-          $( "tbody tr[num_riga_voce!='1']" ).remove();
+          $( "#table-voci-body tr[num_riga_voce!='1']" ).remove();
           
           //- Inserisce la voce associata all' ARTICOLO (num_riga_voce == 1) (cod-voce == 1)
           var getData = {};
@@ -1298,6 +1339,7 @@ function init() {
                 row.find('[field="ofv-lunghezza"]').autoNumeric('init', getNumericOptions("decimal"));
                 row.find('[field="ofv-larghezza"]').autoNumeric('init', getNumericOptions("decimal"));
                 row.find('[field="ofv-spessore"]').autoNumeric('init', getNumericOptions("decimal"));
+                row.find('[field="ofv-lungsmu"]').autoNumeric('init', getNumericOptions("decimal"));
                 row.find('[field="ofv-valuni-cal"]').autoNumeric('init', getNumericOptions("currency"));
                 row.find('[field="ofv-sconto"]').autoNumeric('init', getNumericOptions("sconto"));
                 row.find('[field="ofv-sconto"]').autoNumeric('set', 0);
@@ -1336,7 +1378,9 @@ function init() {
                     if (data.error) {
                       alert(data.error);
                     } else {
-                      row.find('[field="ofv-sconto"]').autoNumeric('set', data[0].sconto);
+                      if (! _.isUndefined(data[0])) { 
+                        row.find('[field="ofv-sconto"]').autoNumeric('set', data[0].sconto);
+                      }
                     }
                 })
                 .fail(function(data) {
@@ -1501,6 +1545,7 @@ function init() {
 								row.find('[field="ofv-lunghezza"]').autoNumeric('init', getNumericOptions("decimal"));
 								row.find('[field="ofv-larghezza"]').autoNumeric('init', getNumericOptions("decimal"));
                 row.find('[field="ofv-spessore"]').autoNumeric('init', getNumericOptions("decimal"));
+                row.find('[field="ofv-lungsmu"]').autoNumeric('init', getNumericOptions("decimal"));
                 row.find('[field="ofv-valuni-cal"]').autoNumeric('init', getNumericOptions("currency"));
                 row.find('[field="ofv-sconto"]').autoNumeric('init', getNumericOptions("sconto"));
                 row.find('[field="ofv-sconto"]').autoNumeric('set', 0);
@@ -1527,6 +1572,7 @@ function init() {
                     
                     var descriz     = arr[0].voc_descriz;
 										var manuale     = arr[0].voc_semanual;
+                    var flagart     = arr[0].voc_flagart;
                     var formula     = arr[0].codice;
                     var descFormula = arr[0].formula;
                     var critcalc    = arr[0].critcalc;
@@ -1534,6 +1580,7 @@ function init() {
                     //- Imposta i valori
                     row.attr('descriz', descriz);
 										row.attr('manuale', manuale);
+                    row.attr('flagart', flagart);
                     row.attr('critcalc', critcalc);
                     row.attr('voc-formula', formula);
                     row.find("td").first().tooltip();
@@ -1565,6 +1612,14 @@ function init() {
 												break;
 										}
                     
+                    switch (""+formula) {
+                      case "11": //-SMUSSO DRITTO
+                      case "12": //-SMUSSO DIAGONALE
+												row.find('[field="ofv-lungsmu"]').show();
+                        row.find('[field="label-lungsmu"]').show();                        
+                        break;
+                    }
+                                            
 										//- Se voce manuale, mostra il campo descrizione
 										if (manuale == "1") {
 											row.find('[field="ofv-desc-manuale"]').show();
@@ -1590,41 +1645,9 @@ function init() {
 										.fail(function(data) {
 										});	
                     
-                    //- Carica i dati aggiuntivi in base alla formula
-                    switch (""+formula) {
-                    case "3": //-MANODOPERA
-                    case "6": //-GIUNZIONE
-                    case "7": //-GUIDA            
+                    //- Carica articolo aggiuntivo
+                    if (flagart == "S") {
 
-                      //- Carica il costo
-                      var getData = {};
-                      getData.costoPerVoce = true;
-                      getData.codvoce      = selected_codvoce;
-
-                      $.getJSON("data-viste.php", getData)
-                      .done(function(data) {
-                          if (data.error) {
-                            alert(data.error);
-                          } else {
-
-                            if (data.length > 0) {
-                              var costo = data[0].ivo_przunit;
-                              
-                              row.attr('przunit', costo);
-                              row.find('[field="costo"]').text("Costo: "+costo);
-                            }			
-
-                            applyFormula(row);
-														$( "#btn-voci-ricalcola" ).trigger( "click" );
-                          }
-                      })
-                      .fail(function(data) {
-                      });
-                        
-                      break;
-                    case "4": //-RIVESTIMENTO (primo e successivi)
-                      
-                      //- Carica gli articoli aggiuntivi per il rivestimento
                       var getData = {};
                       getData.articoliPerVoce = true;
                       //getData.codvoce         = selected_codvoce;
@@ -1660,7 +1683,17 @@ function init() {
                                     $(this).val('');
                                     $(this).attr("przLordo", 0);
                                     
-                                    row.find('[field="costo"]').html("");
+                                    switch (""+formula) {
+                                      case "4":  //-RIVESTIMENTO
+                                        row.find('[field="costo"]').html("");
+                                        break;
+                                      case "11": //-SMUSSO DRITTO
+                                      case "12": //-SMUSSO DIAGONALE
+                                        row.find('[field="costo"]').html("");
+                                        break;
+                                    } 
+                                    
+                                    $( "#btn-voci-ricalcola" ).trigger( "click" );
                                   }
                                 },
                                 
@@ -1688,11 +1721,53 @@ function init() {
                                   row.find('[field="ofv-codart-agg"]').attr("desc1", strPrz);
                                   row.find('[field="ofv-codart-agg"]').attr("desc2", strSpessori);
                                   
-                                  row.find('[field="costo"]').html(strPrz + "<br>" + strSpessori);
+                                  switch (""+formula) {
+                                    case "4":  //-RIVESTIMENTO
+                                      row.find('[field="costo"]').html(strPrz + "<br>" + strSpessori);
+                                      break;
+                                    case "11": //-SMUSSO DRITTO
+                                    case "12": //-SMUSSO DIAGONALE
+                                      row.find('[field="costo"]').html(strPrz);
+                                      break;
+                                  }
+                                  
+                                  $( "#btn-voci-ricalcola" ).trigger( "click" );
                                 }
                               });
                             }
 														
+														$( "#btn-voci-ricalcola" ).trigger( "click" );
+                          }
+                      })
+                      .fail(function(data) {
+                      });
+                    }
+                                          
+                    //- Carica i dati aggiuntivi in base alla formula
+                    switch (""+formula) {
+                    case "3": //-MANODOPERA
+                    case "6": //-GIUNZIONE
+                    case "7": //-GUIDA            
+
+                      //- Carica il costo
+                      var getData = {};
+                      getData.costoPerVoce = true;
+                      getData.codvoce      = selected_codvoce;
+
+                      $.getJSON("data-viste.php", getData)
+                      .done(function(data) {
+                          if (data.error) {
+                            alert(data.error);
+                          } else {
+
+                            if (data.length > 0) {
+                              var costo = data[0].ivo_przunit;
+                              
+                              row.attr('przunit', costo);
+                              row.find('[field="costo"]').text("Costo: "+costo);
+                            }			
+
+                            applyFormula(row);
 														$( "#btn-voci-ricalcola" ).trigger( "click" );
                           }
                       })
@@ -1724,6 +1799,10 @@ function init() {
                   $( "#btn-voci-ricalcola" ).trigger( "click" );
                 });
                 row.find('[field="ofv-spessore"]').keyup(function() {
+                  applyFormula(row); 
+                  $( "#btn-voci-ricalcola" ).trigger( "click" );
+                });
+                row.find('[field="ofv-lungsmu"]').keyup(function() {
                   applyFormula(row); 
                   $( "#btn-voci-ricalcola" ).trigger( "click" );
                 });
@@ -1823,6 +1902,7 @@ function init() {
 			objVoce.ofv_lunghezza  = $row.find('[field="ofv-lunghezza"]').autoNumeric('get');
 			objVoce.ofv_larghezza  = $row.find('[field="ofv-larghezza"]').autoNumeric('get');
       objVoce.ofv_spessore   = $row.find('[field="ofv-spessore"]').autoNumeric('get');
+      objVoce.ofv_lungsmu    = $row.find('[field="ofv-lungsmu"]').autoNumeric('get');
 			objVoce.ofv_durata     = $row.find('[field="ofv-durata"]').autoNumeric('get');
 			objVoce.ofv_sconto     = $row.find('[field="ofv-sconto"]').autoNumeric('get');
 			objVoce.ofv_valuni_cal = $row.find('[field="ofv-valuni-cal"]').autoNumeric('get');
@@ -1835,6 +1915,7 @@ function init() {
 			objVoce.ofv_formula    = $row.attr('voc-formula');
 			objVoce.ofv_desc_formula = "";
 			objVoce.ofv_semanual   = $row.attr('manuale');
+      objVoce.ofv_flagart    = $row.attr('flagart');
 			objVoce.ofv_critcalc   = $row.attr('critcalc');
 			objVoce.ofv_costo      = $row.attr('przunit');
 			objVoce.ofv_desc1      = $row.find('[field="ofv-codart-agg"]').attr("desc1");

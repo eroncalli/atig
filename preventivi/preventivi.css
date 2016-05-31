@@ -72,6 +72,7 @@ input[field='ofv-durata'],
 input[field='ofv-lunghezza'],
 input[field='ofv-larghezza'],
 input[field='ofv-spessore'],
+input[field='ofv-lungsmu'],
 input[field='ofv-valuni-cal']{
 	width: 150px;
 }
@@ -145,4 +146,8 @@ text-align:right;
 #filtro{
 	width:350px;
 	display:inline;
+}
+
+.navbar-brand {
+  cursor: default;
 }

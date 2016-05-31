@@ -4,7 +4,7 @@
  **/
 
 //- Turn off all error reporting
-error_reporting(0);
+//error_reporting(0);
 
 include ('connect.php');
 
@@ -45,8 +45,8 @@ elseif (isset($_GET['insertArticolo'])) {
   //===========================================
 	$query = "
 			INSERT INTO `offerte_dettaglio_costi`
-			(`ofv-ofaid`, `ofv-numoff`, `ofv-codart`, `ofv-codvoce`, `ofv-num-riga-voce`, `datains`)	
-      VALUES (?, ?, ?, 1, 1, CURRENT_TIMESTAMP)
+			(`ofv-ofaid`, `ofv-numoff`, `ofv-codart`, `ofv-codvoce`, `ofv-descriz`, `ofv-num-riga-voce`, `datains`)	
+      VALUES (?, ?, ?, 1, 'Articolo', 1, CURRENT_TIMESTAMP)
 	";
 	$result = $mysqli->prepare($query);
 		
@@ -86,10 +86,12 @@ else if (isset($_POST['update'])) {
 			SET `ofv-codvoce` = ?,
 					`ofv-desc-manuale` = ?,
 					`ofv-semanual` = ?,
+          `ofv-flagart` = ?,
 			    `ofv-quantita` = ?,
 					`ofv-lunghezza` = ?,
 					`ofv-larghezza` = ?,
           `ofv-spessore` = ?,
+          `ofv-lungsmu` = ?,
 					`ofv-durata` = ?,
 					`ofv-sconto` = ?,
 					`ofv-valuni-cal` = ?,
@@ -111,14 +113,16 @@ else if (isset($_POST['update'])) {
 	
   $arrVoci = $_POST['voci'];
 	foreach ($arrVoci as $voce) {
-		$result->bind_param('isiidddiddddsdsissdssi', 
+		$result->bind_param('isisiddddiddddsdsissdssi', 
 											$voce['ofv_codvoce'],
 											$voce['ofv_desc_manuale'], 
 											$voce['ofv_semanual'], 
+                      $voce['ofv_flagart'], 
 											$voce['ofv_quantita'], 
 											$voce['ofv_lunghezza'], 
 											$voce['ofv_larghezza'],
                       $voce['ofv_spessore'],
+                      $voce['ofv_lungsmu'],
 											$voce['ofv_durata'], 
 											$voce['ofv_sconto'], 
 											$voce['ofv_valuni_cal'], 
@@ -158,10 +162,12 @@ else {
   SELECT `id`, `ofv-num-riga-voce`, `ofv-codvoce`, 
 			   `ofv-desc-manuale`,
 				 `ofv-semanual`,
+         `ofv-flagart`,
          `ofv-quantita`, 
 				 `ofv-lunghezza`, 
 				 `ofv-larghezza`,
          `ofv-spessore`,
+         `ofv-lungsmu`,
 				 `ofv-durata`,
 				 `ofv-sconto`,
          `ofv-valuni-cal`,
@@ -185,7 +191,7 @@ ORDER BY `ofv-num-riga-voce`
 	$result->execute();
 	  
 	/* bind result variables */
-	$result->bind_result($id, $ofv_num_riga_voce, $ofv_codvoce, $ofv_desc_manuale, $ofv_semanual, $ofv_quantita, $ofv_lunghezza, $ofv_larghezza, $ofv_spessore, $ofv_durata, $ofv_sconto, $ofv_valuni_cal, $ofv_valuni_fin, $ofv_valtot_fin, $ofv_codart_agg, $ofv_codart_agg_prz_lor, $ofv_descriz, $ofv_formula, $ofv_desc_formula, $ofv_critcalc, $ofv_costo, $ofv_desc1, $ofv_desc2);
+	$result->bind_result($id, $ofv_num_riga_voce, $ofv_codvoce, $ofv_desc_manuale, $ofv_semanual, $ofv_flagart, $ofv_quantita, $ofv_lunghezza, $ofv_larghezza, $ofv_spessore, $ofv_lungsmu, $ofv_durata, $ofv_sconto, $ofv_valuni_cal, $ofv_valuni_fin, $ofv_valtot_fin, $ofv_codart_agg, $ofv_codart_agg_prz_lor, $ofv_descriz, $ofv_formula, $ofv_desc_formula, $ofv_critcalc, $ofv_costo, $ofv_desc1, $ofv_desc2);
 	/* fetch values */
 	while ($result->fetch()) {
 		$elements[] = array(
@@ -194,10 +200,12 @@ ORDER BY `ofv-num-riga-voce`
       'ofv_codvoce'            => $ofv_codvoce, 
 			'ofv_desc_manuale'       => $ofv_desc_manuale, 
 			'ofv_semanual' 		       => $ofv_semanual, 
+      'ofv_flagart' 		       => $ofv_flagart, 
       'ofv_quantita'           => $ofv_quantita,
       'ofv_lunghezza'          => $ofv_lunghezza,
       'ofv_larghezza'          => $ofv_larghezza,
       'ofv_spessore'           => $ofv_spessore,
+      'ofv_lungsmu'            => $ofv_lungsmu,
       'ofv_durata'             => $ofv_durata,
       'ofv_sconto'             => $ofv_sconto,
       'ofv_valuni_cal'         => $ofv_valuni_cal,
