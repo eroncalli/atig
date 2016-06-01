@@ -1761,7 +1761,7 @@ function init() {
                           } else {
 
                             if (data.length > 0) {
-                              var costo = data[0].ivo_przunit;
+                              var costo = data[0].voc_przunit;
                               
                               row.attr('przunit', costo);
                               row.find('[field="costo"]').text("Costo: "+costo);

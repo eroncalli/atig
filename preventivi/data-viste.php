@@ -74,10 +74,9 @@ $vistaArticoliPerVoce = "
 ";
 
 $vistaCostoPerVoce = "
-    SELECT `ivo-przunit` 
-      FROM listino_voci 
-     WHERE `ivo-codvoc` = ? 
-       AND now() BETWEEN `ivo-dataini` AND `ivo-datafin`
+    SELECT `voc-przunit` 
+      FROM voci_costo 
+     WHERE `voc-codvoce` = ? 
 ";
 
 if (isset($_GET['clienti'])) {
@@ -237,14 +236,14 @@ else if (isset($_GET['costoPerVoce'])) {
 	$result->execute();
 	
 	/* bind result variables */
-	$result->bind_result($ivo_przunit);
+	$result->bind_result($voc_przunit);
 
   $elements = array();
   
 	/* fetch values */
 	while ($result->fetch()) {
 		$elements[] = array(
-      'ivo_przunit'   => $ivo_przunit
+      'voc_przunit'   => $voc_przunit
 		);
 	}
   
