@@ -56,6 +56,10 @@
             $this->dataset->AddField($field, false);
             $field = new IntegerField('voc-formula');
             $this->dataset->AddField($field, false);
+            $field = new StringField('voc-flagart');
+            $this->dataset->AddField($field, false);
+            $field = new IntegerField('voc-przunit');
+            $this->dataset->AddField($field, false);
             $field = new DateTimeField('datains');
             $this->dataset->AddField($field, false);
             $field = new DateTimeField('datamod');
@@ -85,8 +89,6 @@
                 $result->AddPage(new PageLink($this->RenderText('Famiglie'), 'famiglie.php', $this->RenderText('Famiglie'), $currentPageCaption == $this->RenderText('Famiglie'), false, $this->RenderText('Default')));
             if (GetCurrentUserGrantForDataSource('offerte')->HasViewGrant())
                 $result->AddPage(new PageLink($this->RenderText('Offerte'), 'offerte.php', $this->RenderText('Offerte'), $currentPageCaption == $this->RenderText('Offerte'), false, $this->RenderText('Default')));
-            if (GetCurrentUserGrantForDataSource('listino_voci')->HasViewGrant())
-                $result->AddPage(new PageLink($this->RenderText('Listino Voci'), 'listino_voci.php', $this->RenderText('Listino Voci'), $currentPageCaption == $this->RenderText('Listino Voci'), false, $this->RenderText('Default')));
             if (GetCurrentUserGrantForDataSource('listino_articoli')->HasViewGrant())
                 $result->AddPage(new PageLink($this->RenderText('Listino Articoli'), 'listino_articoli.php', $this->RenderText('Listino Articoli'), $currentPageCaption == $this->RenderText('Listino Articoli'), false, $this->RenderText('Default')));
             if (GetCurrentUserGrantForDataSource('voci_costo')->HasViewGrant())
@@ -97,8 +99,6 @@
                 $result->AddPage(new PageLink($this->RenderText('Listini'), 'listini.php', $this->RenderText('Listini'), $currentPageCaption == $this->RenderText('Listini'), false, $this->RenderText('Default')));
             if (GetCurrentUserGrantForDataSource('scontistica_clienti')->HasViewGrant())
                 $result->AddPage(new PageLink($this->RenderText('Scontistica Clienti'), 'scontistica_clienti.php', $this->RenderText('Scontistica Clienti'), $currentPageCaption == $this->RenderText('Scontistica Clienti'), false, $this->RenderText('Default')));
-            if (GetCurrentUserGrantForDataSource('query_listino_voci')->HasViewGrant())
-                $result->AddPage(new PageLink($this->RenderText('Query Listino Voci'), 'query_listino_voci.php', $this->RenderText('Query Listino Voci'), $currentPageCaption == $this->RenderText('Query Listino Voci'), false, $this->RenderText('Default')));
             
             if ( HasAdminPage() && GetApplication()->HasAdminGrantForCurrentUser() ) {
               $result->AddGroup('Admin area');
@@ -116,8 +116,8 @@
         {
             $grid->UseFilter = true;
             $grid->SearchControl = new SimpleSearch('voci_costossearch', $this->dataset,
-                array('voc-codvoce', 'voc-descriz', 'voc-semanual', 'voc-formula_formula'),
-                array($this->RenderText('Codice voce di costo'), $this->RenderText('Descrizione'), $this->RenderText('Manuale'), $this->RenderText('Formula di calcolo')),
+                array('voc-codvoce', 'voc-descriz', 'voc-semanual', 'voc-formula_formula', 'voc-flagart', 'voc-przunit'),
+                array($this->RenderText('Codice voce di costo'), $this->RenderText('Descrizione'), $this->RenderText('Manuale'), $this->RenderText('Formula di calcolo'), $this->RenderText('Prevede altri articoli'), $this->RenderText('Prezzo unitario')),
                 array(
                     '=' => $this->GetLocalizerCaptions()->GetMessageString('equals'),
                     '<>' => $this->GetLocalizerCaptions()->GetMessageString('doesNotEquals'),
@@ -154,12 +154,16 @@
             $lookupDataset->AddField($field, false);
             $field = new StringField('critcalc');
             $lookupDataset->AddField($field, false);
+            $field = new StringField('descrizione');
+            $lookupDataset->AddField($field, false);
             $field = new DateTimeField('datains');
             $lookupDataset->AddField($field, false);
             $field = new DateTimeField('datamod');
             $lookupDataset->AddField($field, false);
             $lookupDataset->setOrderByField('formula', GetOrderTypeAsSQL(otAscending));
             $this->AdvancedSearchControl->AddSearchColumn($this->AdvancedSearchControl->CreateLookupSearchInput('voc-formula', $this->RenderText('Formula di calcolo'), $lookupDataset, 'codice', 'formula', false, 8));
+            $this->AdvancedSearchControl->AddSearchColumn($this->AdvancedSearchControl->CreateStringSearchInput('voc-flagart', $this->RenderText('Prevede altri articoli')));
+            $this->AdvancedSearchControl->AddSearchColumn($this->AdvancedSearchControl->CreateStringSearchInput('voc-przunit', $this->RenderText('Prezzo unitario')));
         }
     
         protected function AddOperationsColumns(Grid $grid)
@@ -220,6 +224,25 @@
             $column->SetDescription($this->RenderText(''));
             $column->SetFixedWidth(null);
             $grid->AddViewColumn($column);
+            
+            //
+            // View column for voc-flagart field
+            //
+            $column = new TextViewColumn('voc-flagart', 'Prevede altri articoli', $this->dataset);
+            $column->SetOrderable(true);
+            $column->SetDescription($this->RenderText(''));
+            $column->SetFixedWidth(null);
+            $grid->AddViewColumn($column);
+            
+            //
+            // View column for voc-przunit field
+            //
+            $column = new TextViewColumn('voc-przunit', 'Prezzo unitario', $this->dataset);
+            $column->SetOrderable(true);
+            $column = new NumberFormatValueViewColumnDecorator($column, 2, '.', ',');
+            $column->SetDescription($this->RenderText(''));
+            $column->SetFixedWidth(null);
+            $grid->AddViewColumn($column);
         }
     
         protected function AddSingleRecordViewColumns(Grid $grid)
@@ -270,6 +293,21 @@
             $column = new DateTimeViewColumn('datamod', 'Datamod', $this->dataset);
             $column->SetDateTimeFormat('d-m-Y H:i:s');
             $column->SetOrderable(true);
+            $grid->AddSingleRecordViewColumn($column);
+            
+            //
+            // View column for voc-flagart field
+            //
+            $column = new TextViewColumn('voc-flagart', 'Prevede altri articoli', $this->dataset);
+            $column->SetOrderable(true);
+            $grid->AddSingleRecordViewColumn($column);
+            
+            //
+            // View column for voc-przunit field
+            //
+            $column = new TextViewColumn('voc-przunit', 'Prezzo unitario', $this->dataset);
+            $column->SetOrderable(true);
+            $column = new NumberFormatValueViewColumnDecorator($column, 2, '.', ',');
             $grid->AddSingleRecordViewColumn($column);
         }
     
@@ -326,6 +364,8 @@
             $lookupDataset->AddField($field, false);
             $field = new StringField('critcalc');
             $lookupDataset->AddField($field, false);
+            $field = new StringField('descrizione');
+            $lookupDataset->AddField($field, false);
             $field = new DateTimeField('datains');
             $lookupDataset->AddField($field, false);
             $field = new DateTimeField('datamod');
@@ -336,6 +376,26 @@
                 'voc-formula', 
                 $editor, 
                 $this->dataset, 'codice', 'formula', $lookupDataset);
+            $editColumn->SetAllowSetToNull(true);
+            $this->ApplyCommonColumnEditProperties($editColumn);
+            $grid->AddEditColumn($editColumn);
+            
+            //
+            // Edit column for voc-flagart field
+            //
+            $editor = new ComboBox('voc-flagart_edit', $this->GetLocalizerCaptions()->GetMessageString('PleaseSelect'));
+            $editor->AddValue('S', $this->RenderText('Si'));
+            $editor->AddValue('N', $this->RenderText('No'));
+            $editColumn = new CustomEditColumn('Prevede altri articoli', 'voc-flagart', $editor, $this->dataset);
+            $editColumn->SetAllowSetToNull(true);
+            $this->ApplyCommonColumnEditProperties($editColumn);
+            $grid->AddEditColumn($editColumn);
+            
+            //
+            // Edit column for voc-przunit field
+            //
+            $editor = new TextEdit('voc-przunit_edit');
+            $editColumn = new CustomEditColumn('Prezzo unitario', 'voc-przunit', $editor, $this->dataset);
             $editColumn->SetAllowSetToNull(true);
             $this->ApplyCommonColumnEditProperties($editColumn);
             $grid->AddEditColumn($editColumn);
@@ -395,6 +455,8 @@
             $lookupDataset->AddField($field, false);
             $field = new StringField('critcalc');
             $lookupDataset->AddField($field, false);
+            $field = new StringField('descrizione');
+            $lookupDataset->AddField($field, false);
             $field = new DateTimeField('datains');
             $lookupDataset->AddField($field, false);
             $field = new DateTimeField('datamod');
@@ -405,6 +467,27 @@
                 'voc-formula', 
                 $editor, 
                 $this->dataset, 'codice', 'formula', $lookupDataset);
+            $editColumn->SetAllowSetToNull(true);
+            $this->ApplyCommonColumnEditProperties($editColumn);
+            $grid->AddInsertColumn($editColumn);
+            
+            //
+            // Edit column for voc-flagart field
+            //
+            $editor = new ComboBox('voc-flagart_edit', $this->GetLocalizerCaptions()->GetMessageString('PleaseSelect'));
+            $editor->AddValue('S', $this->RenderText('Si'));
+            $editor->AddValue('N', $this->RenderText('No'));
+            $editColumn = new CustomEditColumn('Prevede altri articoli', 'voc-flagart', $editor, $this->dataset);
+            $editColumn->SetAllowSetToNull(true);
+            $editColumn->SetInsertDefaultValue($this->RenderText('N'));
+            $this->ApplyCommonColumnEditProperties($editColumn);
+            $grid->AddInsertColumn($editColumn);
+            
+            //
+            // Edit column for voc-przunit field
+            //
+            $editor = new TextEdit('voc-przunit_edit');
+            $editColumn = new CustomEditColumn('Prezzo unitario', 'voc-przunit', $editor, $this->dataset);
             $editColumn->SetAllowSetToNull(true);
             $this->ApplyCommonColumnEditProperties($editColumn);
             $grid->AddInsertColumn($editColumn);
@@ -453,6 +536,21 @@
             $column->SetMaxLength(150);
             $column->SetFullTextWindowHandlerName('voci_costoGrid_formula_handler_print');
             $grid->AddPrintColumn($column);
+            
+            //
+            // View column for voc-flagart field
+            //
+            $column = new TextViewColumn('voc-flagart', 'Prevede altri articoli', $this->dataset);
+            $column->SetOrderable(true);
+            $grid->AddPrintColumn($column);
+            
+            //
+            // View column for voc-przunit field
+            //
+            $column = new TextViewColumn('voc-przunit', 'Prezzo unitario', $this->dataset);
+            $column->SetOrderable(true);
+            $column = new NumberFormatValueViewColumnDecorator($column, 2, '.', ',');
+            $grid->AddPrintColumn($column);
         }
     
         protected function AddExportColumns(Grid $grid)
@@ -487,6 +585,21 @@
             $column->SetOrderable(true);
             $column->SetMaxLength(150);
             $column->SetFullTextWindowHandlerName('voci_costoGrid_formula_handler_export');
+            $grid->AddExportColumn($column);
+            
+            //
+            // View column for voc-flagart field
+            //
+            $column = new TextViewColumn('voc-flagart', 'Prevede altri articoli', $this->dataset);
+            $column->SetOrderable(true);
+            $grid->AddExportColumn($column);
+            
+            //
+            // View column for voc-przunit field
+            //
+            $column = new TextViewColumn('voc-przunit', 'Prezzo unitario', $this->dataset);
+            $column->SetOrderable(true);
+            $column = new NumberFormatValueViewColumnDecorator($column, 2, '.', ',');
             $grid->AddExportColumn($column);
         }
     

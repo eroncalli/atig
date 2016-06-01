@@ -92,8 +92,8 @@
                 $result->AddPage(new PageLink($this->RenderText('Articoli'), 'articoli.php', $this->RenderText('Articoli'), $currentPageCaption == $this->RenderText('Articoli'), false, $this->RenderText('Default')));
             if (GetCurrentUserGrantForDataSource('famiglie')->HasViewGrant())
                 $result->AddPage(new PageLink($this->RenderText('Famiglie'), 'famiglie.php', $this->RenderText('Famiglie'), $currentPageCaption == $this->RenderText('Famiglie'), false, $this->RenderText('Default')));
-            if (GetCurrentUserGrantForDataSource('listino_voci')->HasViewGrant())
-                $result->AddPage(new PageLink($this->RenderText('Listino Voci'), 'listino_voci.php', $this->RenderText('Listino Voci'), $currentPageCaption == $this->RenderText('Listino Voci'), false, $this->RenderText('Default')));
+            if (GetCurrentUserGrantForDataSource('offerte')->HasViewGrant())
+                $result->AddPage(new PageLink($this->RenderText('Offerte'), 'offerte.php', $this->RenderText('Offerte'), $currentPageCaption == $this->RenderText('Offerte'), false, $this->RenderText('Default')));
             if (GetCurrentUserGrantForDataSource('listino_articoli')->HasViewGrant())
                 $result->AddPage(new PageLink($this->RenderText('Listino Articoli'), 'listino_articoli.php', $this->RenderText('Listino Articoli'), $currentPageCaption == $this->RenderText('Listino Articoli'), false, $this->RenderText('Default')));
             if (GetCurrentUserGrantForDataSource('voci_costo')->HasViewGrant())
@@ -121,8 +121,8 @@
         {
             $grid->UseFilter = true;
             $grid->SearchControl = new SimpleSearch('listino_vocissearch', $this->dataset,
-                array('id', 'ivo-codart_descrizione', 'ivo-codvoc_voc-descriz', 'ivo-przunit', 'ivo-flagart', 'ivo-flagsmu', 'ivo-tiposmu', 'ivo-dataini', 'ivo-datafin'),
-                array($this->RenderText('Id'), $this->RenderText('Codice Articolo'), $this->RenderText('Codice Tipo Voce'), $this->RenderText('Prezzo unitario'), $this->RenderText('Altro articolo'), $this->RenderText('Prevede smusso'), $this->RenderText('Tipo smusso'), $this->RenderText('Data decorrenza listino'), $this->RenderText('Data fine decorrenza listino')),
+                array('id', 'ivo-codart_descrizione', 'ivo-codvoc_voc-descriz', 'ivo-przunit', 'ivo-flagart', 'ivo-flagsmu', 'ivo-dataini', 'ivo-datafin'),
+                array($this->RenderText('Id'), $this->RenderText('Codice Articolo'), $this->RenderText('Codice Tipo Voce'), $this->RenderText('Prezzo unitario'), $this->RenderText('Altro articolo'), $this->RenderText('Prevede smusso'), $this->RenderText('Data decorrenza listino'), $this->RenderText('Data fine decorrenza listino')),
                 array(
                     '=' => $this->GetLocalizerCaptions()->GetMessageString('equals'),
                     '<>' => $this->GetLocalizerCaptions()->GetMessageString('doesNotEquals'),
@@ -173,6 +173,10 @@
             $lookupDataset->AddField($field, false);
             $field = new IntegerField('voc-formula');
             $lookupDataset->AddField($field, false);
+            $field = new StringField('voc-flagart');
+            $lookupDataset->AddField($field, false);
+            $field = new IntegerField('voc-przunit');
+            $lookupDataset->AddField($field, false);
             $field = new DateTimeField('datains');
             $lookupDataset->AddField($field, false);
             $field = new DateTimeField('datamod');
@@ -182,7 +186,6 @@
             $this->AdvancedSearchControl->AddSearchColumn($this->AdvancedSearchControl->CreateStringSearchInput('ivo-przunit', $this->RenderText('Prezzo unitario')));
             $this->AdvancedSearchControl->AddSearchColumn($this->AdvancedSearchControl->CreateStringSearchInput('ivo-flagart', $this->RenderText('Altro articolo')));
             $this->AdvancedSearchControl->AddSearchColumn($this->AdvancedSearchControl->CreateStringSearchInput('ivo-flagsmu', $this->RenderText('Prevede smusso')));
-            $this->AdvancedSearchControl->AddSearchColumn($this->AdvancedSearchControl->CreateStringSearchInput('ivo-tiposmu', $this->RenderText('Tipo smusso')));
             $this->AdvancedSearchControl->AddSearchColumn($this->AdvancedSearchControl->CreateDateTimeSearchInput('ivo-dataini', $this->RenderText('Data decorrenza listino'), 'd-m-Y'));
             $this->AdvancedSearchControl->AddSearchColumn($this->AdvancedSearchControl->CreateDateTimeSearchInput('ivo-datafin', $this->RenderText('Data fine decorrenza listino'), 'd-m-Y'));
         }
@@ -268,15 +271,6 @@
             $grid->AddViewColumn($column);
             
             //
-            // View column for ivo-tiposmu field
-            //
-            $column = new TextViewColumn('ivo-tiposmu', 'Tipo smusso', $this->dataset);
-            $column->SetOrderable(true);
-            $column->SetDescription($this->RenderText(''));
-            $column->SetFixedWidth(null);
-            $grid->AddViewColumn($column);
-            
-            //
             // View column for ivo-dataini field
             //
             $column = new DateTimeViewColumn('ivo-dataini', 'Data decorrenza listino', $this->dataset);
@@ -340,13 +334,6 @@
             $grid->AddSingleRecordViewColumn($column);
             
             //
-            // View column for ivo-tiposmu field
-            //
-            $column = new TextViewColumn('ivo-tiposmu', 'Tipo smusso', $this->dataset);
-            $column->SetOrderable(true);
-            $grid->AddSingleRecordViewColumn($column);
-            
-            //
             // View column for ivo-dataini field
             //
             $column = new DateTimeViewColumn('ivo-dataini', 'Data decorrenza listino', $this->dataset);
@@ -399,7 +386,8 @@
             $lookupDataset->AddField($field, false);
             $lookupDataset->setOrderByField('descrizione', GetOrderTypeAsSQL(otAscending));
             $editColumn = new DynamicLookupEditColumn('Codice Articolo', 'ivo-codart', 'ivo-codart_descrizione', 'edit_ivo-codart_descrizione_search', $editor, $this->dataset, $lookupDataset, 'art-codart', 'descrizione', '');
-            $editColumn->SetAllowSetToNull(true);
+            $validator = new RequiredValidator(StringUtils::Format($this->GetLocalizerCaptions()->GetMessageString('RequiredValidationMessage'), $this->RenderText($editColumn->GetCaption())));
+            $editor->GetValidatorCollection()->AddValidator($validator);
             $this->ApplyCommonColumnEditProperties($editColumn);
             $grid->AddEditColumn($editColumn);
             
@@ -424,6 +412,10 @@
             $lookupDataset->AddField($field, false);
             $field = new IntegerField('voc-formula');
             $lookupDataset->AddField($field, false);
+            $field = new StringField('voc-flagart');
+            $lookupDataset->AddField($field, false);
+            $field = new IntegerField('voc-przunit');
+            $lookupDataset->AddField($field, false);
             $field = new DateTimeField('datains');
             $lookupDataset->AddField($field, false);
             $field = new DateTimeField('datamod');
@@ -434,7 +426,8 @@
                 'ivo-codvoc', 
                 $editor, 
                 $this->dataset, 'voc-codvoce', 'voc-descriz', $lookupDataset);
-            $editColumn->SetAllowSetToNull(true);
+            $validator = new RequiredValidator(StringUtils::Format($this->GetLocalizerCaptions()->GetMessageString('RequiredValidationMessage'), $this->RenderText($editColumn->GetCaption())));
+            $editor->GetValidatorCollection()->AddValidator($validator);
             $this->ApplyCommonColumnEditProperties($editColumn);
             $grid->AddEditColumn($editColumn);
             
@@ -443,7 +436,8 @@
             //
             $editor = new TextEdit('ivo-przunit_edit');
             $editColumn = new CustomEditColumn('Prezzo unitario', 'ivo-przunit', $editor, $this->dataset);
-            $editColumn->SetAllowSetToNull(true);
+            $validator = new RequiredValidator(StringUtils::Format($this->GetLocalizerCaptions()->GetMessageString('RequiredValidationMessage'), $this->RenderText($editColumn->GetCaption())));
+            $editor->GetValidatorCollection()->AddValidator($validator);
             $this->ApplyCommonColumnEditProperties($editColumn);
             $grid->AddEditColumn($editColumn);
             
@@ -461,17 +455,6 @@
             //
             $editor = new CheckBox('ivo-flagsmu_edit');
             $editColumn = new CustomEditColumn('Prevede smusso', 'ivo-flagsmu', $editor, $this->dataset);
-            $editColumn->SetAllowSetToNull(true);
-            $this->ApplyCommonColumnEditProperties($editColumn);
-            $grid->AddEditColumn($editColumn);
-            
-            //
-            // Edit column for ivo-tiposmu field
-            //
-            $editor = new ComboBox('ivo-tiposmu_edit', $this->GetLocalizerCaptions()->GetMessageString('PleaseSelect'));
-            $editor->AddValue('1', $this->RenderText('Diritto'));
-            $editor->AddValue('2', $this->RenderText('Diagonale'));
-            $editColumn = new CustomEditColumn('Tipo smusso', 'ivo-tiposmu', $editor, $this->dataset);
             $editColumn->SetAllowSetToNull(true);
             $this->ApplyCommonColumnEditProperties($editColumn);
             $grid->AddEditColumn($editColumn);
@@ -515,7 +498,8 @@
             $lookupDataset->AddField($field, false);
             $lookupDataset->setOrderByField('descrizione', GetOrderTypeAsSQL(otAscending));
             $editColumn = new DynamicLookupEditColumn('Codice Articolo', 'ivo-codart', 'ivo-codart_descrizione', 'insert_ivo-codart_descrizione_search', $editor, $this->dataset, $lookupDataset, 'art-codart', 'descrizione', '');
-            $editColumn->SetAllowSetToNull(true);
+            $validator = new RequiredValidator(StringUtils::Format($this->GetLocalizerCaptions()->GetMessageString('RequiredValidationMessage'), $this->RenderText($editColumn->GetCaption())));
+            $editor->GetValidatorCollection()->AddValidator($validator);
             $this->ApplyCommonColumnEditProperties($editColumn);
             $grid->AddInsertColumn($editColumn);
             
@@ -540,6 +524,10 @@
             $lookupDataset->AddField($field, false);
             $field = new IntegerField('voc-formula');
             $lookupDataset->AddField($field, false);
+            $field = new StringField('voc-flagart');
+            $lookupDataset->AddField($field, false);
+            $field = new IntegerField('voc-przunit');
+            $lookupDataset->AddField($field, false);
             $field = new DateTimeField('datains');
             $lookupDataset->AddField($field, false);
             $field = new DateTimeField('datamod');
@@ -550,7 +538,8 @@
                 'ivo-codvoc', 
                 $editor, 
                 $this->dataset, 'voc-codvoce', 'voc-descriz', $lookupDataset);
-            $editColumn->SetAllowSetToNull(true);
+            $validator = new RequiredValidator(StringUtils::Format($this->GetLocalizerCaptions()->GetMessageString('RequiredValidationMessage'), $this->RenderText($editColumn->GetCaption())));
+            $editor->GetValidatorCollection()->AddValidator($validator);
             $this->ApplyCommonColumnEditProperties($editColumn);
             $grid->AddInsertColumn($editColumn);
             
@@ -559,7 +548,8 @@
             //
             $editor = new TextEdit('ivo-przunit_edit');
             $editColumn = new CustomEditColumn('Prezzo unitario', 'ivo-przunit', $editor, $this->dataset);
-            $editColumn->SetAllowSetToNull(true);
+            $validator = new RequiredValidator(StringUtils::Format($this->GetLocalizerCaptions()->GetMessageString('RequiredValidationMessage'), $this->RenderText($editColumn->GetCaption())));
+            $editor->GetValidatorCollection()->AddValidator($validator);
             $this->ApplyCommonColumnEditProperties($editColumn);
             $grid->AddInsertColumn($editColumn);
             
@@ -577,17 +567,6 @@
             //
             $editor = new CheckBox('ivo-flagsmu_edit');
             $editColumn = new CustomEditColumn('Prevede smusso', 'ivo-flagsmu', $editor, $this->dataset);
-            $editColumn->SetAllowSetToNull(true);
-            $this->ApplyCommonColumnEditProperties($editColumn);
-            $grid->AddInsertColumn($editColumn);
-            
-            //
-            // Edit column for ivo-tiposmu field
-            //
-            $editor = new ComboBox('ivo-tiposmu_edit', $this->GetLocalizerCaptions()->GetMessageString('PleaseSelect'));
-            $editor->AddValue('1', $this->RenderText('Diritto'));
-            $editor->AddValue('2', $this->RenderText('Diagonale'));
-            $editColumn = new CustomEditColumn('Tipo smusso', 'ivo-tiposmu', $editor, $this->dataset);
             $editColumn->SetAllowSetToNull(true);
             $this->ApplyCommonColumnEditProperties($editColumn);
             $grid->AddInsertColumn($editColumn);
@@ -671,13 +650,6 @@
             $grid->AddPrintColumn($column);
             
             //
-            // View column for ivo-tiposmu field
-            //
-            $column = new TextViewColumn('ivo-tiposmu', 'Tipo smusso', $this->dataset);
-            $column->SetOrderable(true);
-            $grid->AddPrintColumn($column);
-            
-            //
             // View column for ivo-dataini field
             //
             $column = new DateTimeViewColumn('ivo-dataini', 'Data decorrenza listino', $this->dataset);
@@ -741,13 +713,6 @@
             $column->SetOrderable(true);
             $column = new CheckBoxFormatValueViewColumnDecorator($column);
             $column->SetDisplayValues($this->RenderText('<img src="images/checked.png" alt="true">'), $this->RenderText(''));
-            $grid->AddExportColumn($column);
-            
-            //
-            // View column for ivo-tiposmu field
-            //
-            $column = new TextViewColumn('ivo-tiposmu', 'Tipo smusso', $this->dataset);
-            $column->SetOrderable(true);
             $grid->AddExportColumn($column);
             
             //

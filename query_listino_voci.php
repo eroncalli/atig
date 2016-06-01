@@ -35,20 +35,38 @@
     
     
     
-    class listiniPage extends Page
+    class listino_vociPage extends Page
     {
         protected function DoBeforeCreate()
         {
             $this->dataset = new TableDataset(
                 new MyPDOConnectionFactory(),
                 GetConnectionOptions(),
-                '`listini`');
-            $field = new IntegerField('id', null, null, true);
+                '`listino_voci`');
+            $field = new IntegerField('id');
+            $field->SetIsNotNull(true);
+            $this->dataset->AddField($field, false);
+            $field = new StringField('ivo-codart');
             $field->SetIsNotNull(true);
             $this->dataset->AddField($field, true);
-            $field = new StringField('codice');
+            $field = new IntegerField('ivo-codvoc');
+            $field->SetIsNotNull(true);
+            $this->dataset->AddField($field, true);
+            $field = new IntegerField('ivo-przunit');
             $this->dataset->AddField($field, false);
-            $field = new StringField('descrizione');
+            $field = new StringField('ivo-flagart');
+            $this->dataset->AddField($field, false);
+            $field = new StringField('ivo-flagsmu');
+            $this->dataset->AddField($field, false);
+            $field = new StringField('ivo-tiposmu');
+            $this->dataset->AddField($field, false);
+            $field = new DateTimeField('ivo-dataini');
+            $this->dataset->AddField($field, false);
+            $field = new DateTimeField('ivo-datafin');
+            $this->dataset->AddField($field, false);
+            $field = new DateTimeField('datains');
+            $this->dataset->AddField($field, false);
+            $field = new DateTimeField('datamod');
             $this->dataset->AddField($field, false);
         }
     
@@ -58,7 +76,13 @@
     
         protected function CreatePageNavigator()
         {
-            return null;
+            $result = new CompositePageNavigator($this);
+            
+            $partitionNavigator = new PageNavigator('pnav', $this, $this->dataset);
+            $partitionNavigator->SetRowsPerPage(25);
+            $result->AddPageNavigator($partitionNavigator);
+            
+            return $result;
         }
     
         public function GetPageList()
@@ -100,9 +124,9 @@
         protected function CreateGridSearchControl(Grid $grid)
         {
             $grid->UseFilter = true;
-            $grid->SearchControl = new SimpleSearch('listinissearch', $this->dataset,
-                array('codice', 'descrizione'),
-                array($this->RenderText('Codice'), $this->RenderText('Descrizione')),
+            $grid->SearchControl = new SimpleSearch('listino_vocissearch', $this->dataset,
+                array('ivo-codvoc'),
+                array($this->RenderText('Ivo-codvoc')),
                 array(
                     '=' => $this->GetLocalizerCaptions()->GetMessageString('equals'),
                     '<>' => $this->GetLocalizerCaptions()->GetMessageString('doesNotEquals'),
@@ -120,10 +144,9 @@
     
         protected function CreateGridAdvancedSearchControl(Grid $grid)
         {
-            $this->AdvancedSearchControl = new AdvancedSearchControl('listiniasearch', $this->dataset, $this->GetLocalizerCaptions(), $this->GetColumnVariableContainer(), $this->CreateLinkBuilder());
+            $this->AdvancedSearchControl = new AdvancedSearchControl('listino_vociasearch', $this->dataset, $this->GetLocalizerCaptions(), $this->GetColumnVariableContainer(), $this->CreateLinkBuilder());
             $this->AdvancedSearchControl->setTimerInterval(1000);
-            $this->AdvancedSearchControl->AddSearchColumn($this->AdvancedSearchControl->CreateStringSearchInput('codice', $this->RenderText('Codice')));
-            $this->AdvancedSearchControl->AddSearchColumn($this->AdvancedSearchControl->CreateStringSearchInput('descrizione', $this->RenderText('Descrizione')));
+            $this->AdvancedSearchControl->AddSearchColumn($this->AdvancedSearchControl->CreateStringSearchInput('ivo-codvoc', $this->RenderText('Ivo-codvoc')));
         }
     
         protected function AddOperationsColumns(Grid $grid)
@@ -136,39 +159,14 @@
                 $grid->AddViewColumn($column, $actionsBandName);
                 $column->SetImagePath('images/view_action.png');
             }
-            if ($this->GetSecurityInfo()->HasEditGrant())
-            {
-                $column = new RowOperationByLinkColumn($this->GetLocalizerCaptions()->GetMessageString('Edit'), OPERATION_EDIT, $this->dataset);
-                $grid->AddViewColumn($column, $actionsBandName);
-                $column->SetImagePath('images/edit_action.png');
-                $column->OnShow->AddListener('ShowEditButtonHandler', $this);
-            }
-            if ($this->GetSecurityInfo()->HasDeleteGrant())
-            {
-                $column = new RowOperationByLinkColumn($this->GetLocalizerCaptions()->GetMessageString('Delete'), OPERATION_DELETE, $this->dataset);
-                $grid->AddViewColumn($column, $actionsBandName);
-                $column->SetImagePath('images/delete_action.png');
-                $column->OnShow->AddListener('ShowDeleteButtonHandler', $this);
-                $column->SetAdditionalAttribute('data-modal-delete', 'true');
-                $column->SetAdditionalAttribute('data-delete-handler-name', $this->GetModalGridDeleteHandler());
-            }
         }
     
         protected function AddFieldColumns(Grid $grid)
         {
             //
-            // View column for codice field
+            // View column for ivo-codvoc field
             //
-            $column = new TextViewColumn('codice', 'Codice', $this->dataset);
-            $column->SetOrderable(true);
-            $column->SetDescription($this->RenderText(''));
-            $column->SetFixedWidth(null);
-            $grid->AddViewColumn($column);
-            
-            //
-            // View column for descrizione field
-            //
-            $column = new TextViewColumn('descrizione', 'Descrizione', $this->dataset);
+            $column = new TextViewColumn('ivo-codvoc', 'Ivo-codvoc', $this->dataset);
             $column->SetOrderable(true);
             $column->SetDescription($this->RenderText(''));
             $column->SetFixedWidth(null);
@@ -178,16 +176,9 @@
         protected function AddSingleRecordViewColumns(Grid $grid)
         {
             //
-            // View column for codice field
+            // View column for ivo-codvoc field
             //
-            $column = new TextViewColumn('codice', 'Codice', $this->dataset);
-            $column->SetOrderable(true);
-            $grid->AddSingleRecordViewColumn($column);
-            
-            //
-            // View column for descrizione field
-            //
-            $column = new TextViewColumn('descrizione', 'Descrizione', $this->dataset);
+            $column = new TextViewColumn('ivo-codvoc', 'Ivo-codvoc', $this->dataset);
             $column->SetOrderable(true);
             $grid->AddSingleRecordViewColumn($column);
         }
@@ -195,22 +186,12 @@
         protected function AddEditColumns(Grid $grid)
         {
             //
-            // Edit column for codice field
+            // Edit column for ivo-codvoc field
             //
-            $editor = new TextEdit('codice_edit');
-            $editColumn = new CustomEditColumn('Codice', 'codice', $editor, $this->dataset);
-            $editColumn->SetAllowSetToNull(true);
-            $this->ApplyCommonColumnEditProperties($editColumn);
-            $grid->AddEditColumn($editColumn);
-            
-            //
-            // Edit column for descrizione field
-            //
-            $editor = new TextEdit('descrizione_edit');
-            $editor->SetSize(50);
-            $editor->SetMaxLength(50);
-            $editColumn = new CustomEditColumn('Descrizione', 'descrizione', $editor, $this->dataset);
-            $editColumn->SetAllowSetToNull(true);
+            $editor = new SpinEdit('ivo-codvoc_edit');
+            $editColumn = new CustomEditColumn('Ivo-codvoc', 'ivo-codvoc', $editor, $this->dataset);
+            $validator = new RequiredValidator(StringUtils::Format($this->GetLocalizerCaptions()->GetMessageString('RequiredValidationMessage'), $this->RenderText($editColumn->GetCaption())));
+            $editor->GetValidatorCollection()->AddValidator($validator);
             $this->ApplyCommonColumnEditProperties($editColumn);
             $grid->AddEditColumn($editColumn);
         }
@@ -218,27 +199,17 @@
         protected function AddInsertColumns(Grid $grid)
         {
             //
-            // Edit column for codice field
+            // Edit column for ivo-codvoc field
             //
-            $editor = new TextEdit('codice_edit');
-            $editColumn = new CustomEditColumn('Codice', 'codice', $editor, $this->dataset);
-            $editColumn->SetAllowSetToNull(true);
-            $this->ApplyCommonColumnEditProperties($editColumn);
-            $grid->AddInsertColumn($editColumn);
-            
-            //
-            // Edit column for descrizione field
-            //
-            $editor = new TextEdit('descrizione_edit');
-            $editor->SetSize(50);
-            $editor->SetMaxLength(50);
-            $editColumn = new CustomEditColumn('Descrizione', 'descrizione', $editor, $this->dataset);
-            $editColumn->SetAllowSetToNull(true);
+            $editor = new SpinEdit('ivo-codvoc_edit');
+            $editColumn = new CustomEditColumn('Ivo-codvoc', 'ivo-codvoc', $editor, $this->dataset);
+            $validator = new RequiredValidator(StringUtils::Format($this->GetLocalizerCaptions()->GetMessageString('RequiredValidationMessage'), $this->RenderText($editColumn->GetCaption())));
+            $editor->GetValidatorCollection()->AddValidator($validator);
             $this->ApplyCommonColumnEditProperties($editColumn);
             $grid->AddInsertColumn($editColumn);
             if ($this->GetSecurityInfo()->HasAddGrant())
             {
-                $grid->SetShowAddButton(true);
+                $grid->SetShowAddButton(false);
                 $grid->SetShowInlineAddButton(false);
             }
             else
@@ -251,16 +222,9 @@
         protected function AddPrintColumns(Grid $grid)
         {
             //
-            // View column for codice field
+            // View column for ivo-codvoc field
             //
-            $column = new TextViewColumn('codice', 'Codice', $this->dataset);
-            $column->SetOrderable(true);
-            $grid->AddPrintColumn($column);
-            
-            //
-            // View column for descrizione field
-            //
-            $column = new TextViewColumn('descrizione', 'Descrizione', $this->dataset);
+            $column = new TextViewColumn('ivo-codvoc', 'Ivo-codvoc', $this->dataset);
             $column->SetOrderable(true);
             $grid->AddPrintColumn($column);
         }
@@ -268,16 +232,9 @@
         protected function AddExportColumns(Grid $grid)
         {
             //
-            // View column for codice field
+            // View column for ivo-codvoc field
             //
-            $column = new TextViewColumn('codice', 'Codice', $this->dataset);
-            $column->SetOrderable(true);
-            $grid->AddExportColumn($column);
-            
-            //
-            // View column for descrizione field
-            //
-            $column = new TextViewColumn('descrizione', 'Descrizione', $this->dataset);
+            $column = new TextViewColumn('ivo-codvoc', 'Ivo-codvoc', $this->dataset);
             $column->SetOrderable(true);
             $grid->AddExportColumn($column);
         }
@@ -303,23 +260,10 @@
         {
             return ;
         }
-        public function ShowEditButtonHandler(&$show)
-        {
-            if ($this->GetRecordPermission() != null)
-                $show = $this->GetRecordPermission()->HasEditGrant($this->GetDataset());
-        }
-        public function ShowDeleteButtonHandler(&$show)
-        {
-            if ($this->GetRecordPermission() != null)
-                $show = $this->GetRecordPermission()->HasDeleteGrant($this->GetDataset());
-        }
-        
-        public function GetModalGridDeleteHandler() { return 'listini_modal_delete'; }
-        protected function GetEnableModalGridDelete() { return true; }
     
         protected function CreateGrid()
         {
-            $result = new Grid($this, $this->dataset, 'listiniGrid');
+            $result = new Grid($this, $this->dataset, 'listino_vociGrid');
             if ($this->GetSecurityInfo()->HasDeleteGrant())
                $result->SetAllowDeleteSelected(false);
             else
@@ -357,7 +301,7 @@
             $this->SetAdvancedSearchAvailable(false);
             $this->SetFilterRowAvailable(false);
             $this->SetVisualEffectsEnabled(true);
-            $this->SetShowTopPageNavigator(false);
+            $this->SetShowTopPageNavigator(true);
             $this->SetShowBottomPageNavigator(false);
     
             //
@@ -382,12 +326,12 @@
 
     try
     {
-        $Page = new listiniPage("listini.php", "listini", GetCurrentUserGrantForDataSource("listini"), 'UTF-8');
-        $Page->SetShortCaption('Listini');
+        $Page = new listino_vociPage("query_listino_voci.php", "listino_voci", GetCurrentUserGrantForDataSource("query_listino_voci"), 'UTF-8');
+        $Page->SetShortCaption('Query Listino Voci');
         $Page->SetHeader(GetPagesHeader());
         $Page->SetFooter(GetPagesFooter());
-        $Page->SetCaption('Listini');
-        $Page->SetRecordPermission(GetCurrentUserRecordPermissionsForDataSource("listini"));
+        $Page->SetCaption('Query Listino Voci');
+        $Page->SetRecordPermission(GetCurrentUserRecordPermissionsForDataSource("query_listino_voci"));
         GetApplication()->SetEnableLessRunTimeCompile(GetEnableLessFilesRunTimeCompilation());
         GetApplication()->SetCanUserChangeOwnPassword(
             !function_exists('CanUserChangeOwnPassword') || CanUserChangeOwnPassword());

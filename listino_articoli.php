@@ -81,7 +81,13 @@
     
         protected function CreatePageNavigator()
         {
-            return null;
+            $result = new CompositePageNavigator($this);
+            
+            $partitionNavigator = new PageNavigator('pnav', $this, $this->dataset);
+            $partitionNavigator->SetRowsPerPage(25);
+            $result->AddPageNavigator($partitionNavigator);
+            
+            return $result;
         }
     
         public function GetPageList()
@@ -95,8 +101,8 @@
                 $result->AddPage(new PageLink($this->RenderText('Articoli'), 'articoli.php', $this->RenderText('Articoli'), $currentPageCaption == $this->RenderText('Articoli'), false, $this->RenderText('Default')));
             if (GetCurrentUserGrantForDataSource('famiglie')->HasViewGrant())
                 $result->AddPage(new PageLink($this->RenderText('Famiglie'), 'famiglie.php', $this->RenderText('Famiglie'), $currentPageCaption == $this->RenderText('Famiglie'), false, $this->RenderText('Default')));
-            if (GetCurrentUserGrantForDataSource('listino_voci')->HasViewGrant())
-                $result->AddPage(new PageLink($this->RenderText('Listino Voci'), 'listino_voci.php', $this->RenderText('Listino Voci'), $currentPageCaption == $this->RenderText('Listino Voci'), false, $this->RenderText('Default')));
+            if (GetCurrentUserGrantForDataSource('offerte')->HasViewGrant())
+                $result->AddPage(new PageLink($this->RenderText('Offerte'), 'offerte.php', $this->RenderText('Offerte'), $currentPageCaption == $this->RenderText('Offerte'), false, $this->RenderText('Default')));
             if (GetCurrentUserGrantForDataSource('listino_articoli')->HasViewGrant())
                 $result->AddPage(new PageLink($this->RenderText('Listino Articoli'), 'listino_articoli.php', $this->RenderText('Listino Articoli'), $currentPageCaption == $this->RenderText('Listino Articoli'), false, $this->RenderText('Default')));
             if (GetCurrentUserGrantForDataSource('voci_costo')->HasViewGrant())
@@ -310,7 +316,8 @@
             $lookupDataset->AddField($field, false);
             $lookupDataset->setOrderByField('descrizione', GetOrderTypeAsSQL(otAscending));
             $editColumn = new DynamicLookupEditColumn('Codice Articolo', 'lis-codart', 'lis-codart_descrizione', 'edit_lis-codart_descrizione_search', $editor, $this->dataset, $lookupDataset, 'art-codart', 'descrizione', '');
-            $editColumn->SetAllowSetToNull(true);
+            $validator = new RequiredValidator(StringUtils::Format($this->GetLocalizerCaptions()->GetMessageString('RequiredValidationMessage'), $this->RenderText($editColumn->GetCaption())));
+            $editor->GetValidatorCollection()->AddValidator($validator);
             $this->ApplyCommonColumnEditProperties($editColumn);
             $grid->AddEditColumn($editColumn);
             
@@ -320,6 +327,7 @@
             $editor = new TextEdit('lisdesc_edit');
             $editor->SetSize(100);
             $editColumn = new CustomEditColumn('Descrizione', 'lisdesc', $editor, $this->dataset);
+            $editColumn->SetReadOnly(true);
             $editColumn->SetAllowSetToNull(true);
             $this->ApplyCommonColumnEditProperties($editColumn);
             $grid->AddEditColumn($editColumn);
@@ -335,7 +343,8 @@
             $editor->AddValue('MC', $this->RenderText('Metri cubi'));
             $editor->AddValue('MT', $this->RenderText('Metri'));
             $editColumn = new CustomEditColumn('Unità misura', 'lis-unimis', $editor, $this->dataset);
-            $editColumn->SetAllowSetToNull(true);
+            $validator = new RequiredValidator(StringUtils::Format($this->GetLocalizerCaptions()->GetMessageString('RequiredValidationMessage'), $this->RenderText($editColumn->GetCaption())));
+            $editor->GetValidatorCollection()->AddValidator($validator);
             $this->ApplyCommonColumnEditProperties($editColumn);
             $grid->AddEditColumn($editColumn);
             
@@ -344,7 +353,8 @@
             //
             $editor = new TextEdit('lis-przacq_edit');
             $editColumn = new CustomEditColumn('Prezzo acquisto', 'lis-przacq', $editor, $this->dataset);
-            $editColumn->SetAllowSetToNull(true);
+            $validator = new RequiredValidator(StringUtils::Format($this->GetLocalizerCaptions()->GetMessageString('RequiredValidationMessage'), $this->RenderText($editColumn->GetCaption())));
+            $editor->GetValidatorCollection()->AddValidator($validator);
             $this->ApplyCommonColumnEditProperties($editColumn);
             $grid->AddEditColumn($editColumn);
             
@@ -354,7 +364,8 @@
             $editor = new TextEdit('lis-moltipl_edit');
             $editColumn = new CustomEditColumn('Moltiplicatore', 'lis-moltipl', $editor, $this->dataset);
             $editColumn->SetReadOnly(true);
-            $editColumn->SetAllowSetToNull(true);
+            $validator = new RequiredValidator(StringUtils::Format($this->GetLocalizerCaptions()->GetMessageString('RequiredValidationMessage'), $this->RenderText($editColumn->GetCaption())));
+            $editor->GetValidatorCollection()->AddValidator($validator);
             $this->ApplyCommonColumnEditProperties($editColumn);
             $grid->AddEditColumn($editColumn);
             
@@ -364,7 +375,8 @@
             $editor = new TextEdit('lis-oneriacc_edit');
             $editor->SetSuffix($this->RenderText('%'));
             $editColumn = new CustomEditColumn('Oneri e accessori', 'lis-oneriacc', $editor, $this->dataset);
-            $editColumn->SetAllowSetToNull(true);
+            $validator = new RequiredValidator(StringUtils::Format($this->GetLocalizerCaptions()->GetMessageString('RequiredValidationMessage'), $this->RenderText($editColumn->GetCaption())));
+            $editor->GetValidatorCollection()->AddValidator($validator);
             $this->ApplyCommonColumnEditProperties($editColumn);
             $grid->AddEditColumn($editColumn);
             
@@ -374,7 +386,8 @@
             $editor = new TextEdit('lis-scarto_edit');
             $editor->SetSuffix($this->RenderText('%'));
             $editColumn = new CustomEditColumn('Scarto', 'lis-scarto', $editor, $this->dataset);
-            $editColumn->SetAllowSetToNull(true);
+            $validator = new RequiredValidator(StringUtils::Format($this->GetLocalizerCaptions()->GetMessageString('RequiredValidationMessage'), $this->RenderText($editColumn->GetCaption())));
+            $editor->GetValidatorCollection()->AddValidator($validator);
             $this->ApplyCommonColumnEditProperties($editColumn);
             $grid->AddEditColumn($editColumn);
             
@@ -417,7 +430,8 @@
             $lookupDataset->AddField($field, false);
             $lookupDataset->setOrderByField('descrizione', GetOrderTypeAsSQL(otAscending));
             $editColumn = new DynamicLookupEditColumn('Codice Articolo', 'lis-codart', 'lis-codart_descrizione', 'insert_lis-codart_descrizione_search', $editor, $this->dataset, $lookupDataset, 'art-codart', 'descrizione', '');
-            $editColumn->SetAllowSetToNull(true);
+            $validator = new RequiredValidator(StringUtils::Format($this->GetLocalizerCaptions()->GetMessageString('RequiredValidationMessage'), $this->RenderText($editColumn->GetCaption())));
+            $editor->GetValidatorCollection()->AddValidator($validator);
             $this->ApplyCommonColumnEditProperties($editColumn);
             $grid->AddInsertColumn($editColumn);
             
@@ -427,6 +441,7 @@
             $editor = new TextEdit('lisdesc_edit');
             $editor->SetSize(100);
             $editColumn = new CustomEditColumn('Descrizione', 'lisdesc', $editor, $this->dataset);
+            $editColumn->SetReadOnly(true);
             $editColumn->SetAllowSetToNull(true);
             $this->ApplyCommonColumnEditProperties($editColumn);
             $grid->AddInsertColumn($editColumn);
@@ -442,7 +457,8 @@
             $editor->AddValue('MC', $this->RenderText('Metri cubi'));
             $editor->AddValue('MT', $this->RenderText('Metri'));
             $editColumn = new CustomEditColumn('Unità misura', 'lis-unimis', $editor, $this->dataset);
-            $editColumn->SetAllowSetToNull(true);
+            $validator = new RequiredValidator(StringUtils::Format($this->GetLocalizerCaptions()->GetMessageString('RequiredValidationMessage'), $this->RenderText($editColumn->GetCaption())));
+            $editor->GetValidatorCollection()->AddValidator($validator);
             $this->ApplyCommonColumnEditProperties($editColumn);
             $grid->AddInsertColumn($editColumn);
             
@@ -451,7 +467,9 @@
             //
             $editor = new TextEdit('lis-przacq_edit');
             $editColumn = new CustomEditColumn('Prezzo acquisto', 'lis-przacq', $editor, $this->dataset);
-            $editColumn->SetAllowSetToNull(true);
+            $editColumn->SetInsertDefaultValue($this->RenderText('0'));
+            $validator = new RequiredValidator(StringUtils::Format($this->GetLocalizerCaptions()->GetMessageString('RequiredValidationMessage'), $this->RenderText($editColumn->GetCaption())));
+            $editor->GetValidatorCollection()->AddValidator($validator);
             $this->ApplyCommonColumnEditProperties($editColumn);
             $grid->AddInsertColumn($editColumn);
             
@@ -461,8 +479,9 @@
             $editor = new TextEdit('lis-moltipl_edit');
             $editColumn = new CustomEditColumn('Moltiplicatore', 'lis-moltipl', $editor, $this->dataset);
             $editColumn->SetReadOnly(true);
-            $editColumn->SetAllowSetToNull(true);
             $editColumn->SetInsertDefaultValue($this->RenderText('5'));
+            $validator = new RequiredValidator(StringUtils::Format($this->GetLocalizerCaptions()->GetMessageString('RequiredValidationMessage'), $this->RenderText($editColumn->GetCaption())));
+            $editor->GetValidatorCollection()->AddValidator($validator);
             $this->ApplyCommonColumnEditProperties($editColumn);
             $grid->AddInsertColumn($editColumn);
             
@@ -472,7 +491,9 @@
             $editor = new TextEdit('lis-oneriacc_edit');
             $editor->SetSuffix($this->RenderText('%'));
             $editColumn = new CustomEditColumn('Oneri e accessori', 'lis-oneriacc', $editor, $this->dataset);
-            $editColumn->SetAllowSetToNull(true);
+            $editColumn->SetInsertDefaultValue($this->RenderText('0'));
+            $validator = new RequiredValidator(StringUtils::Format($this->GetLocalizerCaptions()->GetMessageString('RequiredValidationMessage'), $this->RenderText($editColumn->GetCaption())));
+            $editor->GetValidatorCollection()->AddValidator($validator);
             $this->ApplyCommonColumnEditProperties($editColumn);
             $grid->AddInsertColumn($editColumn);
             
@@ -482,7 +503,9 @@
             $editor = new TextEdit('lis-scarto_edit');
             $editor->SetSuffix($this->RenderText('%'));
             $editColumn = new CustomEditColumn('Scarto', 'lis-scarto', $editor, $this->dataset);
-            $editColumn->SetAllowSetToNull(true);
+            $editColumn->SetInsertDefaultValue($this->RenderText('0'));
+            $validator = new RequiredValidator(StringUtils::Format($this->GetLocalizerCaptions()->GetMessageString('RequiredValidationMessage'), $this->RenderText($editColumn->GetCaption())));
+            $editor->GetValidatorCollection()->AddValidator($validator);
             $this->ApplyCommonColumnEditProperties($editColumn);
             $grid->AddInsertColumn($editColumn);
             
@@ -492,6 +515,7 @@
             $editor = new DateTimeEdit('lis-dataini_edit', false, 'd-m-Y', GetFirstDayOfWeek());
             $editColumn = new CustomEditColumn('Data inizio decorrenza', 'lis-dataini', $editor, $this->dataset);
             $editColumn->SetAllowSetToNull(true);
+            $editColumn->SetInsertDefaultValue($this->RenderText('%CURRENT_DATETIME%'));
             $this->ApplyCommonColumnEditProperties($editColumn);
             $grid->AddInsertColumn($editColumn);
             
@@ -501,6 +525,7 @@
             $editor = new DateTimeEdit('lis-datafin_edit', false, 'd-m-Y', GetFirstDayOfWeek());
             $editColumn = new CustomEditColumn('Data fine decorrenza', 'lis-datafin', $editor, $this->dataset);
             $editColumn->SetAllowSetToNull(true);
+            $editColumn->SetInsertDefaultValue($this->RenderText('31-12-9999'));
             $this->ApplyCommonColumnEditProperties($editColumn);
             $grid->AddInsertColumn($editColumn);
             if ($this->GetSecurityInfo()->HasAddGrant())
@@ -745,7 +770,7 @@
             $this->SetAdvancedSearchAvailable(false);
             $this->SetFilterRowAvailable(true);
             $this->SetVisualEffectsEnabled(true);
-            $this->SetShowTopPageNavigator(false);
+            $this->SetShowTopPageNavigator(true);
             $this->SetShowBottomPageNavigator(false);
     
             //
